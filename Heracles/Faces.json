@@ -1,0 +1,263 @@
+[
+  {
+    "name" : "GOLD1",
+    "gold" : 1,
+    "sun" : 0,
+    "moon" : 0,
+    "vp" : 0,
+    "isOr" : false,
+    "level" : 0
+  },
+  {
+    "name" : "GOLD3",
+    "gold" : 3,
+    "sun" : 0,
+    "moon" : 0,
+    "vp" : 0,
+    "isOr" : false,
+    "level" : 1
+  },
+  {
+    "name" : "GOLD4",
+    "gold" : 4,
+    "sun" : 0,
+    "moon" : 0,
+    "vp" : 0,
+    "isOr" : false,
+    "level" : 2
+  },
+  {
+    "name" : "GOLD6",
+    "gold" : 6,
+    "sun" : 0,
+    "moon" : 0,
+    "vp" : 0,
+    "isOr" : false,
+    "level" : 3
+  },
+  {
+    "name" : "SUN1",
+    "gold" : 0,
+    "sun" : 1,
+    "moon" : 0,
+    "vp" : 0,
+    "isOr" : false,
+    "level" : 2
+  },
+  {
+    "name" : "SUN2",
+    "gold" : 0,
+    "sun" : 2,
+    "moon" : 0,
+    "vp" : 0,
+    "isOr" : false,
+    "level" : 6
+  },
+  {
+    "name" : "MOON1",
+    "gold" : 0,
+    "sun" : 0,
+    "moon" : 1,
+    "vp" : 0,
+    "isOr" : false,
+    "level" : 1
+  },
+  {
+    "name" : "MOON2",
+    "gold" : 0,
+    "sun" : 0,
+    "moon" : 2,
+    "vp" : 0,
+    "isOr" : false,
+    "level" : 5
+  },
+  {
+    "name" : "VP2",
+    "gold" : 0,
+    "sun" : 0,
+    "moon" : 0,
+    "vp" : 2,
+    "isOr" : false,
+    "level" : 0
+  },
+  {
+    "name" : "VP3",
+    "gold" : 0,
+    "sun" : 0,
+    "moon" : 0,
+    "vp" : 3,
+    "isOr" : false,
+    "level" : 6
+  },
+  {
+    "name" : "VP4",
+    "gold" : 0,
+    "sun" : 0,
+    "moon" : 0,
+    "vp" : 4,
+    "isOr" : false,
+    "level" : 7
+  },
+  {
+    "name" : "GOLD2MOON1",
+    "gold" : 2,
+    "sun" : 0,
+    "moon" : 1,
+    "vp" : 0,
+    "isOr" : false,
+    "level" : 3
+  },
+  {
+    "name" : "VP1SUN1",
+    "gold" : 0,
+    "sun" : 1,
+    "moon" : 0,
+    "vp" : 1,
+    "isOr" : false,
+    "level" : 3
+  },
+  {
+    "name" : "GOLD1SUN1MOON1isOr",
+    "gold" : 1,
+    "sun" : 1,
+    "moon" : 1,
+    "vp" : 0,
+    "isOr" : true,
+    "level" : 3
+  },
+  {
+    "name" : "GOLD3VP2isOr",
+    "gold" : 3,
+    "sun" : 0,
+    "moon" : 0,
+    "vp" : 2,
+    "isOr" : true,
+    "level" : 4
+  },
+  {
+    "name" : "GOLD1SUN1MOON1VP1",
+    "gold" : 1,
+    "sun" : 1,
+    "moon" : 1,
+    "vp" : 1,
+    "isOr" : false,
+    "level" : 7
+  },
+  {
+    "name" : "MOON2VP2",
+    "gold" : 0,
+    "sun" : 0,
+    "moon" : 2,
+    "vp" : 2,
+    "isOr" : false,
+    "level" : 7
+  },
+  {
+    "name" : "GOLD2SUN2MOON2isOr",
+    "gold" : 2,
+    "sun" : 2,
+    "moon" : 2,
+    "vp" : 0,
+    "isOr" : true,
+    "level" : 7
+  },
+  {
+    "name" : "MIRROR",
+    "gold" : 0,
+    "sun" : 0,
+    "moon" : 0,
+    "vp" : 0,
+    "isOr" : false,
+    "level" : 0
+  },
+  {
+    "name" : "REDSHIELD",
+    "gold" : 0,
+    "sun" : 0,
+    "moon" : 0,
+    "vp" : 0,
+    "isOr" : false,
+    "level" : 0
+  },
+  {
+    "name" : "YELLOWSHIELD",
+    "gold" : 0,
+    "sun" : 0,
+    "moon" : 0,
+    "vp" : 0,
+    "isOr" : false,
+    "level" : 0
+  },
+  {
+    "name" : "GREENSHIELD",
+    "gold" : 0,
+    "sun" : 0,
+    "moon" : 0,
+    "vp" : 0,
+    "isOr" : false,
+    "level" : 0
+  },
+  {
+    "name" : "BLUESHIELD",
+    "gold" : 0,
+    "sun" : 0,
+    "moon" : 0,
+    "vp" : 0,
+    "isOr" : false,
+    "level" : 0
+  },
+  {
+    "name" : "REDBOAR",
+    "gold" : 0,
+    "sun" : 1,
+    "moon" : 1,
+    "vp" : 0,
+    "isOr" : true,
+    "level" : 0
+  },
+  {
+    "name" : "YELLOWBOAR",
+    "gold" : 0,
+    "sun" : 1,
+    "moon" : 1,
+    "vp" : 0,
+    "isOr" : true,
+    "level" : 0
+  },
+  {
+    "name" : "GREENBOAR",
+    "gold" : 0,
+    "sun" : 1,
+    "moon" : 1,
+    "vp" : 0,
+    "isOr" : true,
+    "level" : 0
+  },
+  {
+    "name" : "BLUEBOAR",
+    "gold" : 0,
+    "sun" : 1,
+    "moon" : 1,
+    "vp" : 0,
+    "isOr" : true,
+    "level" : 0
+  },
+  {
+    "name" : "TIMES3",
+    "gold" : 0,
+    "sun" : 0,
+    "moon" : 0,
+    "vp" : 0,
+    "isOr" : false,
+    "level" : 0
+  },
+  {
+    "name" : "SHIP",
+    "gold" : 0,
+    "sun" : 0,
+    "moon" : 0,
+    "vp" : 0,
+    "isOr" : false,
+    "level" : 0
+  }
+]

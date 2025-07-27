@@ -1,0 +1,310 @@
+[
+  {
+    "name" : "THE_ELDER",
+    "position" : 0,
+    "points" : 0,
+    "set" : 0,
+    "effect" : "ELDER_REINF"
+  },
+  {
+    "name" : "WILD_SPIRITS",
+    "position" : 1,
+    "points" : 2,
+    "set" : 0,
+    "effect" : "SPRITS_INST"
+  },
+  {
+    "name" : "CELESTIAL_SHIP",
+    "position" : 2,
+    "points" : 4,
+    "set" : 1,
+    "effect" : "SHIP_INST"
+  },
+  {
+    "name" : "THE_GUARDIANS_OWL",
+    "position" : 2,
+    "points" : 4,
+    "set" : 0,
+    "effect" : "OWL_REINF"
+  },
+  {
+    "name" : "THE_GUARDIANS_SHIELD",
+    "position" : 3,
+    "points" : 6,
+    "set" : 1,
+    "effect" : "SHIELD_INST"
+  },
+  {
+    "name" : "MINOTAUR",
+    "position" : 3,
+    "points" : 8,
+    "set" : 0,
+    "effect" : "MINOTAUR_INST"
+  },
+  {
+    "name" : "TRITON",
+    "position" : 4,
+    "points" : 8,
+    "set" : 1,
+    "effect" : "TRITON_INST"
+  },
+  {
+    "name" : "GORGON",
+    "position" : 4,
+    "points" : 14,
+    "set" : 0,
+    "effect" : "NONE"
+  },
+  {
+    "name" : "MIRROR_OF_THE_ABYSS",
+    "position" : 5,
+    "points" : 10,
+    "set" : 0,
+    "effect" : "MIRROR_INST"
+  },
+  {
+    "name" : "CYCLOPS",
+    "position" : 6,
+    "points" : 8,
+    "set" : 1,
+    "effect" : "CYCLOPS_INST"
+  },
+  {
+    "name" : "SPHINX",
+    "position" : 6,
+    "points" : 10,
+    "set" : 0,
+    "effect" : "SPHINX_INST"
+  },
+  {
+    "name" : "TYPHON",
+    "position" : 7,
+    "points" : 16,
+    "set" : 1,
+    "effect" : "TYPHON_INST"
+  },
+  {
+    "name" : "HYDRA",
+    "position" : 7,
+    "points" : 26,
+    "set" : 0,
+    "effect" : "NONE"
+  },
+  {
+    "name" : "SENTINEL",
+    "position" : 8,
+    "points" : 6,
+    "set" : 1,
+    "effect" : "SENTINEL_INST"
+  },
+  {
+    "name" : "CANCER",
+    "position" : 8,
+    "points" : 8,
+    "set" : 0,
+    "effect" : "CANCER_INST"
+  },
+  {
+    "name" : "HELMET_OF_INVISIBILITY",
+    "position" : 9,
+    "points" : 4,
+    "set" : 0,
+    "effect" : "HELMET_INST"
+  },
+  {
+    "name" : "CERBERUS",
+    "position" : 10,
+    "points" : 6,
+    "set" : 1,
+    "effect" : "CERBERUS_INST"
+  },
+  {
+    "name" : "FERRYMAN",
+    "position" : 10,
+    "points" : 12,
+    "set" : 0,
+    "effect" : "NONE"
+  },
+  {
+    "name" : "TENACIOUS_BOAR",
+    "position" : 11,
+    "points" : 4,
+    "set" : 1,
+    "effect" : "BOAR_INST_AUTO"
+  },
+  {
+    "name" : "SATYRS",
+    "position" : 11,
+    "points" : 6,
+    "set" : 0,
+    "effect" : "SATYRS_INST"
+  },
+  {
+    "name" : "GREAT_BEAR",
+    "position" : 12,
+    "points" : 2,
+    "set" : 1,
+    "effect" : "BEAR_AUTO"
+  },
+  {
+    "name" : "THE_SILVER_HIND",
+    "position" : 12,
+    "points" : 2,
+    "set" : 0,
+    "effect" : "HIND_REINF"
+  },
+  {
+    "name" : "THE_BLACKSMITHS_CHEST",
+    "position" : 13,
+    "points" : 2,
+    "set" : 0,
+    "effect" : "CHEST_INST"
+  },
+  {
+    "name" : "THE_BLACKSMITHS_HAMMER",
+    "position" : 14,
+    "points" : 0,
+    "set" : 0,
+    "effect" : "HAMMER_INST"
+  },
+  {
+    "name" : "THE_TREE",
+    "position" : 0,
+    "points" : 2,
+    "set" : 2,
+    "effect" : "TREE_REINF"
+  },
+  {
+    "name" : "THE_MERCHANT",
+    "position" : 0,
+    "points" : 2,
+    "set" : 2,
+    "effect" : "MERCHANT_REINF"
+  },
+  {
+    "name" : "THE_WOOD_NYMPH",
+    "position" : 1,
+    "points" : 8,
+    "set" : 2,
+    "effect" : "NYMPH_INST"
+  },
+  {
+    "name" : "THE_LIGHT",
+    "position" : 3,
+    "points" : 8,
+    "set" : 2,
+    "effect" : "LIGHT_REINF"
+  },
+  {
+    "name" : "THE_OMNISCIENT",
+    "position" : 4,
+    "points" : 8,
+    "set" : 2,
+    "effect" : "OMNISCIENT_INST"
+  },
+  {
+    "name" : "THE_GOLDSMITH",
+    "position" : 4,
+    "points" : 4,
+    "set" : 2,
+    "effect" : "GOLDSMITH_INST"
+  },
+  {
+    "name" : "THE_ABYSSAL_TRIDENT",
+    "position" : 5,
+    "points" : 10,
+    "set" : 2,
+    "effect" : "TRIDENT_INST"
+  },
+  {
+    "name" : "THE_LEFT_HAND",
+    "position" : 6,
+    "points" : 8,
+    "set" : 2,
+    "effect" : "LEFTHAND_INST"
+  },
+  {
+    "name" : "THE_ETERNAL_FIRE",
+    "position" : 6,
+    "points" : 10,
+    "set" : 2,
+    "effect" : "FIRE_INST"
+  },
+  {
+    "name" : "THE_FIRST_TITAN",
+    "position" : 7,
+    "points" : 20,
+    "set" : 2,
+    "effect" : "TITAN_INST"
+  },
+  {
+    "name" : "THE_GODDESS",
+    "position" : 7,
+    "points" : 18,
+    "set" : 2,
+    "effect" : "GODDESS_INST"
+  },
+  {
+    "name" : "THE_RIGHT_HAND",
+    "position" : 8,
+    "points" : 10,
+    "set" : 2,
+    "effect" : "RIGHTHAND_INST"
+  },
+  {
+    "name" : "THE_ETERNAL_NIGHT",
+    "position" : 8,
+    "points" : 8,
+    "set" : 2,
+    "effect" : "NIGHT_INST"
+  },
+  {
+    "name" : "THE_MISTS",
+    "position" : 10,
+    "points" : 6,
+    "set" : 2,
+    "effect" : "MISTS_INST"
+  },
+  {
+    "name" : "THE_ANCESTOR",
+    "position" : 10,
+    "points" : 6,
+    "set" : 2,
+    "effect" : "ANCESTOR_INST"
+  },
+  {
+    "name" : "THE_WIND",
+    "position" : 11,
+    "points" : 6,
+    "set" : 2,
+    "effect" : "WIND_INST"
+  },
+  {
+    "name" : "THE_CELESTIAL_DIE",
+    "position" : 11,
+    "points" : 6,
+    "set" : 2,
+    "effect" : "DIE_INST"
+  },
+  {
+    "name" : "THE_COMPANION",
+    "position" : 13,
+    "points" : 2,
+    "set" : 2,
+    "effect" : "COMPANION_INST_REINF"
+  },
+  {
+    "name" : "THE_BLACKSMITHS_SCEPTER",
+    "position" : 14,
+    "points" : 2,
+    "set" : 2,
+    "effect" : "SCEPTER_INST"
+  },
+  {
+    "name" : "THE_TWINS",
+    "position" : 14,
+    "points" : 2,
+    "set" : 2,
+    "effect" : "TWINS_AUTO"
+  }
+]
