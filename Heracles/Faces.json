@@ -117,7 +117,7 @@
     "level" : 3
   },
   {
-    "name" : "GOLD1SUN1MOON1isOr",
+    "name" : "GOLD1SUN1MOON1OR",
     "gold" : 1,
     "sun" : 1,
     "moon" : 1,
@@ -126,7 +126,7 @@
     "level" : 3
   },
   {
-    "name" : "GOLD3VP2isOr",
+    "name" : "GOLD3VP2OR",
     "gold" : 3,
     "sun" : 0,
     "moon" : 0,
@@ -153,7 +153,7 @@
     "level" : 7
   },
   {
-    "name" : "GOLD2SUN2MOON2isOr",
+    "name" : "GOLD2SUN2MOON2OR",
     "gold" : 2,
     "sun" : 2,
     "moon" : 2,

@@ -150,6 +150,19 @@ class BoardState:
         ret.lastPlayer = self.lastPlayer
         return ret
 
+    def copyLoggingState(self):
+        copyPlayers = []
+        for player in self.players:
+            copyPlayers.append(player.copyPlayer())
+        ret = LoggingBoardState(copyPlayers, False)
+        ret.temple = copy.deepcopy(self.temple)
+        ret.islands = copy.deepcopy(self.islands)
+        ret.round = self.round
+        ret.activePlayer = self.activePlayer
+        ret.phase = self.phase
+        ret.lastPlayer = self.lastPlayer
+        return ret
+
     def isOver(self):
         return self.round > 10
 
@@ -253,11 +266,99 @@ class BoardState:
                         self.phase = Phase.RESOLVE_REINF_EFFECTS
                     else:
                         self.phase = Phase.ACTIVE_PLAYER_CHOICE_1
+            case Phase.RESOLVE_REINF_EFFECTS:
+                self.phase = Phase.ACTIVE_PLAYER_CHOICE_1  # todo: implement reinf effects. just go to next phase for now
+            case Phase.ACTIVE_PLAYER_CHOICE_1:
+                if move[0] == Move.CHOOSE_BUY_FACES:
+                    self.phase = Phase.ACTIVE_PLAYER_BUY_FACES_1
+                elif move[0] == Move.CHOOSE_PERFORM_FEAT:
+                    self.phase = Phase.ACTIVE_PLAYER_PERFORM_FEAT_1
+            case Phase.ACTIVE_PLAYER_CHOICE_2:
+                if move[0] == Move.CHOOSE_BUY_FACES:
+                    self.phase = Phase.ACTIVE_PLAYER_BUY_FACES_2
+                elif move[0] == Move.CHOOSE_PERFORM_FEAT:
+                    self.phase = Phase.ACTIVE_PLAYER_PERFORM_FEAT_2
+            case Phase.EXTRA_TURN_DECISION:
+                if move[0] == Move.TAKE_EXTRA_TURN:
+                    if move[2][0]:
+                        self.players[self.activePlayer].gainSun(-2)
+                        self.phase = Phase.ACTIVE_PLAYER_CHOICE_2
+                    else:
+                        self.phase = Phase.TURN_START
+                        self.advanceActivePlayer()
+                        if not self.isOver():
+                            self.makeMove(move)
+            case Phase.ACTIVE_PLAYER_BUY_FACES_1:
+                if move[0] == Move.BUY_FACES:
+                    for face in move[2]:
+                        self.temple[Data.getPool(face)].remove(face)
+                        self.players[self.activePlayer].buyFace(
+                            face)  # todo: right now there is no option to forge the newly bought faces
+                    if self.players[self.activePlayer].sun >= 2:
+                        self.phase = Phase.EXTRA_TURN_DECISION
+                    else:
+                        self.phase = Phase.TURN_START
+                        self.advanceActivePlayer()
+                        if not self.isOver():
+                            self.makeMove(move)
+                if move[0] == Move.PASS:
+                    if self.players[self.activePlayer].sun >= 2:
+                        self.phase = Phase.EXTRA_TURN_DECISION
+                    else:
+                        self.phase = Phase.TURN_START
+                        self.advanceActivePlayer()
+                        if not self.isOver():
+                            self.makeMove(move)
+            case Phase.ACTIVE_PLAYER_BUY_FACES_2:
+                if move[0] == Move.BUY_FACES:
+                    for face in move[2]:
+                        self.temple[Data.getPool(face)].remove(face)
+                        self.players[self.activePlayer].buyFace(
+                            face)  # todo: right now there is no option to forge the newly bought faces
+                    self.phase = Phase.TURN_START
+                    self.advanceActivePlayer()
+                    if not self.isOver():
+                        self.makeMove(move)
+                if move[0] == Move.PASS:
+                    self.phase = Phase.TURN_START
+                    self.advanceActivePlayer()
+                    if not self.isOver():
+                        self.makeMove(move)
+            case Phase.ACTIVE_PLAYER_PERFORM_FEAT_1:
+                if move[0] == Move.PERFORM_FEAT:
+                    self.islands[Data.getPosition(move[2][0])].remove(move[2][0])
+                    self.players[self.activePlayer].performFeat(move[2][0])
+                    if self.players[self.activePlayer].sun >= 2:
+                        self.phase = Phase.EXTRA_TURN_DECISION
+                    else:
+                        self.phase = Phase.TURN_START
+                        self.advanceActivePlayer()
+                        self.makeMove(move)
+                if move[0] == Move.PASS:
+                    if self.players[self.activePlayer].sun >= 2:
+                        self.phase = Phase.EXTRA_TURN_DECISION
+                    else:
+                        self.phase = Phase.TURN_START
+                        self.advanceActivePlayer()
+                        self.makeMove(move)
+            case Phase.ACTIVE_PLAYER_PERFORM_FEAT_2:
+                if move[0] == Move.PERFORM_FEAT:
+                    self.islands[Data.getPosition(move[2][0])].remove(move[2][0])
+                    self.players[self.activePlayer].performFeat(move[2][0])
+                    self.phase = Phase.TURN_START
+                    self.advanceActivePlayer()
+                    if not self.isOver():
+                        self.makeMove(move)
+                if move[0] == Move.PASS:
+                    self.phase = Phase.TURN_START
+                    self.advanceActivePlayer()
+                    if not self.isOver():
+                        self.makeMove(move)
 
         # todo: finish
 
     def getOptions(self):
-        ret = (Move.PASS, self.activePlayer, ())
+        ret = ((Move.PASS, self.activePlayer, ()), )
         match self.phase:
             case Phase.RESOLVE_DIE_1_1:
                 ret = self.players[0].getDieOptions(True)
@@ -279,10 +380,10 @@ class BoardState:
                 ret = self.players[self.activePlayer].getReinfOptions()
             case Phase.ACTIVE_PLAYER_CHOICE_1:
                 ret = (
-                (Move.CHOOSE_BUY_FACES, self.activePlayer, ()), (Move.CHOOSE_PERFORM_FEAT, self.activePlayer, ()))
+                    (Move.CHOOSE_BUY_FACES, self.activePlayer, ()), (Move.CHOOSE_PERFORM_FEAT, self.activePlayer, ()))
             case Phase.ACTIVE_PLAYER_CHOICE_2:
                 ret = (
-                (Move.CHOOSE_BUY_FACES, self.activePlayer, ()), (Move.CHOOSE_PERFORM_FEAT, self.activePlayer, ()))
+                    (Move.CHOOSE_BUY_FACES, self.activePlayer, ()), (Move.CHOOSE_PERFORM_FEAT, self.activePlayer, ()))
             case Phase.ACTIVE_PLAYER_BUY_FACES_1:
                 ret = self.generateBuyFaces()
             case Phase.ACTIVE_PLAYER_BUY_FACES_2:
@@ -293,7 +394,8 @@ class BoardState:
                 ret = self.generatePerformFeats()
             case Phase.EXTRA_TURN_DECISION:
                 ret = (
-                (Move.TAKE_EXTRA_TURN, self.activePlayer, (True,)), (Move.TAKE_EXTRA_TURN, self.activePlayer, (False,)))
+                    (Move.TAKE_EXTRA_TURN, self.activePlayer, (True,)),
+                    (Move.TAKE_EXTRA_TURN, self.activePlayer, (False,)))
             # todo: other actions
         return ret
 
@@ -389,12 +491,9 @@ class BoardState:
                                     if self.temple[1] and self.temple[2] and self.temple[3]:
                                         ret.append((Move.BUY_FACES, self.activePlayer,
                                                     (self.temple[1][0], self.temple[2][0], self.temple[3][0])))
-                                    if self.temple[0] and self.temple[4]:
+                                    if self.temple[0] and self.temple[1] and self.temple[4]:
                                         for face in self.temple[4]:
-                                            ret.append((Move.BUY_FACES, self.activePlayer, (self.temple[0][0], face)))
-                                    if self.temple[1] and self.temple[4]:
-                                        for face in self.temple[4]:
-                                            ret.append((Move.BUY_FACES, self.activePlayer, (self.temple[1][0], face)))
+                                            ret.append((Move.BUY_FACES, self.activePlayer, (self.temple[0][0], self.temple[1][0], face)))
                                     if gold >= 9:
                                         if self.temple[0] and self.temple[1] and self.temple[5]:
                                             ret.append((Move.BUY_FACES, self.activePlayer,
@@ -447,8 +546,8 @@ class BoardState:
                                                         (Move.BUY_FACES, self.activePlayer, (face, self.temple[6][0])))
                                             if self.temple[0] and self.temple[1] and self.temple[2] and self.temple[3]:
                                                 ret.append((Move.BUY_FACES, self.activePlayer, (
-                                                self.temple[0][0], self.temple[1][0], self.temple[2][0],
-                                                self.temple[3][0])))
+                                                    self.temple[0][0], self.temple[1][0], self.temple[2][0],
+                                                    self.temple[3][0])))
                                             if self.temple[0] and self.temple[2] and self.temple[5]:
                                                 ret.append((Move.BUY_FACES, self.activePlayer,
                                                             (self.temple[0][0], self.temple[2][0], self.temple[5][0])))
@@ -467,7 +566,7 @@ class BoardState:
                                                     j = i + 1
                                                     while j < len(self.temple[4]):
                                                         ret.append((Move.BUY_FACES, self.activePlayer, (
-                                                        self.temple[0][0], self.temple[4][i], self.temple[4][j])))
+                                                            self.temple[0][0], self.temple[4][i], self.temple[4][j])))
                                                         j += 1
                                                     i += 1
                                             if self.temple[1] and len(self.temple[4]) > 1:
@@ -476,7 +575,7 @@ class BoardState:
                                                     j = i + 1
                                                     while j < len(self.temple[4]):
                                                         ret.append((Move.BUY_FACES, self.activePlayer, (
-                                                        self.temple[1][0], self.temple[4][i], self.temple[4][j])))
+                                                            self.temple[1][0], self.temple[4][i], self.temple[4][j])))
                                                         j += 1
                                                     i += 1
                                             if self.temple[2] and self.temple[3] and self.temple[4]:
@@ -502,7 +601,8 @@ class BoardState:
                                                         j = i + 1
                                                         while j < len(self.temple[4]):
                                                             ret.append((Move.BUY_FACES, self.activePlayer, (
-                                                            self.temple[2][0], self.temple[4][i], self.temple[4][j])))
+                                                                self.temple[2][0], self.temple[4][i],
+                                                                self.temple[4][j])))
                                                             j += 1
                                                         i += 1
                                                 if self.temple[3] and len(self.temple[4]) > 1:
@@ -511,21 +611,22 @@ class BoardState:
                                                         j = i + 1
                                                         while j < len(self.temple[4]):
                                                             ret.append((Move.BUY_FACES, self.activePlayer, (
-                                                            self.temple[3][0], self.temple[4][i], self.temple[4][j])))
+                                                                self.temple[3][0], self.temple[4][i],
+                                                                self.temple[4][j])))
                                                             j += 1
                                                         i += 1
                                                 if self.temple[0] and self.temple[2] and self.temple[6]:
                                                     ret.append((Move.BUY_FACES, self.activePlayer, (
-                                                    self.temple[0][0], self.temple[2][0], self.temple[6][0])))
+                                                        self.temple[0][0], self.temple[2][0], self.temple[6][0])))
                                                 if self.temple[1] and self.temple[2] and self.temple[6]:
                                                     ret.append((Move.BUY_FACES, self.activePlayer, (
-                                                    self.temple[1][0], self.temple[2][0], self.temple[6][0])))
+                                                        self.temple[1][0], self.temple[2][0], self.temple[6][0])))
                                                 if self.temple[0] and self.temple[3] and self.temple[6]:
                                                     ret.append((Move.BUY_FACES, self.activePlayer, (
-                                                    self.temple[0][0], self.temple[3][0], self.temple[6][0])))
+                                                        self.temple[0][0], self.temple[3][0], self.temple[6][0])))
                                                 if self.temple[1] and self.temple[3] and self.temple[6]:
                                                     ret.append((Move.BUY_FACES, self.activePlayer, (
-                                                    self.temple[1][0], self.temple[3][0], self.temple[6][0])))
+                                                        self.temple[1][0], self.temple[3][0], self.temple[6][0])))
                                                 if self.temple[5] and self.temple[6]:
                                                     ret.append((Move.BUY_FACES, self.activePlayer,
                                                                 (self.temple[5][0], self.temple[6][0])))
@@ -539,17 +640,19 @@ class BoardState:
                                                                     (self.temple[1][0], face, self.temple[5][0])))
                                                 if self.temple[2] and self.temple[3] and self.temple[5]:
                                                     ret.append((Move.BUY_FACES, self.activePlayer, (
-                                                    self.temple[2][0], self.temple[3][0], self.temple[5][0])))
+                                                        self.temple[2][0], self.temple[3][0], self.temple[5][0])))
                                                 if self.temple[0] and self.temple[1] and self.temple[2] and self.temple[
                                                     4]:
                                                     for face in self.temple[4]:
                                                         ret.append((Move.BUY_FACES, self.activePlayer, (
-                                                        self.temple[0][0], self.temple[1][0], self.temple[2][0], face)))
+                                                            self.temple[0][0], self.temple[1][0], self.temple[2][0],
+                                                            face)))
                                                 if self.temple[0] and self.temple[1] and self.temple[3] and self.temple[
                                                     4]:
                                                     for face in self.temple[4]:
                                                         ret.append((Move.BUY_FACES, self.activePlayer, (
-                                                        self.temple[0][0], self.temple[1][0], self.temple[3][0], face)))
+                                                            self.temple[0][0], self.temple[1][0], self.temple[3][0],
+                                                            face)))
                                                 if gold >= 12:
                                                     for face in self.temple[9]:
                                                         ret.append((Move.BUY_FACES, self.activePlayer, (face,)))
@@ -563,10 +666,10 @@ class BoardState:
                                                                         (face, self.temple[8][0])))
                                                     if self.temple[0] and self.temple[1] and self.temple[7]:
                                                         ret.append((Move.BUY_FACES, self.activePlayer, (
-                                                        self.temple[0][0], self.temple[1][0], self.temple[7][0])))
+                                                            self.temple[0][0], self.temple[1][0], self.temple[7][0])))
                                                     if self.temple[0] and self.temple[1] and self.temple[8]:
                                                         ret.append((Move.BUY_FACES, self.activePlayer, (
-                                                        self.temple[0][0], self.temple[1][0], self.temple[8][0])))
+                                                            self.temple[0][0], self.temple[1][0], self.temple[8][0])))
                                                     if self.temple[0] and self.temple[4] and self.temple[6]:
                                                         for face in self.temple[4]:
                                                             ret.append((Move.BUY_FACES, self.activePlayer,
@@ -577,7 +680,7 @@ class BoardState:
                                                                         (self.temple[1][0], face, self.temple[6][0])))
                                                     if self.temple[2] and self.temple[3] and self.temple[6]:
                                                         ret.append((Move.BUY_FACES, self.activePlayer, (
-                                                        self.temple[2][0], self.temple[3][0], self.temple[6][0])))
+                                                            self.temple[2][0], self.temple[3][0], self.temple[6][0])))
                                                     if self.temple[2] and self.temple[4] and self.temple[5]:
                                                         for face in self.temple[4]:
                                                             ret.append((Move.BUY_FACES, self.activePlayer,
@@ -589,13 +692,13 @@ class BoardState:
                                                     if self.temple[0] and self.temple[1] and self.temple[2] and \
                                                             self.temple[5]:
                                                         ret.append((Move.BUY_FACES, self.activePlayer, (
-                                                        self.temple[0][0], self.temple[1][0], self.temple[2][0],
-                                                        self.temple[5][0])))
+                                                            self.temple[0][0], self.temple[1][0], self.temple[2][0],
+                                                            self.temple[5][0])))
                                                     if self.temple[0] and self.temple[1] and self.temple[3] and \
                                                             self.temple[5]:
                                                         ret.append((Move.BUY_FACES, self.activePlayer, (
-                                                        self.temple[0][0], self.temple[1][0], self.temple[3][0],
-                                                        self.temple[5][0])))
+                                                            self.temple[0][0], self.temple[1][0], self.temple[3][0],
+                                                            self.temple[5][0])))
                                                     if len(self.temple[4]) > 2:
                                                         i = 0
                                                         while i < len(self.temple[4]) - 2:
@@ -604,8 +707,8 @@ class BoardState:
                                                                 k = j + 1
                                                                 while k < len(self.temple[4]):
                                                                     ret.append((Move.BUY_FACES, self.activePlayer, (
-                                                                    self.temple[4][i], self.temple[4][j],
-                                                                    self.temple[4][k])))
+                                                                        self.temple[4][i], self.temple[4][j],
+                                                                        self.temple[4][k])))
                                                                     k += 1
                                                                 j += 1
                                                             i += 1
@@ -613,28 +716,29 @@ class BoardState:
                                                             self.temple[4]:
                                                         for face in self.temple[4]:
                                                             ret.append((Move.BUY_FACES, self.activePlayer, (
-                                                            self.temple[0][0], self.temple[2][0], self.temple[3][0],
-                                                            face)))
+                                                                self.temple[0][0], self.temple[2][0], self.temple[3][0],
+                                                                face)))
                                                     if self.temple[1] and self.temple[2] and self.temple[3] and \
                                                             self.temple[4]:
                                                         for face in self.temple[4]:
                                                             ret.append((Move.BUY_FACES, self.activePlayer, (
-                                                            self.temple[1][0], self.temple[2][0], self.temple[3][0],
-                                                            face)))
+                                                                self.temple[1][0], self.temple[2][0], self.temple[3][0],
+                                                                face)))
                                                     if self.temple[0] and self.temple[1] and len(self.temple[4]) > 1:
                                                         i = 0
                                                         while i < len(self.temple[4]) - 1:
                                                             j = i + 1
                                                             while j < len(self.temple[4]):
                                                                 ret.append((Move.BUY_FACES, self.activePlayer, (
-                                                                self.temple[0][0], self.temple[1][0], self.temple[4][i],
-                                                                self.temple[4][j])))
+                                                                    self.temple[0][0], self.temple[1][0],
+                                                                    self.temple[4][i],
+                                                                    self.temple[4][j])))
                                                                 j += 1
                                                             i += 1
 
         # todo, etc
         if not ret:
-            ret.append(Move.PASS, self.activePlayer, ())
+            ret.append((Move.PASS, self.activePlayer, ()))
         return tuple(ret)
 
     def generatePerformFeats(self):
@@ -685,7 +789,26 @@ class BoardState:
             if self.islands[7]:
                 ret.append((Move.PERFORM_FEAT, self.activePlayer, (self.islands[7][0],)))
         if not ret:
-            ret.append(Move.PASS, self.activePlayer, ())
+            ret.append((Move.PASS, self.activePlayer, ()))
+        return tuple(ret)
+
+    def advanceActivePlayer(self):
+        self.activePlayer += 1
+        if self.activePlayer >= len(self.players):
+            self.activePlayer = 0
+            self.round += 1
+
+    def getWinners(self):
+        ret = []
+        scores = []
+        for player in self.players:
+            scores.append(player.vp)
+        bestScore = max(scores)
+        for player in self.players:
+            if player.vp == bestScore:
+                ret.append(1)
+            else:
+                ret.append(0)
         return tuple(ret)
 
     def printBoardState(self):
@@ -710,6 +833,748 @@ class BoardState:
             else:
                 print("Empty")
             i += 1
+
+    def printPoints(self):
+        print("Victory Points:")
+        for player in self.players:
+            print(f"Player {player.playerID}: {player.vp}")
+
+    def selectRandomFeats(self):
+        i = 0
+        while i < 15:
+            feats = Data.getFeatsByPosition(i)
+            self.addFeat(i, feats[random.randrange(len(feats))])
+            i += 1
+
+    def addFeat(self, island, feat):
+        j = 0
+        while j < len(self.players):
+            self.islands[island].append(feat)
+            j += 1
+
+
+class LoggingBoardState:
+    def __init__(self, players, initialState):
+        self.players = players
+        self.temple = ([DieFace.GOLD3, DieFace.GOLD3, DieFace.GOLD3, DieFace.GOLD3],
+                       [DieFace.MOON1, DieFace.MOON1, DieFace.MOON1, DieFace.MOON1],
+                       [DieFace.GOLD4, DieFace.GOLD4, DieFace.GOLD4, DieFace.GOLD4],
+                       [DieFace.SUN1, DieFace.SUN1, DieFace.SUN1, DieFace.SUN1],
+                       [DieFace.GOLD6, DieFace.VP1SUN1, DieFace.GOLD2MOON1, DieFace.GOLD1SUN1MOON1OR],
+                       [DieFace.GOLD3VP2OR, DieFace.GOLD3VP2OR, DieFace.GOLD3VP2OR, DieFace.GOLD3VP2OR],
+                       [DieFace.MOON2, DieFace.MOON2, DieFace.MOON2, DieFace.MOON2],
+                       [DieFace.SUN2, DieFace.SUN2, DieFace.SUN2, DieFace.SUN2],
+                       [DieFace.VP3, DieFace.VP3, DieFace.VP3, DieFace.VP3],
+                       [DieFace.VP4, DieFace.MOON2VP2, DieFace.GOLD1SUN1MOON1VP1, DieFace.GOLD2SUN2MOON2OR])
+        self.islands = ([], [], [], [], [], [], [], [], [], [], [], [], [], [], [])
+        self.selectRandomFeats()
+        self.round = 1
+        self.activePlayer = 0
+        self.lastPlayer = 0
+        self.phase = Phase.TURN_START
+        if initialState:
+            self.makeMove((Move.PASS, self.activePlayer, ()))
+
+    def copyState(self):
+        copyPlayers = []
+        for player in self.players:
+            copyPlayers.append(player.copyPlayer())
+        ret = BoardState(copyPlayers, False)
+        ret.temple = copy.deepcopy(self.temple)
+        ret.islands = copy.deepcopy(self.islands)
+        ret.round = self.round
+        ret.activePlayer = self.activePlayer
+        ret.phase = self.phase
+        ret.lastPlayer = self.lastPlayer
+        return ret
+
+    def copyLoggingState(self):
+        copyPlayers = []
+        for player in self.players:
+            copyPlayers.append(player.copyPlayer())
+        ret = LoggingBoardState(copyPlayers, False)
+        ret.temple = copy.deepcopy(self.temple)
+        ret.islands = copy.deepcopy(self.islands)
+        ret.round = self.round
+        ret.activePlayer = self.activePlayer
+        ret.phase = self.phase
+        ret.lastPlayer = self.lastPlayer
+        return ret
+
+    def isOver(self):
+        return self.round > 10
+
+    def makeMove(self, move):
+        print(f"Current Phase: {self.phase}. Making move: {move}")
+        self.printBoardState()
+        self.lastPlayer = move[1]
+        match self.phase:
+            case Phase.TURN_START:
+                for player in self.players:
+                    player.divineBlessing()
+                self.phase = Phase.RESOLVE_DIE_1_1
+                self.makeMove(move)
+            case Phase.RESOLVE_DIE_1_1:
+                if move[0] == Move.CHOOSE_DIE_OR:
+                    mult = 1
+                    if self.players[0].getDie2Result() == DieFace.TIMES3:
+                        mult = 3
+                    self.players[0].gainResource(move[2][0], move[2][1] * mult)
+                elif not Data.getIsOr(self.players[0].getDie1Result()):
+                    self.players[0].gainDieEffect(1, True)
+                    self.phase = Phase.RESOLVE_DIE_1_2
+                    self.makeMove(move)
+            case Phase.RESOLVE_DIE_1_2:
+                if move[0] == Move.CHOOSE_DIE_OR:
+                    mult = 1
+                    if self.players[0].getDie1Result() == DieFace.TIMES3:
+                        mult = 3
+                    self.players[0].gainResource(move[2][0], move[2][1] * mult)
+                elif not Data.getIsOr(self.players[0].getDie2Result()):
+                    self.players[0].gainDieEffect(2, True)
+                    self.phase = Phase.RESOLVE_DIE_2_1
+                    self.makeMove(move)
+            case Phase.RESOLVE_DIE_2_1:
+                if move[0] == Move.CHOOSE_DIE_OR:
+                    mult = 1
+                    if self.players[1].getDie2Result() == DieFace.TIMES3:
+                        mult = 3
+                    self.players[1].gainResource(move[2][0], move[2][1] * mult)
+                elif not Data.getIsOr(self.players[1].getDie1Result()):
+                    self.players[1].gainDieEffect(1, True)
+                    self.phase = Phase.RESOLVE_DIE_2_2
+                    self.makeMove(move)
+            case Phase.RESOLVE_DIE_2_2:
+                if move[0] == Move.CHOOSE_DIE_OR:
+                    mult = 1
+                    if self.players[1].getDie1Result() == DieFace.TIMES3:
+                        mult = 3
+                    self.players[1].gainResource(move[2][0], move[2][1] * mult)
+                elif not Data.getIsOr(self.players[1].getDie2Result()):
+                    self.players[1].gainDieEffect(2, True)
+                    if len(self.players) > 2:
+                        self.phase = Phase.RESOLVE_DIE_3_1
+                        self.makeMove(move)
+                    elif self.players[self.activePlayer].hasReinfEffects():
+                        self.phase = Phase.RESOLVE_REINF_EFFECTS
+                    else:
+                        self.phase = Phase.ACTIVE_PLAYER_CHOICE_1
+            case Phase.RESOLVE_DIE_3_1:
+                if move[0] == Move.CHOOSE_DIE_OR:
+                    mult = 1
+                    if self.players[2].getDie2Result() == DieFace.TIMES3:
+                        mult = 3
+                    self.players[2].gainResource(move[2][0], move[2][1] * mult)
+                elif not Data.getIsOr(self.players[2].getDie1Result()):
+                    self.players[2].gainDieEffect(1, True)
+                    self.phase = Phase.RESOLVE_DIE_3_2
+                    self.makeMove(move)
+            case Phase.RESOLVE_DIE_3_2:
+                if move[0] == Move.CHOOSE_DIE_OR:
+                    mult = 1
+                    if self.players[2].getDie1Result() == DieFace.TIMES3:
+                        mult = 3
+                    self.players[2].gainResource(move[2][0], move[2][1] * mult)
+                elif not Data.getIsOr(self.players[2].getDie2Result()):
+                    self.players[2].gainDieEffect(2, True)
+                    if len(self.players) > 3:
+                        self.phase = Phase.RESOLVE_DIE_4_1
+                        self.makeMove(move)
+                    elif self.players[self.activePlayer].hasReinfEffects():
+                        self.phase = Phase.RESOLVE_REINF_EFFECTS
+                    else:
+                        self.phase = Phase.ACTIVE_PLAYER_CHOICE_1
+            case Phase.RESOLVE_DIE_4_1:
+                if move[0] == Move.CHOOSE_DIE_OR:
+                    mult = 1
+                    if self.players[3].getDie2Result() == DieFace.TIMES3:
+                        mult = 3
+                    self.players[3].gainResource(move[2][0], move[2][1] * mult)
+                elif not Data.getIsOr(self.players[3].getDie1Result()):
+                    self.players[3].gainDieEffect(1, True)
+                    self.phase = Phase.RESOLVE_DIE_4_2
+                    self.makeMove(move)
+            case Phase.RESOLVE_DIE_4_2:
+                if move[0] == Move.CHOOSE_DIE_OR:
+                    mult = 1
+                    if self.players[3].getDie1Result() == DieFace.TIMES3:
+                        mult = 3
+                    self.players[3].gainResource(move[2][0], move[2][1] * mult)
+                elif not Data.getIsOr(self.players[3].getDie2Result()):
+                    self.players[3].gainDieEffect(2, True)
+                    if self.players[self.activePlayer].hasReinfEffects():
+                        self.phase = Phase.RESOLVE_REINF_EFFECTS
+                    else:
+                        self.phase = Phase.ACTIVE_PLAYER_CHOICE_1
+            case Phase.RESOLVE_REINF_EFFECTS:
+                self.phase = Phase.ACTIVE_PLAYER_CHOICE_1  # todo: implement reinf effects. just go to next phase for now
+            case Phase.ACTIVE_PLAYER_CHOICE_1:
+                if move[0] == Move.CHOOSE_BUY_FACES:
+                    self.phase = Phase.ACTIVE_PLAYER_BUY_FACES_1
+                elif move[0] == Move.CHOOSE_PERFORM_FEAT:
+                    self.phase = Phase.ACTIVE_PLAYER_PERFORM_FEAT_1
+            case Phase.ACTIVE_PLAYER_CHOICE_2:
+                if move[0] == Move.CHOOSE_BUY_FACES:
+                    self.phase = Phase.ACTIVE_PLAYER_BUY_FACES_2
+                elif move[0] == Move.CHOOSE_PERFORM_FEAT:
+                    self.phase = Phase.ACTIVE_PLAYER_PERFORM_FEAT_2
+            case Phase.EXTRA_TURN_DECISION:
+                if move[0] == Move.TAKE_EXTRA_TURN:
+                    if move[2][0]:
+                        self.players[self.activePlayer].gainSun(-2)
+                        self.phase = Phase.ACTIVE_PLAYER_CHOICE_2
+                    else:
+                        self.phase = Phase.TURN_START
+                        self.advanceActivePlayer()
+                        self.makeMove(move)
+            case Phase.ACTIVE_PLAYER_BUY_FACES_1:
+                if move[0] == Move.BUY_FACES:
+                    for face in move[2]:
+                        self.temple[Data.getPool(face)].remove(face)
+                        self.players[self.activePlayer].buyFace(
+                            face)  # todo: right now there is no option to forge the newly bought faces
+                    if self.players[self.activePlayer].sun >= 2:
+                        self.phase = Phase.EXTRA_TURN_DECISION
+                    else:
+                        self.phase = Phase.TURN_START
+                        self.advanceActivePlayer()
+                        self.makeMove(move)
+                if move[0] == Move.PASS:
+                    if self.players[self.activePlayer].sun >= 2:
+                        self.phase = Phase.EXTRA_TURN_DECISION
+                    else:
+                        self.phase = Phase.TURN_START
+                        self.advanceActivePlayer()
+                        self.makeMove(move)
+            case Phase.ACTIVE_PLAYER_BUY_FACES_2:
+                if move[0] == Move.BUY_FACES:
+                    for face in move[2]:
+                        self.temple[Data.getPool(face)].remove(face)
+                        self.players[self.activePlayer].buyFace(
+                            face)  # todo: right now there is no option to forge the newly bought faces
+                    self.phase = Phase.TURN_START
+                    self.advanceActivePlayer()
+                    if not self.isOver():
+                        self.makeMove(move)
+                if move[0] == Move.PASS:
+                    self.phase = Phase.TURN_START
+                    self.advanceActivePlayer()
+                    if not self.isOver():
+                        self.makeMove(move)
+            case Phase.ACTIVE_PLAYER_PERFORM_FEAT_1:
+                if move[0] == Move.PERFORM_FEAT:
+                    self.islands[Data.getPosition(move[2][0])].remove(move[2][0])
+                    self.players[self.activePlayer].performFeat(move[2][0])
+                    if self.players[self.activePlayer].sun >= 2:
+                        self.phase = Phase.EXTRA_TURN_DECISION
+                    else:
+                        self.phase = Phase.TURN_START
+                        self.advanceActivePlayer()
+                        self.makeMove(move)
+                if move[0] == Move.PASS:
+                    if self.players[self.activePlayer].sun >= 2:
+                        self.phase = Phase.EXTRA_TURN_DECISION
+                    else:
+                        self.phase = Phase.TURN_START
+                        self.advanceActivePlayer()
+                        self.makeMove(move)
+            case Phase.ACTIVE_PLAYER_PERFORM_FEAT_2:
+                if move[0] == Move.PERFORM_FEAT:
+                    self.islands[Data.getPosition(move[2][0])].remove(move[2][0])
+                    self.players[self.activePlayer].performFeat(move[2][0])
+                    self.phase = Phase.TURN_START
+                    self.advanceActivePlayer()
+                    if not self.isOver():
+                        self.makeMove(move)
+                if move[0] == Move.PASS:
+                    self.phase = Phase.TURN_START
+                    self.advanceActivePlayer()
+                    if not self.isOver():
+                        self.makeMove(move)
+
+        # todo: finish
+
+    def getOptions(self):
+        ret = ((Move.PASS, self.activePlayer, ()), )
+        match self.phase:
+            case Phase.RESOLVE_DIE_1_1:
+                ret = self.players[0].getDieOptions(True)
+            case Phase.RESOLVE_DIE_1_2:
+                ret = self.players[0].getDieOptions(False)
+            case Phase.RESOLVE_DIE_2_1:
+                ret = self.players[1].getDieOptions(True)
+            case Phase.RESOLVE_DIE_2_2:
+                ret = self.players[1].getDieOptions(False)
+            case Phase.RESOLVE_DIE_3_1:
+                ret = self.players[2].getDieOptions(True)
+            case Phase.RESOLVE_DIE_3_2:
+                ret = self.players[2].getDieOptions(False)
+            case Phase.RESOLVE_DIE_4_1:
+                ret = self.players[3].getDieOptions(True)
+            case Phase.RESOLVE_DIE_4_2:
+                ret = self.players[3].getDieOptions(False)
+            case Phase.RESOLVE_REINF_EFFECTS:
+                ret = self.players[self.activePlayer].getReinfOptions()
+            case Phase.ACTIVE_PLAYER_CHOICE_1:
+                ret = (
+                    (Move.CHOOSE_BUY_FACES, self.activePlayer, ()), (Move.CHOOSE_PERFORM_FEAT, self.activePlayer, ()))
+            case Phase.ACTIVE_PLAYER_CHOICE_2:
+                ret = (
+                    (Move.CHOOSE_BUY_FACES, self.activePlayer, ()), (Move.CHOOSE_PERFORM_FEAT, self.activePlayer, ()))
+            case Phase.ACTIVE_PLAYER_BUY_FACES_1:
+                ret = self.generateBuyFaces()
+            case Phase.ACTIVE_PLAYER_BUY_FACES_2:
+                ret = self.generateBuyFaces()
+            case Phase.ACTIVE_PLAYER_PERFORM_FEAT_1:
+                ret = self.generatePerformFeats()
+            case Phase.ACTIVE_PLAYER_PERFORM_FEAT_2:
+                ret = self.generatePerformFeats()
+            case Phase.EXTRA_TURN_DECISION:
+                ret = (
+                    (Move.TAKE_EXTRA_TURN, self.activePlayer, (True,)),
+                    (Move.TAKE_EXTRA_TURN, self.activePlayer, (False,)))
+            # todo: other actions
+        return ret
+
+    def generateBuyFaces(self):
+        # should generate options for every possible face buy or feat
+        gold = self.players[self.activePlayer].gold
+        ret = []
+        if gold >= 2:
+            if self.temple[0]:
+                ret.append((Move.BUY_FACES, self.activePlayer, (self.temple[0][0],)))
+            if self.temple[1]:
+                ret.append((Move.BUY_FACES, self.activePlayer, (self.temple[1][0],)))
+            if gold >= 3:
+                if self.temple[2]:
+                    ret.append((Move.BUY_FACES, self.activePlayer, (self.temple[2][0],)))
+                if self.temple[3]:
+                    ret.append((Move.BUY_FACES, self.activePlayer, (self.temple[3][0],)))
+                if gold >= 4:
+                    for face in self.temple[4]:
+                        ret.append((Move.BUY_FACES, self.activePlayer, (face,)))
+                    if self.temple[0] and self.temple[1]:
+                        ret.append((Move.BUY_FACES, self.activePlayer, (self.temple[0][0], self.temple[1][0])))
+                    if gold >= 5:
+                        if self.temple[5]:
+                            ret.append((Move.BUY_FACES, self.activePlayer, (self.temple[5][0],)))
+                        if self.temple[0] and self.temple[2]:
+                            ret.append((Move.BUY_FACES, self.activePlayer, (self.temple[0][0], self.temple[2][0])))
+                        if self.temple[1] and self.temple[2]:
+                            ret.append((Move.BUY_FACES, self.activePlayer, (self.temple[1][0], self.temple[2][0])))
+                        if self.temple[0] and self.temple[3]:
+                            ret.append((Move.BUY_FACES, self.activePlayer, (self.temple[0][0], self.temple[3][0])))
+                        if self.temple[1] and self.temple[3]:
+                            ret.append((Move.BUY_FACES, self.activePlayer, (self.temple[1][0], self.temple[3][0])))
+                        if gold >= 6:
+                            if self.temple[6]:
+                                ret.append((Move.BUY_FACES, self.activePlayer, (self.temple[6][0],)))
+                            if self.temple[2] and self.temple[3]:
+                                ret.append((Move.BUY_FACES, self.activePlayer, (self.temple[2][0], self.temple[3][0])))
+                            if self.temple[0] and self.temple[4]:
+                                for face in self.temple[4]:
+                                    ret.append((Move.BUY_FACES, self.activePlayer, (self.temple[0][0], face)))
+                            if self.temple[1] and self.temple[4]:
+                                for face in self.temple[4]:
+                                    ret.append((Move.BUY_FACES, self.activePlayer, (self.temple[1][0], face)))
+                            if gold >= 7:
+                                if self.temple[2] and self.temple[4]:
+                                    for face in self.temple[4]:
+                                        ret.append((Move.BUY_FACES, self.activePlayer, (self.temple[2][0], face)))
+                                if self.temple[3] and self.temple[4]:
+                                    for face in self.temple[4]:
+                                        ret.append((Move.BUY_FACES, self.activePlayer, (self.temple[3][0], face)))
+                                if self.temple[0] and self.temple[5]:
+                                    ret.append(
+                                        (Move.BUY_FACES, self.activePlayer, (self.temple[0][0], self.temple[5][0])))
+                                if self.temple[1] and self.temple[5]:
+                                    ret.append(
+                                        (Move.BUY_FACES, self.activePlayer, (self.temple[1][0], self.temple[5][0])))
+                                if self.temple[0] and self.temple[1] and self.temple[2]:
+                                    ret.append((Move.BUY_FACES, self.activePlayer,
+                                                (self.temple[0][0], self.temple[1][0], self.temple[2][0])))
+                                if self.temple[0] and self.temple[1] and self.temple[3]:
+                                    ret.append((Move.BUY_FACES, self.activePlayer,
+                                                (self.temple[0][0], self.temple[1][0], self.temple[3][0])))
+                                if gold >= 8:
+                                    if self.temple[7]:
+                                        ret.append((Move.BUY_FACES, self.activePlayer, (self.temple[7][0],)))
+                                    if self.temple[8]:
+                                        ret.append((Move.BUY_FACES, self.activePlayer, (self.temple[8][0],)))
+                                    if len(self.temple[4]) > 1:
+                                        i = 0
+                                        while i < len(self.temple[4]) - 1:
+                                            j = i + 1
+                                            while j < len(self.temple[4]):
+                                                ret.append((Move.BUY_FACES, self.activePlayer,
+                                                            (self.temple[4][i], self.temple[4][j])))
+                                                j += 1
+                                            i += 1
+                                    if self.temple[0] and self.temple[6]:
+                                        ret.append(
+                                            (Move.BUY_FACES, self.activePlayer, (self.temple[0][0], self.temple[6][0])))
+                                    if self.temple[1] and self.temple[6]:
+                                        ret.append(
+                                            (Move.BUY_FACES, self.activePlayer, (self.temple[1][0], self.temple[6][0])))
+                                    if self.temple[2] and self.temple[5]:
+                                        ret.append(
+                                            (Move.BUY_FACES, self.activePlayer, (self.temple[2][0], self.temple[5][0])))
+                                    if self.temple[3] and self.temple[5]:
+                                        ret.append(
+                                            (Move.BUY_FACES, self.activePlayer, (self.temple[3][0], self.temple[5][0])))
+                                    if self.temple[0] and self.temple[2] and self.temple[3]:
+                                        ret.append((Move.BUY_FACES, self.activePlayer,
+                                                    (self.temple[0][0], self.temple[2][0], self.temple[3][0])))
+                                    if self.temple[1] and self.temple[2] and self.temple[3]:
+                                        ret.append((Move.BUY_FACES, self.activePlayer,
+                                                    (self.temple[1][0], self.temple[2][0], self.temple[3][0])))
+                                    if self.temple[0] and self.temple[1] and self.temple[4]:
+                                        for face in self.temple[4]:
+                                            ret.append((Move.BUY_FACES, self.activePlayer, (self.temple[0][0], self.temple[1][0], face)))
+                                    if gold >= 9:
+                                        if self.temple[0] and self.temple[1] and self.temple[5]:
+                                            ret.append((Move.BUY_FACES, self.activePlayer,
+                                                        (self.temple[0][0], self.temple[1][0], self.temple[5][0])))
+                                        if self.temple[0] and self.temple[2] and self.temple[4]:
+                                            for face in self.temple[4]:
+                                                ret.append((Move.BUY_FACES, self.activePlayer,
+                                                            (self.temple[0][0], self.temple[2][0], face)))
+                                        if self.temple[0] and self.temple[3] and self.temple[4]:
+                                            for face in self.temple[4]:
+                                                ret.append((Move.BUY_FACES, self.activePlayer,
+                                                            (self.temple[0][0], self.temple[3][0], face)))
+                                        if self.temple[1] and self.temple[2] and self.temple[4]:
+                                            for face in self.temple[4]:
+                                                ret.append((Move.BUY_FACES, self.activePlayer,
+                                                            (self.temple[1][0], self.temple[2][0], face)))
+                                        if self.temple[1] and self.temple[3] and self.temple[4]:
+                                            for face in self.temple[4]:
+                                                ret.append((Move.BUY_FACES, self.activePlayer,
+                                                            (self.temple[1][0], self.temple[3][0], face)))
+                                        if self.temple[4] and self.temple[5]:
+                                            for face in self.temple[4]:
+                                                ret.append(
+                                                    (Move.BUY_FACES, self.activePlayer, (face, self.temple[5][0])))
+                                        if self.temple[2] and self.temple[6]:
+                                            ret.append((Move.BUY_FACES, self.activePlayer,
+                                                        (self.temple[2][0], self.temple[6][0])))
+                                        if self.temple[3] and self.temple[6]:
+                                            ret.append((Move.BUY_FACES, self.activePlayer,
+                                                        (self.temple[3][0], self.temple[6][0])))
+                                        if gold >= 10:
+                                            if self.temple[0] and self.temple[7]:
+                                                ret.append((Move.BUY_FACES, self.activePlayer,
+                                                            (self.temple[0][0], self.temple[7][0])))
+                                            if self.temple[1] and self.temple[7]:
+                                                ret.append((Move.BUY_FACES, self.activePlayer,
+                                                            (self.temple[1][0], self.temple[7][0])))
+                                            if self.temple[0] and self.temple[8]:
+                                                ret.append((Move.BUY_FACES, self.activePlayer,
+                                                            (self.temple[0][0], self.temple[8][0])))
+                                            if self.temple[1] and self.temple[8]:
+                                                ret.append((Move.BUY_FACES, self.activePlayer,
+                                                            (self.temple[1][0], self.temple[8][0])))
+                                            if self.temple[0] and self.temple[1] and self.temple[6]:
+                                                ret.append((Move.BUY_FACES, self.activePlayer,
+                                                            (self.temple[0][0], self.temple[1][0], self.temple[6][0])))
+                                            if self.temple[4] and self.temple[6]:
+                                                for face in self.temple[4]:
+                                                    ret.append(
+                                                        (Move.BUY_FACES, self.activePlayer, (face, self.temple[6][0])))
+                                            if self.temple[0] and self.temple[1] and self.temple[2] and self.temple[3]:
+                                                ret.append((Move.BUY_FACES, self.activePlayer, (
+                                                    self.temple[0][0], self.temple[1][0], self.temple[2][0],
+                                                    self.temple[3][0])))
+                                            if self.temple[0] and self.temple[2] and self.temple[5]:
+                                                ret.append((Move.BUY_FACES, self.activePlayer,
+                                                            (self.temple[0][0], self.temple[2][0], self.temple[5][0])))
+                                            if self.temple[1] and self.temple[2] and self.temple[5]:
+                                                ret.append((Move.BUY_FACES, self.activePlayer,
+                                                            (self.temple[1][0], self.temple[2][0], self.temple[5][0])))
+                                            if self.temple[0] and self.temple[3] and self.temple[5]:
+                                                ret.append((Move.BUY_FACES, self.activePlayer,
+                                                            (self.temple[0][0], self.temple[3][0], self.temple[5][0])))
+                                            if self.temple[1] and self.temple[3] and self.temple[5]:
+                                                ret.append((Move.BUY_FACES, self.activePlayer,
+                                                            (self.temple[1][0], self.temple[3][0], self.temple[5][0])))
+                                            if self.temple[0] and len(self.temple[4]) > 1:
+                                                i = 0
+                                                while i < len(self.temple[4]) - 1:
+                                                    j = i + 1
+                                                    while j < len(self.temple[4]):
+                                                        ret.append((Move.BUY_FACES, self.activePlayer, (
+                                                            self.temple[0][0], self.temple[4][i], self.temple[4][j])))
+                                                        j += 1
+                                                    i += 1
+                                            if self.temple[1] and len(self.temple[4]) > 1:
+                                                i = 0
+                                                while i < len(self.temple[4]) - 1:
+                                                    j = i + 1
+                                                    while j < len(self.temple[4]):
+                                                        ret.append((Move.BUY_FACES, self.activePlayer, (
+                                                            self.temple[1][0], self.temple[4][i], self.temple[4][j])))
+                                                        j += 1
+                                                    i += 1
+                                            if self.temple[2] and self.temple[3] and self.temple[4]:
+                                                for face in self.temple[4]:
+                                                    ret.append((Move.BUY_FACES, self.activePlayer,
+                                                                (self.temple[2][0], self.temple[3][0], face)))
+                                            if gold >= 11:
+                                                if self.temple[2] and self.temple[7]:
+                                                    ret.append((Move.BUY_FACES, self.activePlayer,
+                                                                (self.temple[2][0], self.temple[7][0])))
+                                                if self.temple[3] and self.temple[7]:
+                                                    ret.append((Move.BUY_FACES, self.activePlayer,
+                                                                (self.temple[3][0], self.temple[7][0])))
+                                                if self.temple[2] and self.temple[8]:
+                                                    ret.append((Move.BUY_FACES, self.activePlayer,
+                                                                (self.temple[2][0], self.temple[8][0])))
+                                                if self.temple[3] and self.temple[8]:
+                                                    ret.append((Move.BUY_FACES, self.activePlayer,
+                                                                (self.temple[3][0], self.temple[8][0])))
+                                                if self.temple[2] and len(self.temple[4]) > 1:
+                                                    i = 0
+                                                    while i < len(self.temple[4]) - 1:
+                                                        j = i + 1
+                                                        while j < len(self.temple[4]):
+                                                            ret.append((Move.BUY_FACES, self.activePlayer, (
+                                                                self.temple[2][0], self.temple[4][i],
+                                                                self.temple[4][j])))
+                                                            j += 1
+                                                        i += 1
+                                                if self.temple[3] and len(self.temple[4]) > 1:
+                                                    i = 0
+                                                    while i < len(self.temple[4]) - 1:
+                                                        j = i + 1
+                                                        while j < len(self.temple[4]):
+                                                            ret.append((Move.BUY_FACES, self.activePlayer, (
+                                                                self.temple[3][0], self.temple[4][i],
+                                                                self.temple[4][j])))
+                                                            j += 1
+                                                        i += 1
+                                                if self.temple[0] and self.temple[2] and self.temple[6]:
+                                                    ret.append((Move.BUY_FACES, self.activePlayer, (
+                                                        self.temple[0][0], self.temple[2][0], self.temple[6][0])))
+                                                if self.temple[1] and self.temple[2] and self.temple[6]:
+                                                    ret.append((Move.BUY_FACES, self.activePlayer, (
+                                                        self.temple[1][0], self.temple[2][0], self.temple[6][0])))
+                                                if self.temple[0] and self.temple[3] and self.temple[6]:
+                                                    ret.append((Move.BUY_FACES, self.activePlayer, (
+                                                        self.temple[0][0], self.temple[3][0], self.temple[6][0])))
+                                                if self.temple[1] and self.temple[3] and self.temple[6]:
+                                                    ret.append((Move.BUY_FACES, self.activePlayer, (
+                                                        self.temple[1][0], self.temple[3][0], self.temple[6][0])))
+                                                if self.temple[5] and self.temple[6]:
+                                                    ret.append((Move.BUY_FACES, self.activePlayer,
+                                                                (self.temple[5][0], self.temple[6][0])))
+                                                if self.temple[0] and len(self.temple[4]) > 1 and self.temple[5]:
+                                                    for face in self.temple[4]:
+                                                        ret.append((Move.BUY_FACES, self.activePlayer,
+                                                                    (self.temple[0][0], face, self.temple[5][0])))
+                                                if self.temple[1] and len(self.temple[4]) > 1 and self.temple[5]:
+                                                    for face in self.temple[4]:
+                                                        ret.append((Move.BUY_FACES, self.activePlayer,
+                                                                    (self.temple[1][0], face, self.temple[5][0])))
+                                                if self.temple[2] and self.temple[3] and self.temple[5]:
+                                                    ret.append((Move.BUY_FACES, self.activePlayer, (
+                                                        self.temple[2][0], self.temple[3][0], self.temple[5][0])))
+                                                if self.temple[0] and self.temple[1] and self.temple[2] and self.temple[
+                                                    4]:
+                                                    for face in self.temple[4]:
+                                                        ret.append((Move.BUY_FACES, self.activePlayer, (
+                                                            self.temple[0][0], self.temple[1][0], self.temple[2][0],
+                                                            face)))
+                                                if self.temple[0] and self.temple[1] and self.temple[3] and self.temple[
+                                                    4]:
+                                                    for face in self.temple[4]:
+                                                        ret.append((Move.BUY_FACES, self.activePlayer, (
+                                                            self.temple[0][0], self.temple[1][0], self.temple[3][0],
+                                                            face)))
+                                                if gold >= 12:
+                                                    for face in self.temple[9]:
+                                                        ret.append((Move.BUY_FACES, self.activePlayer, (face,)))
+                                                    if self.temple[4] and self.temple[7]:
+                                                        for face in self.temple[4]:
+                                                            ret.append((Move.BUY_FACES, self.activePlayer,
+                                                                        (face, self.temple[7][0])))
+                                                    if self.temple[4] and self.temple[8]:
+                                                        for face in self.temple[4]:
+                                                            ret.append((Move.BUY_FACES, self.activePlayer,
+                                                                        (face, self.temple[8][0])))
+                                                    if self.temple[0] and self.temple[1] and self.temple[7]:
+                                                        ret.append((Move.BUY_FACES, self.activePlayer, (
+                                                            self.temple[0][0], self.temple[1][0], self.temple[7][0])))
+                                                    if self.temple[0] and self.temple[1] and self.temple[8]:
+                                                        ret.append((Move.BUY_FACES, self.activePlayer, (
+                                                            self.temple[0][0], self.temple[1][0], self.temple[8][0])))
+                                                    if self.temple[0] and self.temple[4] and self.temple[6]:
+                                                        for face in self.temple[4]:
+                                                            ret.append((Move.BUY_FACES, self.activePlayer,
+                                                                        (self.temple[0][0], face, self.temple[6][0])))
+                                                    if self.temple[1] and self.temple[4] and self.temple[6]:
+                                                        for face in self.temple[4]:
+                                                            ret.append((Move.BUY_FACES, self.activePlayer,
+                                                                        (self.temple[1][0], face, self.temple[6][0])))
+                                                    if self.temple[2] and self.temple[3] and self.temple[6]:
+                                                        ret.append((Move.BUY_FACES, self.activePlayer, (
+                                                            self.temple[2][0], self.temple[3][0], self.temple[6][0])))
+                                                    if self.temple[2] and self.temple[4] and self.temple[5]:
+                                                        for face in self.temple[4]:
+                                                            ret.append((Move.BUY_FACES, self.activePlayer,
+                                                                        (self.temple[2][0], face, self.temple[5][0])))
+                                                    if self.temple[3] and self.temple[4] and self.temple[5]:
+                                                        for face in self.temple[4]:
+                                                            ret.append((Move.BUY_FACES, self.activePlayer,
+                                                                        (self.temple[3][0], face, self.temple[5][0])))
+                                                    if self.temple[0] and self.temple[1] and self.temple[2] and \
+                                                            self.temple[5]:
+                                                        ret.append((Move.BUY_FACES, self.activePlayer, (
+                                                            self.temple[0][0], self.temple[1][0], self.temple[2][0],
+                                                            self.temple[5][0])))
+                                                    if self.temple[0] and self.temple[1] and self.temple[3] and \
+                                                            self.temple[5]:
+                                                        ret.append((Move.BUY_FACES, self.activePlayer, (
+                                                            self.temple[0][0], self.temple[1][0], self.temple[3][0],
+                                                            self.temple[5][0])))
+                                                    if len(self.temple[4]) > 2:
+                                                        i = 0
+                                                        while i < len(self.temple[4]) - 2:
+                                                            j = i + 1
+                                                            while j < len(self.temple[4]) - 1:
+                                                                k = j + 1
+                                                                while k < len(self.temple[4]):
+                                                                    ret.append((Move.BUY_FACES, self.activePlayer, (
+                                                                        self.temple[4][i], self.temple[4][j],
+                                                                        self.temple[4][k])))
+                                                                    k += 1
+                                                                j += 1
+                                                            i += 1
+                                                    if self.temple[0] and self.temple[2] and self.temple[3] and \
+                                                            self.temple[4]:
+                                                        for face in self.temple[4]:
+                                                            ret.append((Move.BUY_FACES, self.activePlayer, (
+                                                                self.temple[0][0], self.temple[2][0], self.temple[3][0],
+                                                                face)))
+                                                    if self.temple[1] and self.temple[2] and self.temple[3] and \
+                                                            self.temple[4]:
+                                                        for face in self.temple[4]:
+                                                            ret.append((Move.BUY_FACES, self.activePlayer, (
+                                                                self.temple[1][0], self.temple[2][0], self.temple[3][0],
+                                                                face)))
+                                                    if self.temple[0] and self.temple[1] and len(self.temple[4]) > 1:
+                                                        i = 0
+                                                        while i < len(self.temple[4]) - 1:
+                                                            j = i + 1
+                                                            while j < len(self.temple[4]):
+                                                                ret.append((Move.BUY_FACES, self.activePlayer, (
+                                                                    self.temple[0][0], self.temple[1][0],
+                                                                    self.temple[4][i],
+                                                                    self.temple[4][j])))
+                                                                j += 1
+                                                            i += 1
+
+        # todo, etc
+        if not ret:
+            ret.append((Move.PASS, self.activePlayer, ()))
+        return tuple(ret)
+
+    def generatePerformFeats(self):
+        ret = []
+        sun = self.players[self.activePlayer].sun
+        moon = self.players[self.activePlayer].moon
+        if sun >= 1:
+            if self.islands[0]:
+                ret.append((Move.PERFORM_FEAT, self.activePlayer, (self.islands[0][0],)))
+            if self.islands[1]:
+                ret.append((Move.PERFORM_FEAT, self.activePlayer, (self.islands[1][0],)))
+            if sun >= 2:
+                if self.islands[2]:
+                    ret.append((Move.PERFORM_FEAT, self.activePlayer, (self.islands[2][0],)))
+                if sun >= 3:
+                    if self.islands[3]:
+                        ret.append((Move.PERFORM_FEAT, self.activePlayer, (self.islands[3][0],)))
+                    if sun >= 4:
+                        if self.islands[4]:
+                            ret.append((Move.PERFORM_FEAT, self.activePlayer, (self.islands[4][0],)))
+                        if sun >= 5:
+                            if self.islands[5]:
+                                ret.append((Move.PERFORM_FEAT, self.activePlayer, (self.islands[5][0],)))
+                            if sun >= 6:
+                                if self.islands[6]:
+                                    ret.append((Move.PERFORM_FEAT, self.activePlayer, (self.islands[6][0],)))
+        if moon >= 1:
+            if self.islands[14]:
+                ret.append((Move.PERFORM_FEAT, self.activePlayer, (self.islands[14][0],)))
+            if self.islands[13]:
+                ret.append((Move.PERFORM_FEAT, self.activePlayer, (self.islands[13][0],)))
+            if moon >= 2:
+                if self.islands[12]:
+                    ret.append((Move.PERFORM_FEAT, self.activePlayer, (self.islands[12][0],)))
+                if moon >= 3:
+                    if self.islands[11]:
+                        ret.append((Move.PERFORM_FEAT, self.activePlayer, (self.islands[11][0],)))
+                    if moon >= 4:
+                        if self.islands[10]:
+                            ret.append((Move.PERFORM_FEAT, self.activePlayer, (self.islands[10][0],)))
+                        if moon >= 5:
+                            if self.islands[9]:
+                                ret.append((Move.PERFORM_FEAT, self.activePlayer, (self.islands[9][0],)))
+                            if moon >= 6:
+                                if self.islands[8]:
+                                    ret.append((Move.PERFORM_FEAT, self.activePlayer, (self.islands[8][0],)))
+        if sun >= 5 and moon >= 5:
+            if self.islands[7]:
+                ret.append((Move.PERFORM_FEAT, self.activePlayer, (self.islands[7][0],)))
+        if not ret:
+            ret.append((Move.PASS, self.activePlayer, ()))
+        return tuple(ret)
+
+    def advanceActivePlayer(self):
+        self.activePlayer += 1
+        if self.activePlayer >= len(self.players):
+            self.activePlayer = 0
+            self.round += 1
+
+    def getWinners(self):
+        ret = []
+        scores = []
+        for player in self.players:
+            scores.append(player.vp)
+        bestScore = max(scores)
+        for player in self.players:
+            if player.vp == bestScore:
+                ret.append(1)
+            else:
+                ret.append(0)
+        return tuple(ret)
+
+    def printBoardState(self):
+        print(f"Round: {self.round}")
+        print(f"Player {self.activePlayer} is the active player.")
+        print("Players:")
+        for p in self.players:
+            p.printPlayerInfo()
+        print("Temple Pools:")
+        i = 1
+        for pool in self.temple:
+            print(f"Pool {i}:")
+            for face in pool:
+                print(face)
+            i += 1
+        print("Islands:")
+        i = 1
+        for featPool in self.islands:
+            print(f"Feat {i}:")
+            if featPool:
+                print(f"{featPool[0]} (x{len(featPool)})")
+            else:
+                print("Empty")
+            i += 1
+
+    def printPoints(self):
+        print("Victory Points:")
+        for player in self.players:
+            print(f"Player {player.playerID}: {player.vp}")
 
     def selectRandomFeats(self):
         i = 0
@@ -741,8 +1606,7 @@ class Player:
         self.ai = ai
 
     def copyPlayer(self):
-        ret = Player()
-        ret.playerID = self.playerID
+        ret = Player(self.playerID, self.ai)
         ret.gold = self.gold
         ret.sun = self.sun
         ret.moon = self.moon
@@ -834,13 +1698,29 @@ class Player:
         self.unforgedFaces.append(face)
 
     def performFeat(self, feat):
+        self.gainSun(-Data.getSunCost(feat))
+        self.gainMoon(-Data.getMoonCost(feat))
         self.feats.append(feat)
         self.gainVP(Data.getPoints(feat))
         # todo: instant actions
 
     def getDieOptions(self, die1):
         # True for die 1, False for die 2
-        return (Move.PASS, self.playerID)  # todo
+        if die1:
+            face = self.die1.getUpFace()
+        else:
+            face = self.die2.getUpFace()
+        resources = Data.getResourceValues(face)
+        ret = []
+        if resources[0] > 0:
+            ret.append((Move.CHOOSE_DIE_OR, self.playerID, ("gold", resources[0])))
+        if resources[1] > 0:
+            ret.append((Move.CHOOSE_DIE_OR, self.playerID, ("sun", resources[1])))
+        if resources[2] > 0:
+            ret.append((Move.CHOOSE_DIE_OR, self.playerID, ("moon", resources[2])))
+        if resources[3] > 0:
+            ret.append((Move.CHOOSE_DIE_OR, self.playerID, ("vp", resources[3])))
+        return tuple(ret)
 
     def hasReinfEffects(self):
         for feat in self.feats:
@@ -849,7 +1729,7 @@ class Player:
         return False
 
     def getReinfOptions(self):
-        return (Move.PASS, self.playerID)  # todo (need to track which ones have been used somehow)
+        return ((Move.PASS, self.playerID, ()), )  # todo (need to track which ones have been used somehow)
 
     def printPlayerInfo(self):
         print(f"Player {self.playerID}:\nGold: {self.gold}/{self.getMaxGold()}\nSun: {self.sun}/{self.getMaxSun()}")

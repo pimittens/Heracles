@@ -184,7 +184,7 @@
   {
     "name" : "THE_WOOD_NYMPH",
     "position" : 1,
-    "points" : 8,
+    "points" : 2,
     "set" : 2,
     "effect" : "NYMPH_INST"
   },

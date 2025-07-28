@@ -115,6 +115,8 @@ class TicTacToeState:
 
 def mcts(rootState, numSims):
     root = Node(rootState.copyState())
+    if len(root.state.getOptions()) == 1:
+        return root.state.getOptions()[0]
     for _ in range(numSims):
         node = root
         # selection
@@ -129,7 +131,7 @@ def mcts(rootState, numSims):
         node.backpropagate(result)
     print("mcts results")
     for node in root.children:
-        print(f"Move: {node.move}, visits:{node.visits} , average points: {node.points/node.visits}")
+        print(f"Move: {node.move}, visits:{node.visits} , win percentage: {node.points/node.visits}")
     return root.mostVisitedChild().move
 
 
@@ -139,4 +141,4 @@ def rollout(state):
         possibleMoves = currentState.getOptions()
         move = random.choice(possibleMoves)
         currentState.makeMove(move)
-    return currentState.getPoints()
+    return currentState.getWinners()
