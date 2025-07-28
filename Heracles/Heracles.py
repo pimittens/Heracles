@@ -1,7 +1,7 @@
 import Game
 import MCTS
 
-players = [Game.Player(0, True), Game.Player(1, True), Game.Player(2, True), Game.Player(3, True)]
+players = [Game.Player(0, False), Game.Player(1, True), Game.Player(2, False), Game.Player(3, True)]
 theBoard = Game.LoggingBoardState(players, True)
 theBoard.printBoardState()
 
@@ -29,7 +29,7 @@ while not theBoard.isOver():
         print(f"{i}: {option}")
         i += 1
     if theBoard.players[theBoard.activePlayer].ai:
-        theBoard.makeMove(MCTS.mcts(theBoard.copyState(), 1000))
+        theBoard.makeMove(MCTS.mcts(theBoard.copyState(), 250))
     else:
         theBoard.makeMove(options[0])
     """
