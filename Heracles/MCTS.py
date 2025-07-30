@@ -1,6 +1,5 @@
 import random
 import math
-import copy
 
 class Node:
     def __init__(self, state, parent=None, move=None):

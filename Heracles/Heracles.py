@@ -1,8 +1,9 @@
 import Game
 import MCTS
+import Data
 
-players = [Game.Player(0, False), Game.Player(1, True), Game.Player(2, False), Game.Player(3, True)]
-theBoard = Game.LoggingBoardState(players, True)
+players = [Game.Player(0, True), Game.Player(1, True), Game.Player(2, True), Game.Player(3, True)]
+theBoard = Game.BoardState(players, True)
 theBoard.printBoardState()
 
 """
@@ -28,19 +29,23 @@ while not theBoard.isOver():
     for option in options:
         print(f"{i}: {option}")
         i += 1
-    if theBoard.players[theBoard.activePlayer].ai:
-        theBoard.makeMove(MCTS.mcts(theBoard.copyState(), 250))
+    if theBoard.players[options[0][1]].ai:
+        theBoard.makeMove(MCTS.mcts(theBoard.copyState(), 10))
     else:
         theBoard.makeMove(options[0])
     """
     while True:
         choice = input("select from the above options:")
+        if choice == "print":
+            theBoard.printBoardState()
+            continue
         choice = int(choice)
         if choice in list(range(1,len(options) + 1)):
             break
         print("invalid choice")
     theBoard.makeMove(options[choice - 1])
     """
+
 
 theBoard.printBoardState()
 theBoard.printPoints()

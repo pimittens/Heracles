@@ -101,7 +101,30 @@ class Phase(Enum):
     ACTIVE_PLAYER_CHOICE_2 = 15
     ACTIVE_PLAYER_BUY_FACES_2 = 16
     ACTIVE_PLAYER_PERFORM_FEAT_2 = 17
-    OUST = 18
+    FORGE_SHIP_FACE_1 = 18
+    FORGE_SHIP_FACE_2 = 19
+    CHOOSE_SHIELD_FACE_1 = 20
+    CHOOSE_SHIELD_FACE_2 = 21
+    FORGE_HELMET_FACE_1 = 22
+    FORGE_HELMET_FACE_2 = 23
+    FORGE_MIRROR_FACE_1 = 24
+    FORGE_MIRROR_FACE_2 = 25
+    OUST_1_0_1 = 26 # action number, player ID, die number
+    OUST_1_0_2 = 27
+    OUST_1_1_1 = 28
+    OUST_1_1_2 = 29
+    OUST_1_2_1 = 30
+    OUST_1_2_2 = 31
+    OUST_1_3_1 = 32
+    OUST_1_3_2 = 33
+    OUST_2_0_1 = 26
+    OUST_2_0_2 = 27
+    OUST_2_1_1 = 28
+    OUST_2_1_2 = 29
+    OUST_2_2_1 = 30
+    OUST_2_2_2 = 31
+    OUST_2_3_1 = 32
+    OUST_2_3_2 = 33
 
 
 class Move(Enum):
@@ -113,6 +136,7 @@ class Move(Enum):
     PERFORM_FEAT = 6
     FORGE_FACE = 7
     CHOOSE_DIE_OR = 8
+    RETURN_TO_FEAT = 9
 
 
 class BoardState:
@@ -128,7 +152,9 @@ class BoardState:
                        [DieFace.SUN2, DieFace.SUN2, DieFace.SUN2, DieFace.SUN2],
                        [DieFace.VP3, DieFace.VP3, DieFace.VP3, DieFace.VP3],
                        [DieFace.VP4, DieFace.MOON2VP2, DieFace.GOLD1SUN1MOON1VP1, DieFace.GOLD2SUN2MOON2OR])
+        self.shields = [DieFace.REDSHIELD, DieFace.YELLOWSHIELD, DieFace.GREENSHIELD, DieFace.BLUESHIELD]
         self.islands = ([], [], [], [], [], [], [], [], [], [], [], [], [], [], [])
+        self.islandChoice = 0 # used to remember choice for ousting
         self.selectRandomFeats()
         self.round = 1
         self.activePlayer = 0
@@ -143,818 +169,34 @@ class BoardState:
             copyPlayers.append(player.copyPlayer())
         ret = BoardState(copyPlayers, False)
         ret.temple = copy.deepcopy(self.temple)
+        ret.shields = copy.deepcopy(self.shields)
         ret.islands = copy.deepcopy(self.islands)
+        ret.islandChoice = self.islandChoice
         ret.round = self.round
         ret.activePlayer = self.activePlayer
         ret.phase = self.phase
         ret.lastPlayer = self.lastPlayer
         return ret
 
-    def copyLoggingState(self):
+    """def copyLoggingState(self):
         copyPlayers = []
         for player in self.players:
             copyPlayers.append(player.copyPlayer())
         ret = LoggingBoardState(copyPlayers, False)
         ret.temple = copy.deepcopy(self.temple)
+        ret.shields = copy.deepcopy(self.shields)
         ret.islands = copy.deepcopy(self.islands)
         ret.round = self.round
         ret.activePlayer = self.activePlayer
         ret.phase = self.phase
         ret.lastPlayer = self.lastPlayer
-        return ret
+        return ret"""
 
     def isOver(self):
         return self.round > 10
 
     def makeMove(self, move):
-        self.lastPlayer = move[1]
-        match self.phase:
-            case Phase.TURN_START:
-                for player in self.players:
-                    player.divineBlessing()
-                self.phase = Phase.RESOLVE_DIE_0_1
-                self.makeMove(move)
-            case Phase.RESOLVE_DIE_0_1:
-                if move[0] == Move.CHOOSE_DIE_OR:
-                    mult = 1
-                    if self.players[0].getDie2Result() == DieFace.TIMES3:
-                        mult = 3
-                    self.players[0].gainResource(move[2][0], move[2][1] * mult)
-                    self.phase = Phase.RESOLVE_DIE_0_2
-                    self.makeMove((Move.PASS, 0, ()))
-                elif not Data.getIsOr(self.players[0].getDie1Result()):
-                    self.players[0].gainDieEffect(1, True)
-                    self.phase = Phase.RESOLVE_DIE_0_2
-                    self.makeMove(move)
-            case Phase.RESOLVE_DIE_0_2:
-                if move[0] == Move.CHOOSE_DIE_OR:
-                    mult = 1
-                    if self.players[0].getDie1Result() == DieFace.TIMES3:
-                        mult = 3
-                    self.players[0].gainResource(move[2][0], move[2][1] * mult)
-                    self.phase = Phase.RESOLVE_DIE_1_1
-                    self.makeMove((Move.PASS, 0, ()))
-                elif not Data.getIsOr(self.players[0].getDie2Result()):
-                    self.players[0].gainDieEffect(2, True)
-                    self.phase = Phase.RESOLVE_DIE_1_1
-                    self.makeMove(move)
-            case Phase.RESOLVE_DIE_1_1:
-                if move[0] == Move.CHOOSE_DIE_OR:
-                    mult = 1
-                    if self.players[1].getDie2Result() == DieFace.TIMES3:
-                        mult = 3
-                    self.players[1].gainResource(move[2][0], move[2][1] * mult)
-                    self.phase = Phase.RESOLVE_DIE_1_2
-                    self.makeMove((Move.PASS, 1, ()))
-                elif not Data.getIsOr(self.players[1].getDie1Result()):
-                    self.players[1].gainDieEffect(1, True)
-                    self.phase = Phase.RESOLVE_DIE_1_2
-                    self.makeMove(move)
-            case Phase.RESOLVE_DIE_1_2:
-                if move[0] == Move.CHOOSE_DIE_OR:
-                    mult = 1
-                    if self.players[1].getDie1Result() == DieFace.TIMES3:
-                        mult = 3
-                    self.players[1].gainResource(move[2][0], move[2][1] * mult)
-                    if len(self.players) > 2:
-                        self.phase = Phase.RESOLVE_DIE_2_1
-                        self.makeMove(move)
-                    elif self.players[self.activePlayer].hasReinfEffects():
-                        self.phase = Phase.RESOLVE_REINF_EFFECTS
-                    else:
-                        self.phase = Phase.ACTIVE_PLAYER_CHOICE_1
-                    self.makeMove((Move.PASS, 1, ()))
-                elif not Data.getIsOr(self.players[1].getDie2Result()):
-                    self.players[1].gainDieEffect(2, True)
-                    if len(self.players) > 2:
-                        self.phase = Phase.RESOLVE_DIE_2_1
-                        self.makeMove(move)
-                    elif self.players[self.activePlayer].hasReinfEffects():
-                        self.phase = Phase.RESOLVE_REINF_EFFECTS
-                    else:
-                        self.phase = Phase.ACTIVE_PLAYER_CHOICE_1
-            case Phase.RESOLVE_DIE_2_1:
-                if move[0] == Move.CHOOSE_DIE_OR:
-                    mult = 1
-                    if self.players[2].getDie2Result() == DieFace.TIMES3:
-                        mult = 3
-                    self.players[2].gainResource(move[2][0], move[2][1] * mult)
-                    self.phase = Phase.RESOLVE_DIE_2_2
-                    self.makeMove((Move.PASS, 2, ()))
-                elif not Data.getIsOr(self.players[2].getDie1Result()):
-                    self.players[2].gainDieEffect(1, True)
-                    self.phase = Phase.RESOLVE_DIE_2_2
-                    self.makeMove(move)
-            case Phase.RESOLVE_DIE_2_2:
-                if move[0] == Move.CHOOSE_DIE_OR:
-                    mult = 1
-                    if self.players[2].getDie1Result() == DieFace.TIMES3:
-                        mult = 3
-                    self.players[2].gainResource(move[2][0], move[2][1] * mult)
-                    if len(self.players) > 3:
-                        self.phase = Phase.RESOLVE_DIE_3_1
-                        self.makeMove(move)
-                    elif self.players[self.activePlayer].hasReinfEffects():
-                        self.phase = Phase.RESOLVE_REINF_EFFECTS
-                    else:
-                        self.phase = Phase.ACTIVE_PLAYER_CHOICE_1
-                    self.makeMove((Move.PASS, 2, ()))
-                elif not Data.getIsOr(self.players[2].getDie2Result()):
-                    self.players[2].gainDieEffect(2, True)
-                    if len(self.players) > 3:
-                        self.phase = Phase.RESOLVE_DIE_3_1
-                        self.makeMove(move)
-                    elif self.players[self.activePlayer].hasReinfEffects():
-                        self.phase = Phase.RESOLVE_REINF_EFFECTS
-                    else:
-                        self.phase = Phase.ACTIVE_PLAYER_CHOICE_1
-            case Phase.RESOLVE_DIE_3_1:
-                if move[0] == Move.CHOOSE_DIE_OR:
-                    mult = 1
-                    if self.players[3].getDie2Result() == DieFace.TIMES3:
-                        mult = 3
-                    self.players[3].gainResource(move[2][0], move[2][1] * mult)
-                    self.phase = Phase.RESOLVE_DIE_3_2
-                    self.makeMove((Move.PASS, 3, ()))
-                elif not Data.getIsOr(self.players[3].getDie1Result()):
-                    self.players[3].gainDieEffect(1, True)
-                    self.phase = Phase.RESOLVE_DIE_3_2
-                    self.makeMove(move)
-            case Phase.RESOLVE_DIE_3_2:
-                if move[0] == Move.CHOOSE_DIE_OR:
-                    mult = 1
-                    if self.players[3].getDie1Result() == DieFace.TIMES3:
-                        mult = 3
-                    self.players[3].gainResource(move[2][0], move[2][1] * mult)
-                    if self.players[self.activePlayer].hasReinfEffects():
-                        self.phase = Phase.RESOLVE_REINF_EFFECTS
-                    else:
-                        self.phase = Phase.ACTIVE_PLAYER_CHOICE_1
-                    self.makeMove((Move.PASS, 3, ()))
-                elif not Data.getIsOr(self.players[3].getDie2Result()):
-                    self.players[3].gainDieEffect(2, True)
-                    if self.players[self.activePlayer].hasReinfEffects():
-                        self.phase = Phase.RESOLVE_REINF_EFFECTS
-                    else:
-                        self.phase = Phase.ACTIVE_PLAYER_CHOICE_1
-            case Phase.RESOLVE_REINF_EFFECTS:
-                self.phase = Phase.ACTIVE_PLAYER_CHOICE_1  # todo: implement reinf effects. just go to next phase for now
-            case Phase.ACTIVE_PLAYER_CHOICE_1:
-                if move[0] == Move.CHOOSE_BUY_FACES:
-                    self.phase = Phase.ACTIVE_PLAYER_BUY_FACES_1
-                elif move[0] == Move.CHOOSE_PERFORM_FEAT:
-                    self.phase = Phase.ACTIVE_PLAYER_PERFORM_FEAT_1
-            case Phase.ACTIVE_PLAYER_CHOICE_2:
-                if move[0] == Move.CHOOSE_BUY_FACES:
-                    self.phase = Phase.ACTIVE_PLAYER_BUY_FACES_2
-                elif move[0] == Move.CHOOSE_PERFORM_FEAT:
-                    self.phase = Phase.ACTIVE_PLAYER_PERFORM_FEAT_2
-            case Phase.EXTRA_TURN_DECISION:
-                if move[0] == Move.TAKE_EXTRA_TURN:
-                    if move[2][0]:
-                        self.players[self.activePlayer].gainSun(-2)
-                        self.phase = Phase.ACTIVE_PLAYER_CHOICE_2
-                    else:
-                        self.phase = Phase.TURN_START
-                        self.advanceActivePlayer()
-                        if not self.isOver():
-                            self.makeMove(move)
-            case Phase.ACTIVE_PLAYER_BUY_FACES_1:
-                if move[0] == Move.BUY_FACES:
-                    for face in move[2]:
-                        self.temple[Data.getPool(face)].remove(face)
-                        self.players[self.activePlayer].buyFace(face)
-                if move[0] == Move.FORGE_FACE:
-                    self.players[self.activePlayer].forgeFace(move[2])
-                    if not self.players[self.activePlayer].unforgedFaces:
-                        if self.players[self.activePlayer].sun >= 2:
-                            self.phase = Phase.EXTRA_TURN_DECISION
-                        else:
-                            self.phase = Phase.TURN_START
-                            self.advanceActivePlayer()
-                            self.makeMove(move)
-                if move[0] == Move.PASS:
-                    if self.players[self.activePlayer].sun >= 2:
-                        self.phase = Phase.EXTRA_TURN_DECISION
-                    else:
-                        self.phase = Phase.TURN_START
-                        self.advanceActivePlayer()
-                        self.makeMove(move)
-            case Phase.ACTIVE_PLAYER_BUY_FACES_2:
-                if move[0] == Move.BUY_FACES:
-                    for face in move[2]:
-                        self.temple[Data.getPool(face)].remove(face)
-                        self.players[self.activePlayer].buyFace(face)
-                if move[0] == Move.FORGE_FACE:
-                    self.players[self.activePlayer].forgeFace(move[2])
-                    if not self.players[self.activePlayer].unforgedFaces:
-                        self.phase = Phase.TURN_START
-                        self.advanceActivePlayer()
-                        if not self.isOver():
-                            self.makeMove(move)
-                if move[0] == Move.PASS:
-                    self.phase = Phase.TURN_START
-                    self.advanceActivePlayer()
-                    if not self.isOver():
-                        self.makeMove(move)
-            case Phase.ACTIVE_PLAYER_PERFORM_FEAT_1:
-                if move[0] == Move.PERFORM_FEAT:
-                    self.islands[Data.getPosition(move[2][0])].remove(move[2][0])
-                    self.players[self.activePlayer].performFeat(move[2][0])
-                    if self.players[self.activePlayer].sun >= 2:
-                        self.phase = Phase.EXTRA_TURN_DECISION
-                    else:
-                        self.phase = Phase.TURN_START
-                        self.advanceActivePlayer()
-                        self.makeMove(move)
-                if move[0] == Move.PASS:
-                    if self.players[self.activePlayer].sun >= 2:
-                        self.phase = Phase.EXTRA_TURN_DECISION
-                    else:
-                        self.phase = Phase.TURN_START
-                        self.advanceActivePlayer()
-                        self.makeMove(move)
-            case Phase.ACTIVE_PLAYER_PERFORM_FEAT_2:
-                if move[0] == Move.PERFORM_FEAT:
-                    self.islands[Data.getPosition(move[2][0])].remove(move[2][0])
-                    self.players[self.activePlayer].performFeat(move[2][0])
-                    self.phase = Phase.TURN_START
-                    self.advanceActivePlayer()
-                    if not self.isOver():
-                        self.makeMove(move)
-                if move[0] == Move.PASS:
-                    self.phase = Phase.TURN_START
-                    self.advanceActivePlayer()
-                    if not self.isOver():
-                        self.makeMove(move)
-
-        # todo: finish
-
-    def getOptions(self):
-        ret = ((Move.PASS, self.activePlayer, ()), )
-        match self.phase:
-            case Phase.RESOLVE_DIE_0_1:
-                ret = self.players[0].getDieOptions(True)
-            case Phase.RESOLVE_DIE_0_2:
-                ret = self.players[0].getDieOptions(False)
-            case Phase.RESOLVE_DIE_1_1:
-                ret = self.players[1].getDieOptions(True)
-            case Phase.RESOLVE_DIE_1_2:
-                ret = self.players[1].getDieOptions(False)
-            case Phase.RESOLVE_DIE_2_1:
-                ret = self.players[2].getDieOptions(True)
-            case Phase.RESOLVE_DIE_2_2:
-                ret = self.players[2].getDieOptions(False)
-            case Phase.RESOLVE_DIE_3_1:
-                ret = self.players[3].getDieOptions(True)
-            case Phase.RESOLVE_DIE_3_2:
-                ret = self.players[3].getDieOptions(False)
-            case Phase.RESOLVE_REINF_EFFECTS:
-                ret = self.players[self.activePlayer].getReinfOptions()
-            case Phase.ACTIVE_PLAYER_CHOICE_1:
-                ret = (
-                    (Move.CHOOSE_BUY_FACES, self.activePlayer, ()), (Move.CHOOSE_PERFORM_FEAT, self.activePlayer, ()))
-            case Phase.ACTIVE_PLAYER_CHOICE_2:
-                ret = (
-                    (Move.CHOOSE_BUY_FACES, self.activePlayer, ()), (Move.CHOOSE_PERFORM_FEAT, self.activePlayer, ()))
-            case Phase.ACTIVE_PLAYER_BUY_FACES_1:
-                if self.players[self.activePlayer].unforgedFaces:
-                    ret = self.generateForgeFace()
-                else:
-                    ret = self.generateBuyFaces()
-            case Phase.ACTIVE_PLAYER_BUY_FACES_2:
-                if self.players[self.activePlayer].unforgedFaces:
-                    ret = self.generateForgeFace()
-                else:
-                    ret = self.generateBuyFaces()
-            case Phase.ACTIVE_PLAYER_PERFORM_FEAT_1:
-                ret = self.generatePerformFeats()
-            case Phase.ACTIVE_PLAYER_PERFORM_FEAT_2:
-                ret = self.generatePerformFeats()
-            case Phase.EXTRA_TURN_DECISION:
-                ret = (
-                    (Move.TAKE_EXTRA_TURN, self.activePlayer, (True,)),
-                    (Move.TAKE_EXTRA_TURN, self.activePlayer, (False,)))
-            # todo: other actions
-        return ret
-
-    def generateBuyFaces(self):
-        # should generate options for every possible face buy or feat
-        gold = self.players[self.activePlayer].gold
-        ret = []
-        if gold >= 2:
-            if self.temple[0]:
-                ret.append((Move.BUY_FACES, self.activePlayer, (self.temple[0][0],)))
-            if self.temple[1]:
-                ret.append((Move.BUY_FACES, self.activePlayer, (self.temple[1][0],)))
-            if gold >= 3:
-                if self.temple[2]:
-                    ret.append((Move.BUY_FACES, self.activePlayer, (self.temple[2][0],)))
-                if self.temple[3]:
-                    ret.append((Move.BUY_FACES, self.activePlayer, (self.temple[3][0],)))
-                if gold >= 4:
-                    for face in self.temple[4]:
-                        ret.append((Move.BUY_FACES, self.activePlayer, (face,)))
-                    if self.temple[0] and self.temple[1]:
-                        ret.append((Move.BUY_FACES, self.activePlayer, (self.temple[0][0], self.temple[1][0])))
-                    if gold >= 5:
-                        if self.temple[5]:
-                            ret.append((Move.BUY_FACES, self.activePlayer, (self.temple[5][0],)))
-                        if self.temple[0] and self.temple[2]:
-                            ret.append((Move.BUY_FACES, self.activePlayer, (self.temple[0][0], self.temple[2][0])))
-                        if self.temple[1] and self.temple[2]:
-                            ret.append((Move.BUY_FACES, self.activePlayer, (self.temple[1][0], self.temple[2][0])))
-                        if self.temple[0] and self.temple[3]:
-                            ret.append((Move.BUY_FACES, self.activePlayer, (self.temple[0][0], self.temple[3][0])))
-                        if self.temple[1] and self.temple[3]:
-                            ret.append((Move.BUY_FACES, self.activePlayer, (self.temple[1][0], self.temple[3][0])))
-                        if gold >= 6:
-                            if self.temple[6]:
-                                ret.append((Move.BUY_FACES, self.activePlayer, (self.temple[6][0],)))
-                            if self.temple[2] and self.temple[3]:
-                                ret.append((Move.BUY_FACES, self.activePlayer, (self.temple[2][0], self.temple[3][0])))
-                            if self.temple[0] and self.temple[4]:
-                                for face in self.temple[4]:
-                                    ret.append((Move.BUY_FACES, self.activePlayer, (self.temple[0][0], face)))
-                            if self.temple[1] and self.temple[4]:
-                                for face in self.temple[4]:
-                                    ret.append((Move.BUY_FACES, self.activePlayer, (self.temple[1][0], face)))
-                            if gold >= 7:
-                                if self.temple[2] and self.temple[4]:
-                                    for face in self.temple[4]:
-                                        ret.append((Move.BUY_FACES, self.activePlayer, (self.temple[2][0], face)))
-                                if self.temple[3] and self.temple[4]:
-                                    for face in self.temple[4]:
-                                        ret.append((Move.BUY_FACES, self.activePlayer, (self.temple[3][0], face)))
-                                if self.temple[0] and self.temple[5]:
-                                    ret.append(
-                                        (Move.BUY_FACES, self.activePlayer, (self.temple[0][0], self.temple[5][0])))
-                                if self.temple[1] and self.temple[5]:
-                                    ret.append(
-                                        (Move.BUY_FACES, self.activePlayer, (self.temple[1][0], self.temple[5][0])))
-                                if self.temple[0] and self.temple[1] and self.temple[2]:
-                                    ret.append((Move.BUY_FACES, self.activePlayer,
-                                                (self.temple[0][0], self.temple[1][0], self.temple[2][0])))
-                                if self.temple[0] and self.temple[1] and self.temple[3]:
-                                    ret.append((Move.BUY_FACES, self.activePlayer,
-                                                (self.temple[0][0], self.temple[1][0], self.temple[3][0])))
-                                if gold >= 8:
-                                    if self.temple[7]:
-                                        ret.append((Move.BUY_FACES, self.activePlayer, (self.temple[7][0],)))
-                                    if self.temple[8]:
-                                        ret.append((Move.BUY_FACES, self.activePlayer, (self.temple[8][0],)))
-                                    if len(self.temple[4]) > 1:
-                                        i = 0
-                                        while i < len(self.temple[4]) - 1:
-                                            j = i + 1
-                                            while j < len(self.temple[4]):
-                                                ret.append((Move.BUY_FACES, self.activePlayer,
-                                                            (self.temple[4][i], self.temple[4][j])))
-                                                j += 1
-                                            i += 1
-                                    if self.temple[0] and self.temple[6]:
-                                        ret.append(
-                                            (Move.BUY_FACES, self.activePlayer, (self.temple[0][0], self.temple[6][0])))
-                                    if self.temple[1] and self.temple[6]:
-                                        ret.append(
-                                            (Move.BUY_FACES, self.activePlayer, (self.temple[1][0], self.temple[6][0])))
-                                    if self.temple[2] and self.temple[5]:
-                                        ret.append(
-                                            (Move.BUY_FACES, self.activePlayer, (self.temple[2][0], self.temple[5][0])))
-                                    if self.temple[3] and self.temple[5]:
-                                        ret.append(
-                                            (Move.BUY_FACES, self.activePlayer, (self.temple[3][0], self.temple[5][0])))
-                                    if self.temple[0] and self.temple[2] and self.temple[3]:
-                                        ret.append((Move.BUY_FACES, self.activePlayer,
-                                                    (self.temple[0][0], self.temple[2][0], self.temple[3][0])))
-                                    if self.temple[1] and self.temple[2] and self.temple[3]:
-                                        ret.append((Move.BUY_FACES, self.activePlayer,
-                                                    (self.temple[1][0], self.temple[2][0], self.temple[3][0])))
-                                    if self.temple[0] and self.temple[1] and self.temple[4]:
-                                        for face in self.temple[4]:
-                                            ret.append((Move.BUY_FACES, self.activePlayer, (self.temple[0][0], self.temple[1][0], face)))
-                                    if gold >= 9:
-                                        if self.temple[0] and self.temple[1] and self.temple[5]:
-                                            ret.append((Move.BUY_FACES, self.activePlayer,
-                                                        (self.temple[0][0], self.temple[1][0], self.temple[5][0])))
-                                        if self.temple[0] and self.temple[2] and self.temple[4]:
-                                            for face in self.temple[4]:
-                                                ret.append((Move.BUY_FACES, self.activePlayer,
-                                                            (self.temple[0][0], self.temple[2][0], face)))
-                                        if self.temple[0] and self.temple[3] and self.temple[4]:
-                                            for face in self.temple[4]:
-                                                ret.append((Move.BUY_FACES, self.activePlayer,
-                                                            (self.temple[0][0], self.temple[3][0], face)))
-                                        if self.temple[1] and self.temple[2] and self.temple[4]:
-                                            for face in self.temple[4]:
-                                                ret.append((Move.BUY_FACES, self.activePlayer,
-                                                            (self.temple[1][0], self.temple[2][0], face)))
-                                        if self.temple[1] and self.temple[3] and self.temple[4]:
-                                            for face in self.temple[4]:
-                                                ret.append((Move.BUY_FACES, self.activePlayer,
-                                                            (self.temple[1][0], self.temple[3][0], face)))
-                                        if self.temple[4] and self.temple[5]:
-                                            for face in self.temple[4]:
-                                                ret.append(
-                                                    (Move.BUY_FACES, self.activePlayer, (face, self.temple[5][0])))
-                                        if self.temple[2] and self.temple[6]:
-                                            ret.append((Move.BUY_FACES, self.activePlayer,
-                                                        (self.temple[2][0], self.temple[6][0])))
-                                        if self.temple[3] and self.temple[6]:
-                                            ret.append((Move.BUY_FACES, self.activePlayer,
-                                                        (self.temple[3][0], self.temple[6][0])))
-                                        if gold >= 10:
-                                            if self.temple[0] and self.temple[7]:
-                                                ret.append((Move.BUY_FACES, self.activePlayer,
-                                                            (self.temple[0][0], self.temple[7][0])))
-                                            if self.temple[1] and self.temple[7]:
-                                                ret.append((Move.BUY_FACES, self.activePlayer,
-                                                            (self.temple[1][0], self.temple[7][0])))
-                                            if self.temple[0] and self.temple[8]:
-                                                ret.append((Move.BUY_FACES, self.activePlayer,
-                                                            (self.temple[0][0], self.temple[8][0])))
-                                            if self.temple[1] and self.temple[8]:
-                                                ret.append((Move.BUY_FACES, self.activePlayer,
-                                                            (self.temple[1][0], self.temple[8][0])))
-                                            if self.temple[0] and self.temple[1] and self.temple[6]:
-                                                ret.append((Move.BUY_FACES, self.activePlayer,
-                                                            (self.temple[0][0], self.temple[1][0], self.temple[6][0])))
-                                            if self.temple[4] and self.temple[6]:
-                                                for face in self.temple[4]:
-                                                    ret.append(
-                                                        (Move.BUY_FACES, self.activePlayer, (face, self.temple[6][0])))
-                                            if self.temple[0] and self.temple[1] and self.temple[2] and self.temple[3]:
-                                                ret.append((Move.BUY_FACES, self.activePlayer, (
-                                                    self.temple[0][0], self.temple[1][0], self.temple[2][0],
-                                                    self.temple[3][0])))
-                                            if self.temple[0] and self.temple[2] and self.temple[5]:
-                                                ret.append((Move.BUY_FACES, self.activePlayer,
-                                                            (self.temple[0][0], self.temple[2][0], self.temple[5][0])))
-                                            if self.temple[1] and self.temple[2] and self.temple[5]:
-                                                ret.append((Move.BUY_FACES, self.activePlayer,
-                                                            (self.temple[1][0], self.temple[2][0], self.temple[5][0])))
-                                            if self.temple[0] and self.temple[3] and self.temple[5]:
-                                                ret.append((Move.BUY_FACES, self.activePlayer,
-                                                            (self.temple[0][0], self.temple[3][0], self.temple[5][0])))
-                                            if self.temple[1] and self.temple[3] and self.temple[5]:
-                                                ret.append((Move.BUY_FACES, self.activePlayer,
-                                                            (self.temple[1][0], self.temple[3][0], self.temple[5][0])))
-                                            if self.temple[0] and len(self.temple[4]) > 1:
-                                                i = 0
-                                                while i < len(self.temple[4]) - 1:
-                                                    j = i + 1
-                                                    while j < len(self.temple[4]):
-                                                        ret.append((Move.BUY_FACES, self.activePlayer, (
-                                                            self.temple[0][0], self.temple[4][i], self.temple[4][j])))
-                                                        j += 1
-                                                    i += 1
-                                            if self.temple[1] and len(self.temple[4]) > 1:
-                                                i = 0
-                                                while i < len(self.temple[4]) - 1:
-                                                    j = i + 1
-                                                    while j < len(self.temple[4]):
-                                                        ret.append((Move.BUY_FACES, self.activePlayer, (
-                                                            self.temple[1][0], self.temple[4][i], self.temple[4][j])))
-                                                        j += 1
-                                                    i += 1
-                                            if self.temple[2] and self.temple[3] and self.temple[4]:
-                                                for face in self.temple[4]:
-                                                    ret.append((Move.BUY_FACES, self.activePlayer,
-                                                                (self.temple[2][0], self.temple[3][0], face)))
-                                            if gold >= 11:
-                                                if self.temple[2] and self.temple[7]:
-                                                    ret.append((Move.BUY_FACES, self.activePlayer,
-                                                                (self.temple[2][0], self.temple[7][0])))
-                                                if self.temple[3] and self.temple[7]:
-                                                    ret.append((Move.BUY_FACES, self.activePlayer,
-                                                                (self.temple[3][0], self.temple[7][0])))
-                                                if self.temple[2] and self.temple[8]:
-                                                    ret.append((Move.BUY_FACES, self.activePlayer,
-                                                                (self.temple[2][0], self.temple[8][0])))
-                                                if self.temple[3] and self.temple[8]:
-                                                    ret.append((Move.BUY_FACES, self.activePlayer,
-                                                                (self.temple[3][0], self.temple[8][0])))
-                                                if self.temple[2] and len(self.temple[4]) > 1:
-                                                    i = 0
-                                                    while i < len(self.temple[4]) - 1:
-                                                        j = i + 1
-                                                        while j < len(self.temple[4]):
-                                                            ret.append((Move.BUY_FACES, self.activePlayer, (
-                                                                self.temple[2][0], self.temple[4][i],
-                                                                self.temple[4][j])))
-                                                            j += 1
-                                                        i += 1
-                                                if self.temple[3] and len(self.temple[4]) > 1:
-                                                    i = 0
-                                                    while i < len(self.temple[4]) - 1:
-                                                        j = i + 1
-                                                        while j < len(self.temple[4]):
-                                                            ret.append((Move.BUY_FACES, self.activePlayer, (
-                                                                self.temple[3][0], self.temple[4][i],
-                                                                self.temple[4][j])))
-                                                            j += 1
-                                                        i += 1
-                                                if self.temple[0] and self.temple[2] and self.temple[6]:
-                                                    ret.append((Move.BUY_FACES, self.activePlayer, (
-                                                        self.temple[0][0], self.temple[2][0], self.temple[6][0])))
-                                                if self.temple[1] and self.temple[2] and self.temple[6]:
-                                                    ret.append((Move.BUY_FACES, self.activePlayer, (
-                                                        self.temple[1][0], self.temple[2][0], self.temple[6][0])))
-                                                if self.temple[0] and self.temple[3] and self.temple[6]:
-                                                    ret.append((Move.BUY_FACES, self.activePlayer, (
-                                                        self.temple[0][0], self.temple[3][0], self.temple[6][0])))
-                                                if self.temple[1] and self.temple[3] and self.temple[6]:
-                                                    ret.append((Move.BUY_FACES, self.activePlayer, (
-                                                        self.temple[1][0], self.temple[3][0], self.temple[6][0])))
-                                                if self.temple[5] and self.temple[6]:
-                                                    ret.append((Move.BUY_FACES, self.activePlayer,
-                                                                (self.temple[5][0], self.temple[6][0])))
-                                                if self.temple[0] and len(self.temple[4]) > 1 and self.temple[5]:
-                                                    for face in self.temple[4]:
-                                                        ret.append((Move.BUY_FACES, self.activePlayer,
-                                                                    (self.temple[0][0], face, self.temple[5][0])))
-                                                if self.temple[1] and len(self.temple[4]) > 1 and self.temple[5]:
-                                                    for face in self.temple[4]:
-                                                        ret.append((Move.BUY_FACES, self.activePlayer,
-                                                                    (self.temple[1][0], face, self.temple[5][0])))
-                                                if self.temple[2] and self.temple[3] and self.temple[5]:
-                                                    ret.append((Move.BUY_FACES, self.activePlayer, (
-                                                        self.temple[2][0], self.temple[3][0], self.temple[5][0])))
-                                                if self.temple[0] and self.temple[1] and self.temple[2] and self.temple[
-                                                    4]:
-                                                    for face in self.temple[4]:
-                                                        ret.append((Move.BUY_FACES, self.activePlayer, (
-                                                            self.temple[0][0], self.temple[1][0], self.temple[2][0],
-                                                            face)))
-                                                if self.temple[0] and self.temple[1] and self.temple[3] and self.temple[
-                                                    4]:
-                                                    for face in self.temple[4]:
-                                                        ret.append((Move.BUY_FACES, self.activePlayer, (
-                                                            self.temple[0][0], self.temple[1][0], self.temple[3][0],
-                                                            face)))
-                                                if gold >= 12:
-                                                    for face in self.temple[9]:
-                                                        ret.append((Move.BUY_FACES, self.activePlayer, (face,)))
-                                                    if self.temple[4] and self.temple[7]:
-                                                        for face in self.temple[4]:
-                                                            ret.append((Move.BUY_FACES, self.activePlayer,
-                                                                        (face, self.temple[7][0])))
-                                                    if self.temple[4] and self.temple[8]:
-                                                        for face in self.temple[4]:
-                                                            ret.append((Move.BUY_FACES, self.activePlayer,
-                                                                        (face, self.temple[8][0])))
-                                                    if self.temple[0] and self.temple[1] and self.temple[7]:
-                                                        ret.append((Move.BUY_FACES, self.activePlayer, (
-                                                            self.temple[0][0], self.temple[1][0], self.temple[7][0])))
-                                                    if self.temple[0] and self.temple[1] and self.temple[8]:
-                                                        ret.append((Move.BUY_FACES, self.activePlayer, (
-                                                            self.temple[0][0], self.temple[1][0], self.temple[8][0])))
-                                                    if self.temple[0] and self.temple[4] and self.temple[6]:
-                                                        for face in self.temple[4]:
-                                                            ret.append((Move.BUY_FACES, self.activePlayer,
-                                                                        (self.temple[0][0], face, self.temple[6][0])))
-                                                    if self.temple[1] and self.temple[4] and self.temple[6]:
-                                                        for face in self.temple[4]:
-                                                            ret.append((Move.BUY_FACES, self.activePlayer,
-                                                                        (self.temple[1][0], face, self.temple[6][0])))
-                                                    if self.temple[2] and self.temple[3] and self.temple[6]:
-                                                        ret.append((Move.BUY_FACES, self.activePlayer, (
-                                                            self.temple[2][0], self.temple[3][0], self.temple[6][0])))
-                                                    if self.temple[2] and self.temple[4] and self.temple[5]:
-                                                        for face in self.temple[4]:
-                                                            ret.append((Move.BUY_FACES, self.activePlayer,
-                                                                        (self.temple[2][0], face, self.temple[5][0])))
-                                                    if self.temple[3] and self.temple[4] and self.temple[5]:
-                                                        for face in self.temple[4]:
-                                                            ret.append((Move.BUY_FACES, self.activePlayer,
-                                                                        (self.temple[3][0], face, self.temple[5][0])))
-                                                    if self.temple[0] and self.temple[1] and self.temple[2] and \
-                                                            self.temple[5]:
-                                                        ret.append((Move.BUY_FACES, self.activePlayer, (
-                                                            self.temple[0][0], self.temple[1][0], self.temple[2][0],
-                                                            self.temple[5][0])))
-                                                    if self.temple[0] and self.temple[1] and self.temple[3] and \
-                                                            self.temple[5]:
-                                                        ret.append((Move.BUY_FACES, self.activePlayer, (
-                                                            self.temple[0][0], self.temple[1][0], self.temple[3][0],
-                                                            self.temple[5][0])))
-                                                    if len(self.temple[4]) > 2:
-                                                        i = 0
-                                                        while i < len(self.temple[4]) - 2:
-                                                            j = i + 1
-                                                            while j < len(self.temple[4]) - 1:
-                                                                k = j + 1
-                                                                while k < len(self.temple[4]):
-                                                                    ret.append((Move.BUY_FACES, self.activePlayer, (
-                                                                        self.temple[4][i], self.temple[4][j],
-                                                                        self.temple[4][k])))
-                                                                    k += 1
-                                                                j += 1
-                                                            i += 1
-                                                    if self.temple[0] and self.temple[2] and self.temple[3] and \
-                                                            self.temple[4]:
-                                                        for face in self.temple[4]:
-                                                            ret.append((Move.BUY_FACES, self.activePlayer, (
-                                                                self.temple[0][0], self.temple[2][0], self.temple[3][0],
-                                                                face)))
-                                                    if self.temple[1] and self.temple[2] and self.temple[3] and \
-                                                            self.temple[4]:
-                                                        for face in self.temple[4]:
-                                                            ret.append((Move.BUY_FACES, self.activePlayer, (
-                                                                self.temple[1][0], self.temple[2][0], self.temple[3][0],
-                                                                face)))
-                                                    if self.temple[0] and self.temple[1] and len(self.temple[4]) > 1:
-                                                        i = 0
-                                                        while i < len(self.temple[4]) - 1:
-                                                            j = i + 1
-                                                            while j < len(self.temple[4]):
-                                                                ret.append((Move.BUY_FACES, self.activePlayer, (
-                                                                    self.temple[0][0], self.temple[1][0],
-                                                                    self.temple[4][i],
-                                                                    self.temple[4][j])))
-                                                                j += 1
-                                                            i += 1
-
-        # todo, etc
-        if not ret:
-            ret.append((Move.PASS, self.activePlayer, ()))
-        return tuple(ret)
-
-    def generatePerformFeats(self):
-        ret = []
-        sun = self.players[self.activePlayer].sun
-        moon = self.players[self.activePlayer].moon
-        if sun >= 1:
-            if self.islands[0]:
-                ret.append((Move.PERFORM_FEAT, self.activePlayer, (self.islands[0][0],)))
-            if self.islands[1]:
-                ret.append((Move.PERFORM_FEAT, self.activePlayer, (self.islands[1][0],)))
-            if sun >= 2:
-                if self.islands[2]:
-                    ret.append((Move.PERFORM_FEAT, self.activePlayer, (self.islands[2][0],)))
-                if sun >= 3:
-                    if self.islands[3]:
-                        ret.append((Move.PERFORM_FEAT, self.activePlayer, (self.islands[3][0],)))
-                    if sun >= 4:
-                        if self.islands[4]:
-                            ret.append((Move.PERFORM_FEAT, self.activePlayer, (self.islands[4][0],)))
-                        if sun >= 5:
-                            if self.islands[5]:
-                                ret.append((Move.PERFORM_FEAT, self.activePlayer, (self.islands[5][0],)))
-                            if sun >= 6:
-                                if self.islands[6]:
-                                    ret.append((Move.PERFORM_FEAT, self.activePlayer, (self.islands[6][0],)))
-        if moon >= 1:
-            if self.islands[14]:
-                ret.append((Move.PERFORM_FEAT, self.activePlayer, (self.islands[14][0],)))
-            if self.islands[13]:
-                ret.append((Move.PERFORM_FEAT, self.activePlayer, (self.islands[13][0],)))
-            if moon >= 2:
-                if self.islands[12]:
-                    ret.append((Move.PERFORM_FEAT, self.activePlayer, (self.islands[12][0],)))
-                if moon >= 3:
-                    if self.islands[11]:
-                        ret.append((Move.PERFORM_FEAT, self.activePlayer, (self.islands[11][0],)))
-                    if moon >= 4:
-                        if self.islands[10]:
-                            ret.append((Move.PERFORM_FEAT, self.activePlayer, (self.islands[10][0],)))
-                        if moon >= 5:
-                            if self.islands[9]:
-                                ret.append((Move.PERFORM_FEAT, self.activePlayer, (self.islands[9][0],)))
-                            if moon >= 6:
-                                if self.islands[8]:
-                                    ret.append((Move.PERFORM_FEAT, self.activePlayer, (self.islands[8][0],)))
-        if sun >= 5 and moon >= 5:
-            if self.islands[7]:
-                ret.append((Move.PERFORM_FEAT, self.activePlayer, (self.islands[7][0],)))
-        if not ret:
-            ret.append((Move.PASS, self.activePlayer, ()))
-        return tuple(ret)
-
-    def generateForgeFace(self):
-        ret = []
-        face = self.players[self.activePlayer].unforgedFaces[0]
-        for existingFace in self.players[self.activePlayer].die1.faces:
-            ret.append((Move.FORGE_FACE, self.activePlayer, (1, face, existingFace)))
-        for existingFace in self.players[self.activePlayer].die2.faces:
-            ret.append((Move.FORGE_FACE, self.activePlayer, (2, face, existingFace)))
-        ret = set(ret) # remove duplicates
-        return tuple(ret)
-
-    def advanceActivePlayer(self):
-        self.activePlayer += 1
-        if self.activePlayer >= len(self.players):
-            self.activePlayer = 0
-            self.round += 1
-
-    def getWinners(self):
-        ret = []
-        scores = []
-        for player in self.players:
-            scores.append(player.vp)
-        bestScore = max(scores)
-        for player in self.players:
-            if player.vp == bestScore:
-                ret.append(1)
-            else:
-                ret.append(0)
-        return tuple(ret)
-
-    def printBoardState(self):
-        print(f"Round: {self.round}")
-        print(f"Player {self.activePlayer} is the active player.")
-        print("Players:")
-        for p in self.players:
-            p.printPlayerInfo()
-        print("Temple Pools:")
-        i = 1
-        for pool in self.temple:
-            print(f"Pool {i}:")
-            for face in pool:
-                print(face)
-            i += 1
-        print("Islands:")
-        i = 1
-        for featPool in self.islands:
-            print(f"Feat {i}:")
-            if featPool:
-                print(f"{featPool[0]} (x{len(featPool)})")
-            else:
-                print("Empty")
-            i += 1
-
-    def printPoints(self):
-        print("Victory Points:")
-        for player in self.players:
-            print(f"Player {player.playerID}: {player.vp}")
-
-    def selectRandomFeats(self):
-        i = 0
-        while i < 15:
-            feats = Data.getFeatsByPosition(i)
-            self.addFeat(i, feats[random.randrange(len(feats))])
-            i += 1
-
-    def addFeat(self, island, feat):
-        j = 0
-        while j < len(self.players):
-            self.islands[island].append(feat)
-            j += 1
-
-
-class LoggingBoardState:
-    def __init__(self, players, initialState):
-        self.players = players
-        self.temple = ([DieFace.GOLD3, DieFace.GOLD3, DieFace.GOLD3, DieFace.GOLD3],
-                       [DieFace.MOON1, DieFace.MOON1, DieFace.MOON1, DieFace.MOON1],
-                       [DieFace.GOLD4, DieFace.GOLD4, DieFace.GOLD4, DieFace.GOLD4],
-                       [DieFace.SUN1, DieFace.SUN1, DieFace.SUN1, DieFace.SUN1],
-                       [DieFace.GOLD6, DieFace.VP1SUN1, DieFace.GOLD2MOON1, DieFace.GOLD1SUN1MOON1OR],
-                       [DieFace.GOLD3VP2OR, DieFace.GOLD3VP2OR, DieFace.GOLD3VP2OR, DieFace.GOLD3VP2OR],
-                       [DieFace.MOON2, DieFace.MOON2, DieFace.MOON2, DieFace.MOON2],
-                       [DieFace.SUN2, DieFace.SUN2, DieFace.SUN2, DieFace.SUN2],
-                       [DieFace.VP3, DieFace.VP3, DieFace.VP3, DieFace.VP3],
-                       [DieFace.VP4, DieFace.MOON2VP2, DieFace.GOLD1SUN1MOON1VP1, DieFace.GOLD2SUN2MOON2OR])
-        self.islands = ([], [], [], [], [], [], [], [], [], [], [], [], [], [], [])
-        self.selectRandomFeats()
-        self.round = 1
-        self.activePlayer = 0
-        self.lastPlayer = 0
-        self.phase = Phase.TURN_START
-        if initialState:
-            self.makeMove((Move.PASS, self.activePlayer, ()))
-
-    def copyState(self):
-        copyPlayers = []
-        for player in self.players:
-            copyPlayers.append(player.copyPlayer())
-        ret = BoardState(copyPlayers, False)
-        ret.temple = copy.deepcopy(self.temple)
-        ret.islands = copy.deepcopy(self.islands)
-        ret.round = self.round
-        ret.activePlayer = self.activePlayer
-        ret.phase = self.phase
-        ret.lastPlayer = self.lastPlayer
-        return ret
-
-    def copyLoggingState(self):
-        copyPlayers = []
-        for player in self.players:
-            copyPlayers.append(player.copyPlayer())
-        ret = LoggingBoardState(copyPlayers, False)
-        ret.temple = copy.deepcopy(self.temple)
-        ret.islands = copy.deepcopy(self.islands)
-        ret.round = self.round
-        ret.activePlayer = self.activePlayer
-        ret.phase = self.phase
-        ret.lastPlayer = self.lastPlayer
-        return ret
-
-    def isOver(self):
-        return self.round > 10
-
-    def makeMove(self, move):
-        print(f"Current Phase: {self.phase}. Making move: {move}")
+        print(f"Phase: {self.phase}. Making move: {move}. Islands: {self.islands}. Island Choice: {self.islandChoice}")
         self.printBoardState()
         self.lastPlayer = move[1]
         match self.phase:
@@ -963,16 +205,18 @@ class LoggingBoardState:
                     player.divineBlessing()
                 self.phase = Phase.RESOLVE_DIE_0_1
                 self.makeMove(move)
-            case Phase.RESOLVE_DIE_0_1:
+            case Phase.RESOLVE_DIE_0_1: # todo: ship die face effect
                 if move[0] == Move.CHOOSE_DIE_OR:
                     mult = 1
                     if self.players[0].getDie2Result() == DieFace.TIMES3:
                         mult = 3
                     self.players[0].gainResource(move[2][0], move[2][1] * mult)
+                    self.resolveShieldOr(0, self.players[0].getDie2Result(), move[2][0])
                     self.phase = Phase.RESOLVE_DIE_0_2
                     self.makeMove((Move.PASS, 0, ()))
                 elif not Data.getIsOr(self.players[0].getDie1Result()):
                     self.players[0].gainDieEffect(1, True)
+                    self.resolveShield(0, 2)
                     self.phase = Phase.RESOLVE_DIE_0_2
                     self.makeMove(move)
             case Phase.RESOLVE_DIE_0_2:
@@ -981,10 +225,12 @@ class LoggingBoardState:
                     if self.players[0].getDie1Result() == DieFace.TIMES3:
                         mult = 3
                     self.players[0].gainResource(move[2][0], move[2][1] * mult)
+                    self.resolveShieldOr(0, self.players[0].getDie1Result(), move[2][0])
                     self.phase = Phase.RESOLVE_DIE_1_1
                     self.makeMove((Move.PASS, 0, ()))
                 elif not Data.getIsOr(self.players[0].getDie2Result()):
                     self.players[0].gainDieEffect(2, True)
+                    self.resolveShield(0, 1)
                     self.phase = Phase.RESOLVE_DIE_1_1
                     self.makeMove(move)
             case Phase.RESOLVE_DIE_1_1:
@@ -993,10 +239,12 @@ class LoggingBoardState:
                     if self.players[1].getDie2Result() == DieFace.TIMES3:
                         mult = 3
                     self.players[1].gainResource(move[2][0], move[2][1] * mult)
+                    self.resolveShieldOr(1, self.players[1].getDie2Result(), move[2][0])
                     self.phase = Phase.RESOLVE_DIE_1_2
                     self.makeMove((Move.PASS, 1, ()))
                 elif not Data.getIsOr(self.players[1].getDie1Result()):
                     self.players[1].gainDieEffect(1, True)
+                    self.resolveShield(1, 2)
                     self.phase = Phase.RESOLVE_DIE_1_2
                     self.makeMove(move)
             case Phase.RESOLVE_DIE_1_2:
@@ -1005,6 +253,7 @@ class LoggingBoardState:
                     if self.players[1].getDie1Result() == DieFace.TIMES3:
                         mult = 3
                     self.players[1].gainResource(move[2][0], move[2][1] * mult)
+                    self.resolveShieldOr(1, self.players[1].getDie1Result(), move[2][0])
                     if len(self.players) > 2:
                         self.phase = Phase.RESOLVE_DIE_2_1
                         self.makeMove(move)
@@ -1015,6 +264,7 @@ class LoggingBoardState:
                     self.makeMove((Move.PASS, 1, ()))
                 elif not Data.getIsOr(self.players[1].getDie2Result()):
                     self.players[1].gainDieEffect(2, True)
+                    self.resolveShield(1, 1)
                     if len(self.players) > 2:
                         self.phase = Phase.RESOLVE_DIE_2_1
                         self.makeMove(move)
@@ -1028,10 +278,12 @@ class LoggingBoardState:
                     if self.players[2].getDie2Result() == DieFace.TIMES3:
                         mult = 3
                     self.players[2].gainResource(move[2][0], move[2][1] * mult)
+                    self.resolveShieldOr(2, self.players[2].getDie2Result(), move[2][0])
                     self.phase = Phase.RESOLVE_DIE_2_2
                     self.makeMove((Move.PASS, 2, ()))
                 elif not Data.getIsOr(self.players[2].getDie1Result()):
                     self.players[2].gainDieEffect(1, True)
+                    self.resolveShield(2, 2)
                     self.phase = Phase.RESOLVE_DIE_2_2
                     self.makeMove(move)
             case Phase.RESOLVE_DIE_2_2:
@@ -1040,6 +292,7 @@ class LoggingBoardState:
                     if self.players[2].getDie1Result() == DieFace.TIMES3:
                         mult = 3
                     self.players[2].gainResource(move[2][0], move[2][1] * mult)
+                    self.resolveShieldOr(2, self.players[2].getDie1Result(), move[2][0])
                     if len(self.players) > 3:
                         self.phase = Phase.RESOLVE_DIE_3_1
                         self.makeMove(move)
@@ -1050,6 +303,7 @@ class LoggingBoardState:
                     self.makeMove((Move.PASS, 2, ()))
                 elif not Data.getIsOr(self.players[2].getDie2Result()):
                     self.players[2].gainDieEffect(2, True)
+                    self.resolveShield(2, 1)
                     if len(self.players) > 3:
                         self.phase = Phase.RESOLVE_DIE_3_1
                         self.makeMove(move)
@@ -1063,10 +317,12 @@ class LoggingBoardState:
                     if self.players[3].getDie2Result() == DieFace.TIMES3:
                         mult = 3
                     self.players[3].gainResource(move[2][0], move[2][1] * mult)
+                    self.resolveShieldOr(3, self.players[2].getDie2Result(), move[2][0])
                     self.phase = Phase.RESOLVE_DIE_3_2
                     self.makeMove((Move.PASS, 3, ()))
                 elif not Data.getIsOr(self.players[3].getDie1Result()):
                     self.players[3].gainDieEffect(1, True)
+                    self.resolveShield(3, 2)
                     self.phase = Phase.RESOLVE_DIE_3_2
                     self.makeMove(move)
             case Phase.RESOLVE_DIE_3_2:
@@ -1075,6 +331,7 @@ class LoggingBoardState:
                     if self.players[3].getDie1Result() == DieFace.TIMES3:
                         mult = 3
                     self.players[3].gainResource(move[2][0], move[2][1] * mult)
+                    self.resolveShieldOr(3, self.players[2].getDie1Result(), move[2][0])
                     if self.players[self.activePlayer].hasReinfEffects():
                         self.phase = Phase.RESOLVE_REINF_EFFECTS
                     else:
@@ -1082,6 +339,7 @@ class LoggingBoardState:
                     self.makeMove((Move.PASS, 3, ()))
                 elif not Data.getIsOr(self.players[3].getDie2Result()):
                     self.players[3].gainDieEffect(2, True)
+                    self.resolveShield(3, 1)
                     if self.players[self.activePlayer].hasReinfEffects():
                         self.phase = Phase.RESOLVE_REINF_EFFECTS
                     else:
@@ -1106,7 +364,8 @@ class LoggingBoardState:
                     else:
                         self.phase = Phase.TURN_START
                         self.advanceActivePlayer()
-                        self.makeMove(move)
+                        if not self.isOver():
+                            self.makeMove(move)
             case Phase.ACTIVE_PLAYER_BUY_FACES_1:
                 if move[0] == Move.BUY_FACES:
                     for face in move[2]:
@@ -1147,15 +406,35 @@ class LoggingBoardState:
                         self.makeMove(move)
             case Phase.ACTIVE_PLAYER_PERFORM_FEAT_1:
                 if move[0] == Move.PERFORM_FEAT:
-                    self.islands[Data.getPosition(move[2][0])].remove(move[2][0])
-                    self.players[self.activePlayer].performFeat(move[2][0])
-                    if self.players[self.activePlayer].sun >= 2:
-                        self.phase = Phase.EXTRA_TURN_DECISION
+                    island = Data.getIsland(move[2][0])
+                    ousted = False
+                    for player in self.players:
+                        if player.location == island and player.playerID != self.activePlayer:
+                            ousted = True
+                            self.oust(player, 1)
+                            break
+                    self.players[self.activePlayer].location = island
+                    if ousted:
+                        self.islandChoice = Data.getPosition(move[2][0])
+                        self.makeMove((Move.PASS, self.activePlayer, ()))
                     else:
-                        self.phase = Phase.TURN_START
-                        self.advanceActivePlayer()
-                        self.makeMove(move)
-                if move[0] == Move.PASS:
+                        self.islands[Data.getPosition(move[2][0])].remove(move[2][0])
+                        self.players[self.activePlayer].performFeat(move[2][0])
+                        effect = Data.getEffect(move[2][0])
+                        if "INST" in effect:
+                            self.resolveInstEffect(effect)
+                        else:
+                            self.makeMove((Move.PASS, self.activePlayer, ()))
+                elif move[0] == Move.RETURN_TO_FEAT:
+                    feat = self.islands[self.islandChoice][0]
+                    self.islands[self.islandChoice].remove(feat)
+                    self.players[self.activePlayer].performFeat(feat)
+                    effect = Data.getEffect(feat)
+                    if "INST" in effect:
+                        self.resolveInstEffect(effect)
+                    else:
+                        self.makeMove((Move.PASS, self.activePlayer, ()))
+                elif move[0] == Move.PASS:
                     if self.players[self.activePlayer].sun >= 2:
                         self.phase = Phase.EXTRA_TURN_DECISION
                     else:
@@ -1164,21 +443,335 @@ class LoggingBoardState:
                         self.makeMove(move)
             case Phase.ACTIVE_PLAYER_PERFORM_FEAT_2:
                 if move[0] == Move.PERFORM_FEAT:
-                    self.islands[Data.getPosition(move[2][0])].remove(move[2][0])
-                    self.players[self.activePlayer].performFeat(move[2][0])
+                    island = Data.getIsland(move[2][0])
+                    ousted = False
+                    for player in self.players:
+                        if player.location == island and player.playerID != self.activePlayer:
+                            ousted = True
+                            self.oust(player, 2)
+                            break
+                    if ousted:
+                        self.islandChoice = Data.getPosition(move[2][0])
+                        self.makeMove((Move.PASS, self.activePlayer, ()))
+                    else:
+                        self.islands[Data.getPosition(move[2][0])].remove(move[2][0])
+                        self.players[self.activePlayer].performFeat(move[2][0])
+                        effect = Data.getEffect(move[2][0])
+                        if "INST" in effect:
+                            self.resolveInstEffect(effect)
+                        else:
+                            self.makeMove((Move.PASS, self.activePlayer, ()))
+                elif move[0] == Move.RETURN_TO_FEAT:
+                    feat = self.islands[self.islandChoice][0]
+                    self.islands[self.islandChoice].remove(feat)
+                    self.players[self.activePlayer].performFeat(feat)
+                    effect = Data.getEffect(feat)
+                    if "INST" in effect:
+                        self.resolveInstEffect(effect)
+                    else:
+                        self.makeMove((Move.PASS, self.activePlayer, ()))
+                elif move[0] == Move.PASS:
                     self.phase = Phase.TURN_START
                     self.advanceActivePlayer()
                     if not self.isOver():
                         self.makeMove(move)
-                if move[0] == Move.PASS:
+            case Phase.FORGE_SHIP_FACE_1:
+                if move[0] == Move.FORGE_FACE:
+                    self.players[self.activePlayer].forgeFace(move[2])
+                    if self.players[self.activePlayer].sun >= 2:
+                        self.phase = Phase.EXTRA_TURN_DECISION
+                    else:
+                        self.phase = Phase.TURN_START
+                        self.advanceActivePlayer()
+                        self.makeMove(move)
+            case Phase.FORGE_SHIP_FACE_2:
+                if move[0] == Move.FORGE_FACE:
+                    self.players[self.activePlayer].forgeFace(move[2])
                     self.phase = Phase.TURN_START
                     self.advanceActivePlayer()
                     if not self.isOver():
                         self.makeMove(move)
-
+            case Phase.CHOOSE_SHIELD_FACE_1:
+                if move[0] == Move.BUY_FACES:
+                    self.players[self.activePlayer].unforgedFaces.append(move[2][0])
+                elif move[0] == Move.FORGE_FACE:
+                    self.players[self.activePlayer].forgeFace(move[2])
+                    if self.players[self.activePlayer].sun >= 2:
+                        self.phase = Phase.EXTRA_TURN_DECISION
+                    else:
+                        self.phase = Phase.TURN_START
+                        self.advanceActivePlayer()
+                        self.makeMove(move)
+            case Phase.CHOOSE_SHIELD_FACE_2:
+                if move[0] == Move.BUY_FACES:
+                    self.players[self.activePlayer].unforgedFaces.append(move[2][0])
+                elif move[0] == Move.FORGE_FACE:
+                    self.players[self.activePlayer].forgeFace(move[2])
+                    self.phase = Phase.TURN_START
+                    self.advanceActivePlayer()
+                    if not self.isOver():
+                        self.makeMove(move)
+            case Phase.FORGE_MIRROR_FACE_1:
+                if move[0] == Move.FORGE_FACE:
+                    self.players[self.activePlayer].forgeFace(move[2])
+                    if self.players[self.activePlayer].sun >= 2:
+                        self.phase = Phase.EXTRA_TURN_DECISION
+                    else:
+                        self.phase = Phase.TURN_START
+                        self.advanceActivePlayer()
+                        self.makeMove(move)
+            case Phase.FORGE_MIRROR_FACE_2:
+                if move[0] == Move.FORGE_FACE:
+                    self.players[self.activePlayer].forgeFace(move[2])
+                    self.phase = Phase.TURN_START
+                    self.advanceActivePlayer()
+                    if not self.isOver():
+                        self.makeMove(move)
+            case Phase.FORGE_HELMET_FACE_1:
+                if move[0] == Move.FORGE_FACE:
+                    self.players[self.activePlayer].forgeFace(move[2])
+                    if self.players[self.activePlayer].sun >= 2:
+                        self.phase = Phase.EXTRA_TURN_DECISION
+                    else:
+                        self.phase = Phase.TURN_START
+                        self.advanceActivePlayer()
+                        self.makeMove(move)
+            case Phase.FORGE_HELMET_FACE_2:
+                if move[0] == Move.FORGE_FACE:
+                    self.players[self.activePlayer].forgeFace(move[2])
+                    self.phase = Phase.TURN_START
+                    self.advanceActivePlayer()
+                    if not self.isOver():
+                        self.makeMove(move)
+            case Phase.OUST_1_0_1: # todo: ship die face effect
+                if move[0] == Move.CHOOSE_DIE_OR:
+                    mult = 1
+                    if self.players[0].getDie2Result() == DieFace.TIMES3:
+                        mult = 3
+                    self.players[0].gainResource(move[2][0], move[2][1] * mult)
+                    self.resolveShieldOr(0, self.players[0].getDie2Result(), move[2][0])
+                    self.phase = Phase.OUST_1_0_2
+                    self.makeMove((Move.PASS, 0, ()))
+                elif not Data.getIsOr(self.players[0].getDie1Result()):
+                    self.players[0].gainDieEffect(1, True)
+                    self.resolveShield(0, 2)
+                    self.phase = Phase.OUST_1_0_2
+                    self.makeMove(move)
+            case Phase.OUST_1_0_2:
+                if move[0] == Move.CHOOSE_DIE_OR:
+                    mult = 1
+                    if self.players[0].getDie1Result() == DieFace.TIMES3:
+                        mult = 3
+                    self.players[0].gainResource(move[2][0], move[2][1] * mult)
+                    self.resolveShieldOr(0, self.players[0].getDie1Result(), move[2][0])
+                    self.phase = Phase.ACTIVE_PLAYER_PERFORM_FEAT_1
+                    self.makeMove((Move.RETURN_TO_FEAT, self.activePlayer, ()))
+                elif not Data.getIsOr(self.players[0].getDie2Result()):
+                    self.players[0].gainDieEffect(2, True)
+                    self.resolveShield(0, 1)
+                    self.phase = Phase.ACTIVE_PLAYER_PERFORM_FEAT_1
+                    self.makeMove((Move.RETURN_TO_FEAT, self.activePlayer, ()))
+            case Phase.OUST_2_0_1:
+                if move[0] == Move.CHOOSE_DIE_OR:
+                    mult = 1
+                    if self.players[0].getDie2Result() == DieFace.TIMES3:
+                        mult = 3
+                    self.players[0].gainResource(move[2][0], move[2][1] * mult)
+                    self.resolveShieldOr(0, self.players[0].getDie2Result(), move[2][0])
+                    self.phase = Phase.OUST_2_0_2
+                    self.makeMove((Move.PASS, 0, ()))
+                elif not Data.getIsOr(self.players[0].getDie1Result()):
+                    self.players[0].gainDieEffect(1, True)
+                    self.resolveShield(0, 2)
+                    self.phase = Phase.OUST_2_0_2
+                    self.makeMove(move)
+            case Phase.OUST_2_0_2:
+                if move[0] == Move.CHOOSE_DIE_OR:
+                    mult = 1
+                    if self.players[0].getDie1Result() == DieFace.TIMES3:
+                        mult = 3
+                    self.players[0].gainResource(move[2][0], move[2][1] * mult)
+                    self.resolveShieldOr(0, self.players[0].getDie1Result(), move[2][0])
+                    self.phase = Phase.ACTIVE_PLAYER_PERFORM_FEAT_2
+                    self.makeMove((Move.RETURN_TO_FEAT, self.activePlayer, ()))
+                elif not Data.getIsOr(self.players[0].getDie2Result()):
+                    self.players[0].gainDieEffect(2, True)
+                    self.resolveShield(0, 1)
+                    self.phase = Phase.ACTIVE_PLAYER_PERFORM_FEAT_2
+                    self.makeMove((Move.RETURN_TO_FEAT, self.activePlayer, ()))
+            case Phase.OUST_1_1_1:
+                if move[0] == Move.CHOOSE_DIE_OR:
+                    mult = 1
+                    if self.players[1].getDie2Result() == DieFace.TIMES3:
+                        mult = 3
+                    self.players[1].gainResource(move[2][0], move[2][1] * mult)
+                    self.resolveShieldOr(1, self.players[1].getDie2Result(), move[2][0])
+                    self.phase = Phase.OUST_1_1_2
+                    self.makeMove((Move.PASS, 1, ()))
+                elif not Data.getIsOr(self.players[1].getDie1Result()):
+                    self.players[1].gainDieEffect(1, True)
+                    self.resolveShield(1, 2)
+                    self.phase = Phase.OUST_1_1_2
+                    self.makeMove(move)
+            case Phase.OUST_1_1_2:
+                if move[0] == Move.CHOOSE_DIE_OR:
+                    mult = 1
+                    if self.players[1].getDie1Result() == DieFace.TIMES3:
+                        mult = 3
+                    self.players[1].gainResource(move[2][0], move[2][1] * mult)
+                    self.resolveShieldOr(1, self.players[1].getDie1Result(), move[2][0])
+                    self.phase = Phase.ACTIVE_PLAYER_PERFORM_FEAT_1
+                    self.makeMove((Move.RETURN_TO_FEAT, self.activePlayer, ()))
+                elif not Data.getIsOr(self.players[1].getDie2Result()):
+                    self.players[1].gainDieEffect(2, True)
+                    self.resolveShield(1, 1)
+                    self.phase = Phase.ACTIVE_PLAYER_PERFORM_FEAT_1
+                    self.makeMove((Move.RETURN_TO_FEAT, self.activePlayer, ()))
+            case Phase.OUST_2_1_1:
+                if move[0] == Move.CHOOSE_DIE_OR:
+                    mult = 1
+                    if self.players[1].getDie2Result() == DieFace.TIMES3:
+                        mult = 3
+                    self.players[1].gainResource(move[2][0], move[2][1] * mult)
+                    self.resolveShieldOr(1, self.players[1].getDie2Result(), move[2][0])
+                    self.phase = Phase.OUST_2_1_2
+                    self.makeMove((Move.PASS, 1, ()))
+                elif not Data.getIsOr(self.players[1].getDie1Result()):
+                    self.players[1].gainDieEffect(1, True)
+                    self.resolveShield(1, 2)
+                    self.phase = Phase.OUST_2_1_2
+                    self.makeMove(move)
+            case Phase.OUST_2_1_2:
+                if move[0] == Move.CHOOSE_DIE_OR:
+                    mult = 1
+                    if self.players[1].getDie1Result() == DieFace.TIMES3:
+                        mult = 3
+                    self.players[1].gainResource(move[2][0], move[2][1] * mult)
+                    self.resolveShieldOr(1, self.players[1].getDie1Result(), move[2][0])
+                    self.phase = Phase.ACTIVE_PLAYER_PERFORM_FEAT_2
+                    self.makeMove((Move.RETURN_TO_FEAT, self.activePlayer, ()))
+                elif not Data.getIsOr(self.players[1].getDie2Result()):
+                    self.players[1].gainDieEffect(2, True)
+                    self.resolveShield(1, 1)
+                    self.phase = Phase.ACTIVE_PLAYER_PERFORM_FEAT_2
+                    self.makeMove((Move.RETURN_TO_FEAT, self.activePlayer, ()))
+            case Phase.OUST_1_2_1:
+                if move[0] == Move.CHOOSE_DIE_OR:
+                    mult = 1
+                    if self.players[2].getDie2Result() == DieFace.TIMES3:
+                        mult = 3
+                    self.players[2].gainResource(move[2][0], move[2][1] * mult)
+                    self.resolveShieldOr(2, self.players[2].getDie2Result(), move[2][0])
+                    self.phase = Phase.OUST_1_2_2
+                    self.makeMove((Move.PASS, 2, ()))
+                elif not Data.getIsOr(self.players[2].getDie1Result()):
+                    self.players[2].gainDieEffect(1, True)
+                    self.resolveShield(2, 2)
+                    self.phase = Phase.OUST_1_2_2
+                    self.makeMove(move)
+            case Phase.OUST_1_2_2:
+                if move[0] == Move.CHOOSE_DIE_OR:
+                    mult = 1
+                    if self.players[2].getDie1Result() == DieFace.TIMES3:
+                        mult = 3
+                    self.players[2].gainResource(move[2][0], move[2][1] * mult)
+                    self.resolveShieldOr(2, self.players[2].getDie1Result(), move[2][0])
+                    self.phase = Phase.ACTIVE_PLAYER_PERFORM_FEAT_1
+                    self.makeMove((Move.RETURN_TO_FEAT, self.activePlayer, ()))
+                elif not Data.getIsOr(self.players[2].getDie2Result()):
+                    self.players[2].gainDieEffect(2, True)
+                    self.resolveShield(2, 1)
+                    self.phase = Phase.ACTIVE_PLAYER_PERFORM_FEAT_1
+                    self.makeMove((Move.RETURN_TO_FEAT, self.activePlayer, ()))
+            case Phase.OUST_2_2_1:
+                if move[0] == Move.CHOOSE_DIE_OR:
+                    mult = 1
+                    if self.players[2].getDie2Result() == DieFace.TIMES3:
+                        mult = 3
+                    self.players[2].gainResource(move[2][0], move[2][1] * mult)
+                    self.resolveShieldOr(2, self.players[2].getDie2Result(), move[2][0])
+                    self.phase = Phase.OUST_2_2_2
+                    self.makeMove((Move.PASS, 2, ()))
+                elif not Data.getIsOr(self.players[2].getDie1Result()):
+                    self.players[2].gainDieEffect(1, True)
+                    self.resolveShield(2, 2)
+                    self.phase = Phase.OUST_2_2_2
+                    self.makeMove(move)
+            case Phase.OUST_2_2_2:
+                if move[0] == Move.CHOOSE_DIE_OR:
+                    mult = 1
+                    if self.players[2].getDie1Result() == DieFace.TIMES3:
+                        mult = 3
+                    self.players[2].gainResource(move[2][0], move[2][1] * mult)
+                    self.resolveShieldOr(2, self.players[2].getDie1Result(), move[2][0])
+                    self.phase = Phase.ACTIVE_PLAYER_PERFORM_FEAT_2
+                    self.makeMove((Move.RETURN_TO_FEAT, self.activePlayer, ()))
+                elif not Data.getIsOr(self.players[2].getDie2Result()):
+                    self.players[2].gainDieEffect(2, True)
+                    self.resolveShield(2, 1)
+                    self.phase = Phase.ACTIVE_PLAYER_PERFORM_FEAT_2
+                    self.makeMove((Move.RETURN_TO_FEAT, self.activePlayer, ()))
+            case Phase.OUST_1_3_1:
+                if move[0] == Move.CHOOSE_DIE_OR:
+                    mult = 1
+                    if self.players[3].getDie2Result() == DieFace.TIMES3:
+                        mult = 3
+                    self.players[3].gainResource(move[2][0], move[2][1] * mult)
+                    self.resolveShieldOr(3, self.players[3].getDie2Result(), move[2][0])
+                    self.phase = Phase.OUST_1_3_2
+                    self.makeMove((Move.PASS, 3, ()))
+                elif not Data.getIsOr(self.players[3].getDie1Result()):
+                    self.players[3].gainDieEffect(1, True)
+                    self.resolveShield(3, 2)
+                    self.phase = Phase.OUST_1_3_2
+                    self.makeMove(move)
+            case Phase.OUST_1_3_2:
+                if move[0] == Move.CHOOSE_DIE_OR:
+                    mult = 1
+                    if self.players[3].getDie1Result() == DieFace.TIMES3:
+                        mult = 3
+                    self.players[3].gainResource(move[2][0], move[2][1] * mult)
+                    self.resolveShieldOr(3, self.players[3].getDie1Result(), move[2][0])
+                    self.phase = Phase.ACTIVE_PLAYER_PERFORM_FEAT_1
+                    self.makeMove((Move.RETURN_TO_FEAT, self.activePlayer, ()))
+                elif not Data.getIsOr(self.players[3].getDie2Result()):
+                    self.players[3].gainDieEffect(2, True)
+                    self.resolveShield(3, 1)
+                    self.phase = Phase.ACTIVE_PLAYER_PERFORM_FEAT_1
+                    self.makeMove((Move.RETURN_TO_FEAT, self.activePlayer, ()))
+            case Phase.OUST_2_3_1:
+                if move[0] == Move.CHOOSE_DIE_OR:
+                    mult = 1
+                    if self.players[3].getDie2Result() == DieFace.TIMES3:
+                        mult = 3
+                    self.players[3].gainResource(move[2][0], move[2][1] * mult)
+                    self.resolveShieldOr(3, self.players[3].getDie2Result(), move[2][0])
+                    self.phase = Phase.OUST_2_3_2
+                    self.makeMove((Move.PASS, 3, ()))
+                elif not Data.getIsOr(self.players[3].getDie1Result()):
+                    self.players[3].gainDieEffect(1, True)
+                    self.resolveShield(3, 2)
+                    self.phase = Phase.OUST_2_3_2
+                    self.makeMove(move)
+            case Phase.OUST_2_3_2:
+                if move[0] == Move.CHOOSE_DIE_OR:
+                    mult = 1
+                    if self.players[3].getDie1Result() == DieFace.TIMES3:
+                        mult = 3
+                    self.players[3].gainResource(move[2][0], move[2][1] * mult)
+                    self.resolveShieldOr(3, self.players[3].getDie1Result(), move[2][0])
+                    self.phase = Phase.ACTIVE_PLAYER_PERFORM_FEAT_2
+                    self.makeMove((Move.RETURN_TO_FEAT, self.activePlayer, ()))
+                elif not Data.getIsOr(self.players[3].getDie2Result()):
+                    self.players[3].gainDieEffect(2, True)
+                    self.resolveShield(3, 1)
+                    self.phase = Phase.ACTIVE_PLAYER_PERFORM_FEAT_2
+                    self.makeMove((Move.RETURN_TO_FEAT, self.activePlayer, ()))
         # todo: finish
 
     def getOptions(self):
+        print(self.phase)
+        #self.printBoardState()
         ret = ((Move.PASS, self.activePlayer, ()), )
         match self.phase:
             case Phase.RESOLVE_DIE_0_1:
@@ -1207,12 +800,12 @@ class LoggingBoardState:
                     (Move.CHOOSE_BUY_FACES, self.activePlayer, ()), (Move.CHOOSE_PERFORM_FEAT, self.activePlayer, ()))
             case Phase.ACTIVE_PLAYER_BUY_FACES_1:
                 if self.players[self.activePlayer].unforgedFaces:
-                    ret = self.generateForgeFace()
+                    ret = self.generateForgeFace(self.players[self.activePlayer].unforgedFaces[0])
                 else:
                     ret = self.generateBuyFaces()
             case Phase.ACTIVE_PLAYER_BUY_FACES_2:
                 if self.players[self.activePlayer].unforgedFaces:
-                    ret = self.generateForgeFace()
+                    ret = self.generateForgeFace(self.players[self.activePlayer].unforgedFaces[0])
                 else:
                     ret = self.generateBuyFaces()
             case Phase.ACTIVE_PLAYER_PERFORM_FEAT_1:
@@ -1223,11 +816,64 @@ class LoggingBoardState:
                 ret = (
                     (Move.TAKE_EXTRA_TURN, self.activePlayer, (True,)),
                     (Move.TAKE_EXTRA_TURN, self.activePlayer, (False,)))
+            case Phase.FORGE_SHIP_FACE_1:
+                ret = self.generateForgeFace(self.players[self.activePlayer].unforgedFaces[0])
+            case Phase.FORGE_SHIP_FACE_2:
+                ret = self.generateForgeFace(self.players[self.activePlayer].unforgedFaces[0])
+            case Phase.CHOOSE_SHIELD_FACE_1:
+                if self.players[self.activePlayer].unforgedFaces:
+                    ret = self.generateForgeFace(self.players[self.activePlayer].unforgedFaces[0])
+                else:
+                    ret = self.generateChooseShield()
+            case Phase.CHOOSE_SHIELD_FACE_2:
+                if self.players[self.activePlayer].unforgedFaces:
+                    ret = self.generateForgeFace(self.players[self.activePlayer].unforgedFaces[0])
+                else:
+                    ret = self.generateChooseShield()
+            case Phase.FORGE_MIRROR_FACE_1:
+                ret = self.generateForgeFace(self.players[self.activePlayer].unforgedFaces[0])
+            case Phase.FORGE_MIRROR_FACE_2:
+                ret = self.generateForgeFace(self.players[self.activePlayer].unforgedFaces[0])
+            case Phase.FORGE_HELMET_FACE_1:
+                ret = self.generateForgeFace(self.players[self.activePlayer].unforgedFaces[0])
+            case Phase.FORGE_HELMET_FACE_2:
+                ret = self.generateForgeFace(self.players[self.activePlayer].unforgedFaces[0])
+            case Phase.OUST_1_0_1:
+                ret = self.players[0].getDieOptions(True)
+            case Phase.OUST_1_0_2:
+                ret = self.players[0].getDieOptions(False)
+            case Phase.OUST_1_1_1:
+                ret = self.players[1].getDieOptions(True)
+            case Phase.OUST_1_1_2:
+                ret = self.players[1].getDieOptions(False)
+            case Phase.OUST_1_2_1:
+                ret = self.players[2].getDieOptions(True)
+            case Phase.OUST_1_2_2:
+                ret = self.players[2].getDieOptions(False)
+            case Phase.OUST_1_3_1:
+                ret = self.players[3].getDieOptions(True)
+            case Phase.OUST_1_3_2:
+                ret = self.players[3].getDieOptions(False)
+            case Phase.OUST_2_0_1:
+                ret = self.players[0].getDieOptions(True)
+            case Phase.OUST_2_0_2:
+                ret = self.players[0].getDieOptions(False)
+            case Phase.OUST_2_1_1:
+                ret = self.players[1].getDieOptions(True)
+            case Phase.OUST_2_1_2:
+                ret = self.players[1].getDieOptions(False)
+            case Phase.OUST_2_2_1:
+                ret = self.players[2].getDieOptions(True)
+            case Phase.OUST_2_2_2:
+                ret = self.players[2].getDieOptions(False)
+            case Phase.OUST_2_3_1:
+                ret = self.players[3].getDieOptions(True)
+            case Phase.OUST_2_3_2:
+                ret = self.players[3].getDieOptions(False)
             # todo: other actions
         return ret
 
     def generateBuyFaces(self):
-        # should generate options for every possible face buy or feat
         gold = self.players[self.activePlayer].gold
         ret = []
         if gold >= 2:
@@ -1619,15 +1265,192 @@ class LoggingBoardState:
             ret.append((Move.PASS, self.activePlayer, ()))
         return tuple(ret)
 
-    def generateForgeFace(self):
+    def generateForgeFace(self, face):
         ret = []
-        face = self.players[self.activePlayer].unforgedFaces[0]
         for existingFace in self.players[self.activePlayer].die1.faces:
             ret.append((Move.FORGE_FACE, self.activePlayer, (1, face, existingFace)))
         for existingFace in self.players[self.activePlayer].die2.faces:
             ret.append((Move.FORGE_FACE, self.activePlayer, (2, face, existingFace)))
         ret = set(ret) # remove duplicates
         return tuple(ret)
+
+    def generateChooseShield(self):
+        ret = []
+        for face in self.shields:
+            ret.append((Move.BUY_FACES, self.activePlayer, (face, )))
+        return tuple(ret)
+
+    def resolveShield(self, player, die):
+        if die == 1:
+            result = self.players[player].getDie2Result()
+            other = self.players[player].getDie1Result()
+        else:
+            result = self.players[player].getDie1Result()
+            other = self.players[player].getDie2Result()
+        if result == DieFace.REDSHIELD:
+            if other == DieFace.TIMES3:
+                self.players[player].gainSun(6)
+            elif Data.getResourceValues(other)[1] > 0:
+                self.players[player].gainVP(5)
+            else:
+                self.players[player].gainSun(2)
+        elif result == DieFace.BLUESHIELD:
+            if other == DieFace.TIMES3:
+                self.players[player].gainMoon(6)
+            elif Data.getResourceValues(other)[2] > 0:
+                self.players[player].gainVP(5)
+            else:
+                self.players[player].gainMoon(2)
+        elif result == DieFace.YELLOWSHIELD:
+            if other == DieFace.TIMES3:
+                self.players[player].gainGold(9)
+            elif Data.getResourceValues(other)[0] > 0:
+                self.players[player].gainVP(5)
+            else:
+                self.players[player].gainMoon(2)
+        elif result == DieFace.GREENSHIELD:
+            if other == DieFace.TIMES3:
+                self.players[player].gainVP(9)
+            elif Data.getResourceValues(other)[3] > 0:
+                self.players[player].gainVP(5)
+            else:
+                self.players[player].gainVP(3)
+
+    def resolveShieldOr(self, player, die, orGain):
+        if die == DieFace.REDSHIELD:
+            if orGain == "sun":
+                self.players[player].gainVP(5)
+            else:
+                self.players[player].gainSun(2)
+        elif die == DieFace.BLUESHIELD:
+            if orGain == "moon":
+                self.players[player].gainVP(5)
+            else:
+                self.players[player].gainMoon(2)
+        elif die == DieFace.YELLOWSHIELD:
+            if orGain == "gold":
+                self.players[player].gainVP(5)
+            else:
+                self.players[player].gainMoon(2)
+        elif die == DieFace.GREENSHIELD:
+            if orGain == "vp":
+                self.players[player].gainVP(5)
+            else:
+                self.players[player].gainVP(3)
+
+    def resolveInstEffect(self, effect):
+        match effect:
+            case "SPRITS_INST":
+                self.players[self.activePlayer].gainGold(3)
+                self.players[self.activePlayer].gainMoon(3)
+                self.makeMove((Move.PASS, self.activePlayer, ()))
+            case "SHIP_INST":
+                self.players[self.activePlayer].unforgedFaces.append(DieFace.SHIP)
+                if self.phase == Phase.ACTIVE_PLAYER_PERFORM_FEAT_1:
+                    self.phase = Phase.FORGE_SHIP_FACE_1
+                else:
+                    self.phase = Phase.FORGE_SHIP_FACE_2
+            case "SHIELD_INST":
+                if self.phase == Phase.ACTIVE_PLAYER_PERFORM_FEAT_1:
+                    self.phase = Phase.CHOOSE_SHIELD_FACE_1
+                else:
+                    self.phase = Phase.CHOOSE_SHIELD_FACE_2
+            case "MINOTAUR_INST":
+                self.makeMove((Move.PASS, self.activePlayer, ())) # todo
+            case "TRITON_INST": # todo: using triton tokens
+                self.players[self.activePlayer].tritonTokens += 1
+                self.makeMove((Move.PASS, self.activePlayer, ()))
+            case "MIRROR_INST": # todo: mirror face effect
+                self.players[self.activePlayer].unforgedFaces.append(DieFace.MIRROR)
+                if self.phase == Phase.ACTIVE_PLAYER_PERFORM_FEAT_1:
+                    self.phase = Phase.FORGE_MIRROR_FACE_1
+                else:
+                    self.phase = Phase.FORGE_MIRROR_FACE_2
+            case "CYCLOPS_INST":
+                self.makeMove((Move.PASS, self.activePlayer, ())) # todo
+            case "SPHINX_INST":
+                self.makeMove((Move.PASS, self.activePlayer, ())) # todo
+            case "TYPHON_INST":
+                self.players[self.activePlayer].gainVP(self.players[self.activePlayer].numForged)
+                self.makeMove((Move.PASS, self.activePlayer, ()))
+            case "SENTINEL_INST":
+                self.makeMove((Move.PASS, self.activePlayer, ())) # todo
+            case "CANCER_INST":
+                self.makeMove((Move.PASS, self.activePlayer, ())) # todo
+            case "HELMET_INST":
+                self.players[self.activePlayer].unforgedFaces.append(DieFace.TIMES3)
+                if self.phase == Phase.ACTIVE_PLAYER_PERFORM_FEAT_1:
+                    self.phase = Phase.FORGE_HELMET_FACE_1
+                else:
+                    self.phase = Phase.FORGE_HELMET_FACE_2
+            case "CERBERUS_INST": # todo: using cerberus tokens
+                self.players[self.activePlayer].cerberusTokens += 1
+                self.makeMove((Move.PASS, self.activePlayer, ()))
+            case "BOAR_INST_AUTO":
+                self.makeMove((Move.PASS, self.activePlayer, ())) # todo
+            case "SATYRS_INST":
+                self.makeMove((Move.PASS, self.activePlayer, ())) # todo
+            case "CHEST_INST":
+                self.players[self.activePlayer].chestEffect()
+                self.makeMove((Move.PASS, self.activePlayer, ()))
+            case "HAMMER_INST":
+                self.makeMove((Move.PASS, self.activePlayer, ())) # todo
+            case "NYMPH_INST":
+                self.makeMove((Move.PASS, self.activePlayer, ())) # todo
+            case "OMNISCIENT_INST":
+                self.makeMove((Move.PASS, self.activePlayer, ())) # todo
+            case "GOLDSMITH_INST":
+                self.makeMove((Move.PASS, self.activePlayer, ())) # todo
+            case "TRIDENT_INST":
+                self.makeMove((Move.PASS, self.activePlayer, ())) # todo
+            case "LEFTHAND_INST":
+                self.makeMove((Move.PASS, self.activePlayer, ())) # todo
+            case "FIRE_INST":
+                self.makeMove((Move.PASS, self.activePlayer, ())) # todo
+            case "TITAN_INST":
+                self.makeMove((Move.PASS, self.activePlayer, ())) # todo
+            case "GODDESS_INST":
+                self.makeMove((Move.PASS, self.activePlayer, ())) # todo
+            case "RIGHTHAND_INST":
+                self.makeMove((Move.PASS, self.activePlayer, ())) # todo
+            case "NIGHT_INST":
+                self.makeMove((Move.PASS, self.activePlayer, ())) # todo
+            case "MISTS_INST":
+                self.makeMove((Move.PASS, self.activePlayer, ())) # todo
+            case "ANCESTOR_INST":
+                self.makeMove((Move.PASS, self.activePlayer, ())) # todo
+            case "WIND_INST":
+                self.makeMove((Move.PASS, self.activePlayer, ())) # todo
+            case "DIE_INST":
+                self.makeMove((Move.PASS, self.activePlayer, ())) # todo
+            case "COMPANION_INST_REINF":
+                self.makeMove((Move.PASS, self.activePlayer, ())) # todo
+            case "SCEPTER_INST":
+                self.makeMove((Move.PASS, self.activePlayer, ())) # todo
+
+    def oust(self, player, actionNum):
+        player.location = 0
+        player.divineBlessing() # todo: change all divine blessings when implementing dice rolls as decisions
+        if actionNum == 1:
+            match player.playerID:
+                case 0:
+                    self.phase = Phase.OUST_1_0_1
+                case 1:
+                    self.phase = Phase.OUST_1_1_1
+                case 2:
+                    self.phase = Phase.OUST_1_2_1
+                case 3:
+                    self.phase = Phase.OUST_1_3_1
+        else:
+            match player.playerID:
+                case 0:
+                    self.phase = Phase.OUST_2_0_1
+                case 1:
+                    self.phase = Phase.OUST_2_1_1
+                case 2:
+                    self.phase = Phase.OUST_2_2_1
+                case 3:
+                    self.phase = Phase.OUST_2_3_1
 
     def advanceActivePlayer(self):
         self.activePlayer += 1
@@ -1680,7 +1503,7 @@ class LoggingBoardState:
         i = 0
         while i < 15:
             feats = Data.getFeatsByPosition(i)
-            self.addFeat(i, feats[random.randrange(len(feats))])
+            self.addFeat(i, feats[random.randrange(len(feats))]) # todo: boars should be distinct
             i += 1
 
     def addFeat(self, island, feat):
@@ -1689,14 +1512,18 @@ class LoggingBoardState:
             self.islands[island].append(feat)
             j += 1
 
-
 class Player:
     def __init__(self, playerID, ai):
         self.playerID = playerID
+        self.maxGold = 12
+        self.maxSun = 6
+        self.maxMoon = 6
         self.gold = 0
         self.sun = 0
         self.moon = 0
         self.vp = 0
+        self.cerberusTokens = 0
+        self.tritonTokens = 0
         self.feats = []
         self.unforgedFaces = []
         self.die1 = createLightDie()
@@ -1707,10 +1534,15 @@ class Player:
 
     def copyPlayer(self):
         ret = Player(self.playerID, self.ai)
+        ret.maxGold = self.maxGold
+        ret.maxSun = self.maxSun
+        ret.maxMoon = self.maxMoon
         ret.gold = self.gold
         ret.sun = self.sun
         ret.moon = self.moon
         ret.vp = self.vp
+        ret.cerberusTokens = self.cerberusTokens
+        ret.tritonTokens = self.tritonTokens
         ret.feats = copy.deepcopy(self.feats)
         ret.die1 = self.die1.copyDie()
         ret.die2 = self.die2.copyDie()
@@ -1718,6 +1550,11 @@ class Player:
         ret.numForged = self.numForged
         ret.unforgedFaces = copy.deepcopy(self.unforgedFaces)
         return ret
+
+    def chestEffect(self):
+        self.maxGold += 4
+        self.maxSun += 3
+        self.maxMoon += 3
 
     def divineBlessing(self):
         self.die1.roll()
@@ -1729,38 +1566,20 @@ class Player:
     def getDie2Result(self):
         return self.die2.getUpFace()
 
-    def getMaxGold(self):
-        # todo: calculate max gold based on feats
-        maxGold = 12
-        return maxGold
-
-    def getMaxSun(self):
-        # todo: calculate max sun based on feats
-        maxSun = 6
-        return maxSun
-
-    def getMaxMoon(self):
-        # todo: calculate max moon based on feats
-        maxMoon = 6
-        return maxMoon
-
     def gainGold(self, amount):
         self.gold += amount
-        maxGold = self.getMaxGold()
-        if self.gold > maxGold:
-            self.gold = maxGold
+        if self.gold > self.maxGold:
+            self.gold = self.maxGold
 
     def gainSun(self, amount):
         self.sun += amount
-        maxSun = self.getMaxSun()
-        if self.sun > maxSun:
-            self.sun = maxSun
+        if self.sun > self.maxSun:
+            self.sun = self.maxSun
 
     def gainMoon(self, amount):
         self.moon += amount
-        maxMoon = self.getMaxMoon()
-        if self.moon > maxMoon:
-            self.moon = maxMoon
+        if self.moon > self.maxMoon:
+            self.moon = self.maxMoon
 
     def gainVP(self, amount):
         self.vp += amount
@@ -1791,7 +1610,20 @@ class Player:
         self.gainSun(gains[1] * mult)
         self.gainMoon(gains[2] * mult)
         self.gainVP(gains[3] * mult)
-        # todo: apply effect
+        match activeFace:
+            case DieFace.REDSHIELD:
+                if not useOtherDie:
+                    self.gainSun(2)
+            case DieFace.BLUESHIELD:
+                if not useOtherDie:
+                    self.gainMoon(2)
+            case DieFace.GREENSHIELD:
+                if not useOtherDie:
+                    self.gainVP(3)
+            case DieFace.YELLOWSHIELD:
+                if not useOtherDie:
+                    self.gainGold(3)
+        # todo: other effects
 
     def buyFace(self, face):
         self.gainGold(-Data.getGoldValue(face))
@@ -1806,6 +1638,7 @@ class Player:
         die.faces.append(forgeInfo[1])
         die.upFace = 5
         self.unforgedFaces.remove(forgeInfo[1])
+        self.numForged += 1
 
     def performFeat(self, feat):
         self.gainSun(-Data.getSunCost(feat))
@@ -1842,8 +1675,8 @@ class Player:
         return ((Move.PASS, self.playerID, ()), )  # todo (need to track which ones have been used somehow)
 
     def printPlayerInfo(self):
-        print(f"Player {self.playerID}:\nGold: {self.gold}/{self.getMaxGold()}\nSun: {self.sun}/{self.getMaxSun()}")
-        print(f"Moon: {self.moon}/{self.getMaxMoon()}\nVictory Points: {self.vp}")
+        print(f"Player {self.playerID}:\nGold: {self.gold}/{self.maxGold}\nSun: {self.sun}/{self.maxSun}")
+        print(f"Moon: {self.moon}/{self.maxMoon}\nVictory Points: {self.vp}")
         print("Heroic Feats:")
         for feat in self.feats:
             print(feat.name)

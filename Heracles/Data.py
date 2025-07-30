@@ -120,3 +120,11 @@ def getMoonCost(feat):
             return 1
         return 14 - pos
     return 0
+
+def getIsland(feat):
+    pos = getPosition(feat)
+    if pos <= 5:
+        return (pos + 2) // 2
+    if pos > 5 and pos < 9:
+        return 4
+    return (pos + 1) // 2
