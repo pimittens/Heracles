@@ -2253,8 +2253,8 @@ class Player:
     def getReinfOptions(self):
         ret = []
         for effect in self.unusedReinfEffects:
-            if effect not in ret:
-                ret.append((Move.CHOOSE_REINF_EFFECT, self.playerID, (effect,)))
+            ret.append((Move.CHOOSE_REINF_EFFECT, self.playerID, (effect,)))
+        ret = set(ret) # remove duplicates
         return tuple(ret)
 
     def printPlayerInfo(self):
