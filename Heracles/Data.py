@@ -52,8 +52,8 @@ def getResourceValues(face):
     """
     for f in facesData:
         if f.name == face.name:
-            return (f.gold, f.sun, f.moon, f.vp)
-    return (0, 0, 0, 0)
+            return f.gold, f.sun, f.moon, f.vp
+    return 0, 0, 0, 0
 
 
 def getIsOr(face):
@@ -63,10 +63,23 @@ def getIsOr(face):
     return False
 
 
+def isBoarFace(face):
+    from Game import DieFace
+    return face == DieFace.REDBOAR or face == DieFace.BLUEBOAR or face == DieFace.YELLOWBOAR or face == DieFace.GREENBOAR
+
+
+def isBoarFeat(feat):
+    from Game import HeroicFeat
+    return feat == HeroicFeat.TENACIOUS_BOAR or feat == HeroicFeat.TENACIOUS_BOAR_RED or feat == HeroicFeat.TENACIOUS_BOAR_BLUE or feat == HeroicFeat.TENACIOUS_BOAR_YELLOW or feat == HeroicFeat.TENACIOUS_BOAR_GREEN
+
+
 def getPosition(feat):
     for f in featsData:
         if f.name == feat.name:
             return f.position
+    from Game import HeroicFeat
+    if feat == HeroicFeat.TENACIOUS_BOAR_RED or feat == HeroicFeat.TENACIOUS_BOAR_BLUE or feat == HeroicFeat.TENACIOUS_BOAR_YELLOW or feat == HeroicFeat.TENACIOUS_BOAR_GREEN:
+        return 11
     return -1
 
 
@@ -94,6 +107,15 @@ def getPoints(feat):
 
 
 def getEffect(feat):
+    from Game import HeroicFeat
+    if feat == HeroicFeat.TENACIOUS_BOAR_RED:
+        return "BOAR_INST_AUTO_RED"
+    elif feat == HeroicFeat.TENACIOUS_BOAR_BLUE:
+        return "BOAR_INST_AUTO_BLUE"
+    elif feat == HeroicFeat.TENACIOUS_BOAR_YELLOW:
+        return "BOAR_INST_AUTO_YELLOW"
+    elif feat == HeroicFeat.TENACIOUS_BOAR_GREEN:
+        return "BOAR_INST_AUTO_GREEN"
     for f in featsData:
         if f.name == feat.name:
             return f.effect
@@ -120,6 +142,7 @@ def getMoonCost(feat):
             return 1
         return 14 - pos
     return 0
+
 
 def getIsland(feat):
     pos = getPosition(feat)

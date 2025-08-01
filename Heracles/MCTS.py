@@ -11,7 +11,7 @@ class Node:
         self.points = 0
 
     def isTerminalNode(self):
-        return self.state.isOver() > 0
+        return self.state.isOver()
 
     def isFullyExpanded(self):
         return len(self.children) == len(self.state.getOptions())
@@ -39,6 +39,8 @@ class Node:
                 childNode = Node(nextState, self, move)
                 self.children.append(childNode)
                 return childNode
+        print(options)
+        self.state.printBoardState()
 
     def backpropagate(self, result):
         self.visits += 1
@@ -136,7 +138,7 @@ def mcts(rootState, numSims):
 
 def rollout(state):
     currentState = state.copyState()
-    while currentState.isOver() == 0:
+    while not currentState.isOver():
         possibleMoves = currentState.getOptions()
         move = random.choice(possibleMoves)
         currentState.makeMove(move)

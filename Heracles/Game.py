@@ -11,44 +11,48 @@ class HeroicFeat(Enum):
     GREAT_BEAR = 4
     SATYRS = 5
     TENACIOUS_BOAR = 6
-    FERRYMAN = 7
-    CERBERUS = 8
-    HELMET_OF_INVISIBILITY = 9
-    CANCER = 10
-    SENTINEL = 11
-    HYDRA = 12
-    TYPHON = 13
-    SPHINX = 14
-    CYCLOPS = 15
-    MIRROR_OF_THE_ABYSS = 16
-    GORGON = 17
-    TRITON = 18
-    MINOTAUR = 19
-    THE_GUARDIANS_SHIELD = 20
-    THE_GUARDIANS_OWL = 21
-    CELESTIAL_SHIP = 22
-    WILD_SPIRITS = 23
-    THE_ELDER = 24
-    THE_TREE = 25
-    THE_MERCHANT = 26
-    THE_WOOD_NYMPH = 27
-    THE_LIGHT = 28
-    THE_OMNISCIENT = 29
-    THE_GOLDSMITH = 30
-    THE_ABYSSAL_TRIDENT = 31
-    THE_LEFT_HAND = 32
-    THE_ETERNAL_FIRE = 33
-    THE_FIRST_TITAN = 34
-    THE_GODDESS = 35
-    THE_RIGHT_HAND = 36
-    THE_ETERNAL_NIGHT = 37
-    THE_MISTS = 38
-    THE_ANCESTOR = 39
-    THE_WIND = 40
-    THE_CELESTIAL_DIE = 41
-    THE_COMPANION = 42
-    THE_BLACKSMITHS_SCEPTER = 43
-    THE_TWINS = 44
+    TENACIOUS_BOAR_RED = 7
+    TENACIOUS_BOAR_BLUE = 8
+    TENACIOUS_BOAR_GREEN = 9
+    TENACIOUS_BOAR_YELLOW = 10
+    FERRYMAN = 11
+    CERBERUS = 12
+    HELMET_OF_INVISIBILITY = 13
+    CANCER = 14
+    SENTINEL = 15
+    HYDRA = 16
+    TYPHON = 17
+    SPHINX = 18
+    CYCLOPS = 19
+    MIRROR_OF_THE_ABYSS = 20
+    GORGON = 21
+    TRITON = 22
+    MINOTAUR = 23
+    THE_GUARDIANS_SHIELD = 24
+    THE_GUARDIANS_OWL = 25
+    CELESTIAL_SHIP = 26
+    WILD_SPIRITS = 27
+    THE_ELDER = 28
+    THE_TREE = 29
+    THE_MERCHANT = 30
+    THE_WOOD_NYMPH = 31
+    THE_LIGHT = 32
+    THE_OMNISCIENT = 33
+    THE_GOLDSMITH = 34
+    THE_ABYSSAL_TRIDENT = 35
+    THE_LEFT_HAND = 36
+    THE_ETERNAL_FIRE = 37
+    THE_FIRST_TITAN = 38
+    THE_GODDESS = 39
+    THE_RIGHT_HAND = 40
+    THE_ETERNAL_NIGHT = 41
+    THE_MISTS = 42
+    THE_ANCESTOR = 43
+    THE_WIND = 44
+    THE_CELESTIAL_DIE = 45
+    THE_COMPANION = 46
+    THE_BLACKSMITHS_SCEPTER = 47
+    THE_TWINS = 48
 
 
 class DieFace(Enum):
@@ -93,38 +97,97 @@ class Phase(Enum):
     RESOLVE_DIE_2_2 = 7
     RESOLVE_DIE_3_1 = 8
     RESOLVE_DIE_3_2 = 9
-    RESOLVE_REINF_EFFECTS = 10
-    ACTIVE_PLAYER_CHOICE_1 = 11
-    ACTIVE_PLAYER_BUY_FACES_1 = 12
-    ACTIVE_PLAYER_PERFORM_FEAT_1 = 13
-    EXTRA_TURN_DECISION = 14
-    ACTIVE_PLAYER_CHOICE_2 = 15
-    ACTIVE_PLAYER_BUY_FACES_2 = 16
-    ACTIVE_PLAYER_PERFORM_FEAT_2 = 17
-    FORGE_SHIP_FACE_1 = 18
-    FORGE_SHIP_FACE_2 = 19
-    CHOOSE_SHIELD_FACE_1 = 20
-    CHOOSE_SHIELD_FACE_2 = 21
-    FORGE_HELMET_FACE_1 = 22
-    FORGE_HELMET_FACE_2 = 23
-    FORGE_MIRROR_FACE_1 = 24
-    FORGE_MIRROR_FACE_2 = 25
-    OUST_1_0_1 = 26 # action number, player ID, die number
-    OUST_1_0_2 = 27
-    OUST_1_1_1 = 28
-    OUST_1_1_2 = 29
-    OUST_1_2_1 = 30
-    OUST_1_2_2 = 31
-    OUST_1_3_1 = 32
-    OUST_1_3_2 = 33
-    OUST_2_0_1 = 26
-    OUST_2_0_2 = 27
-    OUST_2_1_1 = 28
-    OUST_2_1_2 = 29
-    OUST_2_2_1 = 30
-    OUST_2_2_2 = 31
-    OUST_2_3_1 = 32
-    OUST_2_3_2 = 33
+    CHOOSE_REINF_EFFECT = 10
+    RESOLVE_ELDER_REINF = 11
+    RESOLVE_OWL_REINF = 12
+    RESOLVE_HIND_REINF = 13
+    RESOLVE_TREE_REINF = 14
+    RESOLVE_MERCHANT_REINF = 15
+    RESOLVE_LIGHT_REINF = 16
+    RESOLVE_COMPANION_REINF = 17
+    ACTIVE_PLAYER_CHOICE_1 = 18
+    ACTIVE_PLAYER_BUY_FACES_1 = 19
+    ACTIVE_PLAYER_PERFORM_FEAT_1 = 20
+    EXTRA_TURN_DECISION = 21
+    ACTIVE_PLAYER_CHOICE_2 = 22
+    ACTIVE_PLAYER_BUY_FACES_2 = 23
+    ACTIVE_PLAYER_PERFORM_FEAT_2 = 24
+    FORGE_SHIP_FACE_1 = 25
+    FORGE_SHIP_FACE_2 = 26
+    CHOOSE_SHIELD_FACE_1 = 27
+    CHOOSE_SHIELD_FACE_2 = 28
+    FORGE_HELMET_FACE_1 = 29
+    FORGE_HELMET_FACE_2 = 30
+    FORGE_MIRROR_FACE_1 = 31
+    FORGE_MIRROR_FACE_2 = 32
+    OUST_1_0_1 = 33  # action number, player ID, die number
+    OUST_1_0_2 = 34
+    OUST_1_1_1 = 35
+    OUST_1_1_2 = 36
+    OUST_1_2_1 = 37
+    OUST_1_2_2 = 38
+    OUST_1_3_1 = 39
+    OUST_1_3_2 = 40
+    OUST_2_0_1 = 41
+    OUST_2_0_2 = 42
+    OUST_2_1_1 = 43
+    OUST_2_1_2 = 44
+    OUST_2_2_1 = 45
+    OUST_2_2_2 = 46
+    OUST_2_3_1 = 47
+    OUST_2_3_2 = 48
+    RESOLVE_SHIPS_0 = 49
+    RESOLVE_SHIPS_1 = 50
+    RESOLVE_SHIPS_2 = 51
+    RESOLVE_SHIPS_3 = 52
+    CHOOSE_BOAR_PLAYER_RED_1 = 53
+    CHOOSE_BOAR_PLAYER_BLUE_1 = 54
+    CHOOSE_BOAR_PLAYER_YELLOW_1 = 55
+    CHOOSE_BOAR_PLAYER_GREEN_1 = 56
+    CHOOSE_BOAR_PLAYER_RED_2 = 57
+    CHOOSE_BOAR_PLAYER_BLUE_2 = 58
+    CHOOSE_BOAR_PLAYER_YELLOW_2 = 59
+    CHOOSE_BOAR_PLAYER_GREEN_2 = 60
+    FORGE_RED_BOAR_0_1 = 61  # player id, action number
+    FORGE_RED_BOAR_1_1 = 62
+    FORGE_RED_BOAR_2_1 = 63
+    FORGE_RED_BOAR_3_1 = 64
+    FORGE_BLUE_BOAR_0_1 = 65
+    FORGE_BLUE_BOAR_1_1 = 66
+    FORGE_BLUE_BOAR_2_1 = 67
+    FORGE_BLUE_BOAR_3_1 = 68
+    FORGE_YELLOW_BOAR_0_1 = 69
+    FORGE_YELLOW_BOAR_1_1 = 70
+    FORGE_YELLOW_BOAR_2_1 = 71
+    FORGE_YELLOW_BOAR_3_1 = 72
+    FORGE_GREEN_BOAR_0_1 = 73
+    FORGE_GREEN_BOAR_1_1 = 74
+    FORGE_GREEN_BOAR_2_1 = 75
+    FORGE_GREEN_BOAR_3_1 = 76
+    FORGE_RED_BOAR_0_2 = 77
+    FORGE_RED_BOAR_1_2 = 78
+    FORGE_RED_BOAR_2_2 = 79
+    FORGE_RED_BOAR_3_2 = 80
+    FORGE_BLUE_BOAR_0_2 = 81
+    FORGE_BLUE_BOAR_1_2 = 82
+    FORGE_BLUE_BOAR_2_2 = 83
+    FORGE_BLUE_BOAR_3_2 = 84
+    FORGE_YELLOW_BOAR_0_2 = 85
+    FORGE_YELLOW_BOAR_1_2 = 86
+    FORGE_YELLOW_BOAR_2_2 = 87
+    FORGE_YELLOW_BOAR_3_2 = 88
+    FORGE_GREEN_BOAR_0_2 = 89
+    FORGE_GREEN_BOAR_1_2 = 90
+    FORGE_GREEN_BOAR_2_2 = 91
+    FORGE_GREEN_BOAR_3_2 = 92
+    BOAR_CHOICE_0_1 = 93
+    BOAR_CHOICE_0_2 = 94
+    BOAR_CHOICE_1_1 = 95
+    BOAR_CHOICE_1_2 = 96
+    BOAR_CHOICE_2_1 = 97
+    BOAR_CHOICE_2_2 = 98
+    BOAR_CHOICE_3_1 = 99
+    BOAR_CHOICE_3_2 = 100
 
 
 class Move(Enum):
@@ -137,6 +200,11 @@ class Move(Enum):
     FORGE_FACE = 7
     CHOOSE_DIE_OR = 8
     RETURN_TO_FEAT = 9
+    CHOOSE_REINF_EFFECT = 10
+    USE_ELDER = 11
+    OWL_CHOICE = 12
+    CHOOSE_BOAR_PLAYER = 13
+    BOAR_CHOICE = 14
 
 
 class BoardState:
@@ -154,7 +222,8 @@ class BoardState:
                        [DieFace.VP4, DieFace.MOON2VP2, DieFace.GOLD1SUN1MOON1VP1, DieFace.GOLD2SUN2MOON2OR])
         self.shields = [DieFace.REDSHIELD, DieFace.YELLOWSHIELD, DieFace.GREENSHIELD, DieFace.BLUESHIELD]
         self.islands = ([], [], [], [], [], [], [], [], [], [], [], [], [], [], [])
-        self.islandChoice = 0 # used to remember choice for ousting
+        self.shipsToResolve = 0
+        self.islandChoice = 0  # used to remember choice for ousting
         self.selectRandomFeats()
         self.round = 1
         self.activePlayer = 0
@@ -171,6 +240,7 @@ class BoardState:
         ret.temple = copy.deepcopy(self.temple)
         ret.shields = copy.deepcopy(self.shields)
         ret.islands = copy.deepcopy(self.islands)
+        ret.shipsToResolve = self.shipsToResolve
         ret.islandChoice = self.islandChoice
         ret.round = self.round
         ret.activePlayer = self.activePlayer
@@ -205,18 +275,23 @@ class BoardState:
                     player.divineBlessing()
                 self.phase = Phase.RESOLVE_DIE_0_1
                 self.makeMove(move)
-            case Phase.RESOLVE_DIE_0_1: # todo: ship die face effect
+            case Phase.RESOLVE_DIE_0_1:
                 if move[0] == Move.CHOOSE_DIE_OR:
                     mult = 1
                     if self.players[0].getDie2Result() == DieFace.TIMES3:
                         mult = 3
                     self.players[0].gainResource(move[2][0], move[2][1] * mult)
                     self.resolveShieldOr(0, self.players[0].getDie2Result(), move[2][0])
-                    self.phase = Phase.RESOLVE_DIE_0_2
-                    self.makeMove((Move.PASS, 0, ()))
+                    if Data.isBoarFace(self.players[0].getDie1Result()):
+                        self.phase = Phase.BOAR_CHOICE_0_1
+                    else:
+                        self.phase = Phase.RESOLVE_DIE_0_2
+                        self.makeMove((Move.PASS, 0, ()))
                 elif not Data.getIsOr(self.players[0].getDie1Result()):
                     self.players[0].gainDieEffect(1, True)
                     self.resolveShield(0, 2)
+                    if self.players[0].getDie1Result() == DieFace.SHIP:
+                        self.shipsToResolve += 1
                     self.phase = Phase.RESOLVE_DIE_0_2
                     self.makeMove(move)
             case Phase.RESOLVE_DIE_0_2:
@@ -226,13 +301,23 @@ class BoardState:
                         mult = 3
                     self.players[0].gainResource(move[2][0], move[2][1] * mult)
                     self.resolveShieldOr(0, self.players[0].getDie1Result(), move[2][0])
-                    self.phase = Phase.RESOLVE_DIE_1_1
-                    self.makeMove((Move.PASS, 0, ()))
+                    if Data.isBoarFace(self.players[0].getDie2Result()):
+                        self.phase = Phase.BOAR_CHOICE_0_2
+                    else:
+                        self.phase = Phase.RESOLVE_DIE_1_1
+                        self.makeMove((Move.PASS, 0, ()))
                 elif not Data.getIsOr(self.players[0].getDie2Result()):
                     self.players[0].gainDieEffect(2, True)
                     self.resolveShield(0, 1)
-                    self.phase = Phase.RESOLVE_DIE_1_1
-                    self.makeMove(move)
+                    if self.players[0].getDie2Result() == DieFace.SHIP:
+                        self.shipsToResolve += 1
+                    if self.shipsToResolve > 0:
+                        self.phase = Phase.RESOLVE_SHIPS_0
+                    else:
+                        self.phase = Phase.RESOLVE_DIE_1_1
+                        self.makeMove(move)
+            case Phase.RESOLVE_SHIPS_0:
+                pass  # todo
             case Phase.RESOLVE_DIE_1_1:
                 if move[0] == Move.CHOOSE_DIE_OR:
                     mult = 1
@@ -240,11 +325,16 @@ class BoardState:
                         mult = 3
                     self.players[1].gainResource(move[2][0], move[2][1] * mult)
                     self.resolveShieldOr(1, self.players[1].getDie2Result(), move[2][0])
-                    self.phase = Phase.RESOLVE_DIE_1_2
-                    self.makeMove((Move.PASS, 1, ()))
+                    if Data.isBoarFace(self.players[1].getDie1Result()):
+                        self.phase = Phase.BOAR_CHOICE_1_1
+                    else:
+                        self.phase = Phase.RESOLVE_DIE_1_2
+                        self.makeMove((Move.PASS, 1, ()))
                 elif not Data.getIsOr(self.players[1].getDie1Result()):
                     self.players[1].gainDieEffect(1, True)
                     self.resolveShield(1, 2)
+                    if self.players[1].getDie1Result() == DieFace.SHIP:
+                        self.shipsToResolve += 1
                     self.phase = Phase.RESOLVE_DIE_1_2
                     self.makeMove(move)
             case Phase.RESOLVE_DIE_1_2:
@@ -254,24 +344,35 @@ class BoardState:
                         mult = 3
                     self.players[1].gainResource(move[2][0], move[2][1] * mult)
                     self.resolveShieldOr(1, self.players[1].getDie1Result(), move[2][0])
-                    if len(self.players) > 2:
-                        self.phase = Phase.RESOLVE_DIE_2_1
-                        self.makeMove(move)
-                    elif self.players[self.activePlayer].hasReinfEffects():
-                        self.phase = Phase.RESOLVE_REINF_EFFECTS
+                    if Data.isBoarFace(self.players[1].getDie2Result()):
+                        self.phase = Phase.BOAR_CHOICE_1_2
                     else:
-                        self.phase = Phase.ACTIVE_PLAYER_CHOICE_1
-                    self.makeMove((Move.PASS, 1, ()))
+                        if len(self.players) > 2:
+                            self.phase = Phase.RESOLVE_DIE_2_1
+                            self.makeMove(move)
+                        elif self.players[self.activePlayer].hasReinfEffects():
+                            self.players[self.activePlayer].populateReinfEffects()
+                            self.phase = Phase.CHOOSE_REINF_EFFECT
+                        else:
+                            self.phase = Phase.ACTIVE_PLAYER_CHOICE_1
+                        self.makeMove((Move.PASS, 1, ()))
                 elif not Data.getIsOr(self.players[1].getDie2Result()):
                     self.players[1].gainDieEffect(2, True)
                     self.resolveShield(1, 1)
-                    if len(self.players) > 2:
+                    if self.players[1].getDie2Result() == DieFace.SHIP:
+                        self.shipsToResolve += 1
+                    if self.shipsToResolve > 0:
+                        self.phase = Phase.RESOLVE_SHIPS_1
+                    elif len(self.players) > 2:
                         self.phase = Phase.RESOLVE_DIE_2_1
                         self.makeMove(move)
                     elif self.players[self.activePlayer].hasReinfEffects():
-                        self.phase = Phase.RESOLVE_REINF_EFFECTS
+                        self.players[self.activePlayer].populateReinfEffects()
+                        self.phase = Phase.CHOOSE_REINF_EFFECT
                     else:
                         self.phase = Phase.ACTIVE_PLAYER_CHOICE_1
+            case Phase.RESOLVE_SHIPS_1:
+                pass  # todo
             case Phase.RESOLVE_DIE_2_1:
                 if move[0] == Move.CHOOSE_DIE_OR:
                     mult = 1
@@ -279,11 +380,16 @@ class BoardState:
                         mult = 3
                     self.players[2].gainResource(move[2][0], move[2][1] * mult)
                     self.resolveShieldOr(2, self.players[2].getDie2Result(), move[2][0])
-                    self.phase = Phase.RESOLVE_DIE_2_2
-                    self.makeMove((Move.PASS, 2, ()))
+                    if Data.isBoarFace(self.players[2].getDie1Result()):
+                        self.phase = Phase.BOAR_CHOICE_2_1
+                    else:
+                        self.phase = Phase.RESOLVE_DIE_2_2
+                        self.makeMove((Move.PASS, 2, ()))
                 elif not Data.getIsOr(self.players[2].getDie1Result()):
                     self.players[2].gainDieEffect(1, True)
                     self.resolveShield(2, 2)
+                    if self.players[2].getDie1Result() == DieFace.SHIP:
+                        self.shipsToResolve += 1
                     self.phase = Phase.RESOLVE_DIE_2_2
                     self.makeMove(move)
             case Phase.RESOLVE_DIE_2_2:
@@ -293,24 +399,35 @@ class BoardState:
                         mult = 3
                     self.players[2].gainResource(move[2][0], move[2][1] * mult)
                     self.resolveShieldOr(2, self.players[2].getDie1Result(), move[2][0])
-                    if len(self.players) > 3:
-                        self.phase = Phase.RESOLVE_DIE_3_1
-                        self.makeMove(move)
-                    elif self.players[self.activePlayer].hasReinfEffects():
-                        self.phase = Phase.RESOLVE_REINF_EFFECTS
+                    if Data.isBoarFace(self.players[2].getDie2Result()):
+                        self.phase = Phase.BOAR_CHOICE_2_2
                     else:
-                        self.phase = Phase.ACTIVE_PLAYER_CHOICE_1
-                    self.makeMove((Move.PASS, 2, ()))
+                        if len(self.players) > 3:
+                            self.phase = Phase.RESOLVE_DIE_3_1
+                            self.makeMove(move)
+                        elif self.players[self.activePlayer].hasReinfEffects():
+                            self.players[self.activePlayer].populateReinfEffects()
+                            self.phase = Phase.CHOOSE_REINF_EFFECT
+                        else:
+                            self.phase = Phase.ACTIVE_PLAYER_CHOICE_1
+                        self.makeMove((Move.PASS, 2, ()))
                 elif not Data.getIsOr(self.players[2].getDie2Result()):
                     self.players[2].gainDieEffect(2, True)
                     self.resolveShield(2, 1)
-                    if len(self.players) > 3:
+                    if self.players[2].getDie2Result() == DieFace.SHIP:
+                        self.shipsToResolve += 1
+                    if self.shipsToResolve > 0:
+                        self.phase = Phase.RESOLVE_SHIPS_2
+                    elif len(self.players) > 3:
                         self.phase = Phase.RESOLVE_DIE_3_1
                         self.makeMove(move)
                     elif self.players[self.activePlayer].hasReinfEffects():
-                        self.phase = Phase.RESOLVE_REINF_EFFECTS
+                        self.players[self.activePlayer].populateReinfEffects()
+                        self.phase = Phase.CHOOSE_REINF_EFFECT
                     else:
                         self.phase = Phase.ACTIVE_PLAYER_CHOICE_1
+            case Phase.RESOLVE_SHIPS_2:
+                pass  # todo
             case Phase.RESOLVE_DIE_3_1:
                 if move[0] == Move.CHOOSE_DIE_OR:
                     mult = 1
@@ -318,11 +435,16 @@ class BoardState:
                         mult = 3
                     self.players[3].gainResource(move[2][0], move[2][1] * mult)
                     self.resolveShieldOr(3, self.players[2].getDie2Result(), move[2][0])
-                    self.phase = Phase.RESOLVE_DIE_3_2
-                    self.makeMove((Move.PASS, 3, ()))
+                    if Data.isBoarFace(self.players[3].getDie1Result()):
+                        self.phase = Phase.BOAR_CHOICE_3_1
+                    else:
+                        self.phase = Phase.RESOLVE_DIE_3_2
+                        self.makeMove((Move.PASS, 3, ()))
                 elif not Data.getIsOr(self.players[3].getDie1Result()):
                     self.players[3].gainDieEffect(1, True)
                     self.resolveShield(3, 2)
+                    if self.players[3].getDie1Result() == DieFace.SHIP:
+                        self.shipsToResolve += 1
                     self.phase = Phase.RESOLVE_DIE_3_2
                     self.makeMove(move)
             case Phase.RESOLVE_DIE_3_2:
@@ -332,20 +454,69 @@ class BoardState:
                         mult = 3
                     self.players[3].gainResource(move[2][0], move[2][1] * mult)
                     self.resolveShieldOr(3, self.players[2].getDie1Result(), move[2][0])
-                    if self.players[self.activePlayer].hasReinfEffects():
-                        self.phase = Phase.RESOLVE_REINF_EFFECTS
+                    if Data.isBoarFace(self.players[3].getDie2Result()):
+                        self.phase = Phase.BOAR_CHOICE_3_2
                     else:
-                        self.phase = Phase.ACTIVE_PLAYER_CHOICE_1
-                    self.makeMove((Move.PASS, 3, ()))
+                        if self.players[self.activePlayer].hasReinfEffects():
+                            self.players[self.activePlayer].populateReinfEffects()
+                            self.phase = Phase.CHOOSE_REINF_EFFECT
+                        else:
+                            self.phase = Phase.ACTIVE_PLAYER_CHOICE_1
+                        self.makeMove((Move.PASS, 3, ()))
                 elif not Data.getIsOr(self.players[3].getDie2Result()):
                     self.players[3].gainDieEffect(2, True)
                     self.resolveShield(3, 1)
-                    if self.players[self.activePlayer].hasReinfEffects():
-                        self.phase = Phase.RESOLVE_REINF_EFFECTS
+                    if self.players[3].getDie2Result() == DieFace.SHIP:
+                        self.shipsToResolve += 1
+                    if self.shipsToResolve > 0:
+                        self.phase = Phase.RESOLVE_SHIPS_3
+                    elif self.players[self.activePlayer].hasReinfEffects():
+                        self.players[self.activePlayer].populateReinfEffects()
+                        self.phase = Phase.CHOOSE_REINF_EFFECT
                     else:
                         self.phase = Phase.ACTIVE_PLAYER_CHOICE_1
-            case Phase.RESOLVE_REINF_EFFECTS:
-                self.phase = Phase.ACTIVE_PLAYER_CHOICE_1  # todo: implement reinf effects. just go to next phase for now
+            case Phase.RESOLVE_SHIPS_3:
+                pass  # todo
+            case Phase.CHOOSE_REINF_EFFECT:
+                if not self.players[self.activePlayer].unusedReinfEffects:
+                    self.phase = Phase.ACTIVE_PLAYER_CHOICE_1
+                elif move[0] == Move.CHOOSE_REINF_EFFECT:
+                    self.players[self.activePlayer].unusedReinfEffects.remove(move[2][0])
+                    self.selectReinfState(move[2][0])
+            case Phase.RESOLVE_ELDER_REINF:
+                if move[0] == Move.USE_ELDER:
+                    if move[2][0]:
+                        if self.players[self.activePlayer].gold >= 3:
+                            self.players[self.activePlayer].gainGold(-3)
+                            self.players[self.activePlayer].gainVP(4)
+                    self.phase = Phase.CHOOSE_REINF_EFFECT
+                    self.makeMove(move)
+            case Phase.RESOLVE_OWL_REINF:
+                if move[0] == Move.OWL_CHOICE:
+                    match move[2][0]:
+                        case "gold":
+                            self.players[self.activePlayer].gainGold(1)
+                        case "sun":
+                            self.players[self.activePlayer].gainSun(1)
+                        case "moon":
+                            self.players[self.activePlayer].gainMoon(1)
+                    self.phase = Phase.CHOOSE_REINF_EFFECT
+                    self.makeMove(move)
+            case Phase.RESOLVE_HIND_REINF:
+                self.phase = Phase.CHOOSE_REINF_EFFECT
+                self.makeMove((Move.PASS, self.activePlayer, ()))  # todo: recieve minor blessing
+            case Phase.RESOLVE_TREE_REINF:
+                self.phase = Phase.CHOOSE_REINF_EFFECT
+                self.makeMove((Move.PASS, self.activePlayer, ()))  # todo: effect
+            case Phase.RESOLVE_MERCHANT_REINF:
+                self.phase = Phase.CHOOSE_REINF_EFFECT
+                self.makeMove((Move.PASS, self.activePlayer, ()))  # todo: effect
+            case Phase.RESOLVE_LIGHT_REINF:
+                self.phase = Phase.CHOOSE_REINF_EFFECT
+                self.makeMove((Move.PASS, self.activePlayer, ()))  # todo: effect
+            case Phase.RESOLVE_COMPANION_REINF:
+                self.phase = Phase.CHOOSE_REINF_EFFECT
+                self.makeMove((Move.PASS, self.activePlayer, ()))  # todo: effect
             case Phase.ACTIVE_PLAYER_CHOICE_1:
                 if move[0] == Move.CHOOSE_BUY_FACES:
                     self.phase = Phase.ACTIVE_PLAYER_BUY_FACES_1
@@ -364,14 +535,12 @@ class BoardState:
                     else:
                         self.phase = Phase.TURN_START
                         self.advanceActivePlayer()
-                        if not self.isOver():
-                            self.makeMove(move)
             case Phase.ACTIVE_PLAYER_BUY_FACES_1:
                 if move[0] == Move.BUY_FACES:
                     for face in move[2]:
                         self.temple[Data.getPool(face)].remove(face)
                         self.players[self.activePlayer].buyFace(face)
-                if move[0] == Move.FORGE_FACE:
+                elif move[0] == Move.FORGE_FACE:
                     self.players[self.activePlayer].forgeFace(move[2])
                     if not self.players[self.activePlayer].unforgedFaces:
                         if self.players[self.activePlayer].sun >= 2:
@@ -379,31 +548,25 @@ class BoardState:
                         else:
                             self.phase = Phase.TURN_START
                             self.advanceActivePlayer()
-                            self.makeMove(move)
-                if move[0] == Move.PASS:
+                elif move[0] == Move.PASS:
                     if self.players[self.activePlayer].sun >= 2:
                         self.phase = Phase.EXTRA_TURN_DECISION
                     else:
                         self.phase = Phase.TURN_START
                         self.advanceActivePlayer()
-                        self.makeMove(move)
             case Phase.ACTIVE_PLAYER_BUY_FACES_2:
                 if move[0] == Move.BUY_FACES:
                     for face in move[2]:
                         self.temple[Data.getPool(face)].remove(face)
                         self.players[self.activePlayer].buyFace(face)
-                if move[0] == Move.FORGE_FACE:
+                elif move[0] == Move.FORGE_FACE:
                     self.players[self.activePlayer].forgeFace(move[2])
                     if not self.players[self.activePlayer].unforgedFaces:
                         self.phase = Phase.TURN_START
                         self.advanceActivePlayer()
-                        if not self.isOver():
-                            self.makeMove(move)
-                if move[0] == Move.PASS:
+                elif move[0] == Move.PASS:
                     self.phase = Phase.TURN_START
                     self.advanceActivePlayer()
-                    if not self.isOver():
-                        self.makeMove(move)
             case Phase.ACTIVE_PLAYER_PERFORM_FEAT_1:
                 if move[0] == Move.PERFORM_FEAT:
                     island = Data.getIsland(move[2][0])
@@ -440,7 +603,6 @@ class BoardState:
                     else:
                         self.phase = Phase.TURN_START
                         self.advanceActivePlayer()
-                        self.makeMove(move)
             case Phase.ACTIVE_PLAYER_PERFORM_FEAT_2:
                 if move[0] == Move.PERFORM_FEAT:
                     island = Data.getIsland(move[2][0])
@@ -473,8 +635,6 @@ class BoardState:
                 elif move[0] == Move.PASS:
                     self.phase = Phase.TURN_START
                     self.advanceActivePlayer()
-                    if not self.isOver():
-                        self.makeMove(move)
             case Phase.FORGE_SHIP_FACE_1:
                 if move[0] == Move.FORGE_FACE:
                     self.players[self.activePlayer].forgeFace(move[2])
@@ -483,14 +643,11 @@ class BoardState:
                     else:
                         self.phase = Phase.TURN_START
                         self.advanceActivePlayer()
-                        self.makeMove(move)
             case Phase.FORGE_SHIP_FACE_2:
                 if move[0] == Move.FORGE_FACE:
                     self.players[self.activePlayer].forgeFace(move[2])
                     self.phase = Phase.TURN_START
                     self.advanceActivePlayer()
-                    if not self.isOver():
-                        self.makeMove(move)
             case Phase.CHOOSE_SHIELD_FACE_1:
                 if move[0] == Move.BUY_FACES:
                     self.players[self.activePlayer].unforgedFaces.append(move[2][0])
@@ -501,7 +658,6 @@ class BoardState:
                     else:
                         self.phase = Phase.TURN_START
                         self.advanceActivePlayer()
-                        self.makeMove(move)
             case Phase.CHOOSE_SHIELD_FACE_2:
                 if move[0] == Move.BUY_FACES:
                     self.players[self.activePlayer].unforgedFaces.append(move[2][0])
@@ -509,8 +665,6 @@ class BoardState:
                     self.players[self.activePlayer].forgeFace(move[2])
                     self.phase = Phase.TURN_START
                     self.advanceActivePlayer()
-                    if not self.isOver():
-                        self.makeMove(move)
             case Phase.FORGE_MIRROR_FACE_1:
                 if move[0] == Move.FORGE_FACE:
                     self.players[self.activePlayer].forgeFace(move[2])
@@ -519,14 +673,11 @@ class BoardState:
                     else:
                         self.phase = Phase.TURN_START
                         self.advanceActivePlayer()
-                        self.makeMove(move)
             case Phase.FORGE_MIRROR_FACE_2:
                 if move[0] == Move.FORGE_FACE:
                     self.players[self.activePlayer].forgeFace(move[2])
                     self.phase = Phase.TURN_START
                     self.advanceActivePlayer()
-                    if not self.isOver():
-                        self.makeMove(move)
             case Phase.FORGE_HELMET_FACE_1:
                 if move[0] == Move.FORGE_FACE:
                     self.players[self.activePlayer].forgeFace(move[2])
@@ -535,15 +686,12 @@ class BoardState:
                     else:
                         self.phase = Phase.TURN_START
                         self.advanceActivePlayer()
-                        self.makeMove(move)
             case Phase.FORGE_HELMET_FACE_2:
                 if move[0] == Move.FORGE_FACE:
                     self.players[self.activePlayer].forgeFace(move[2])
                     self.phase = Phase.TURN_START
                     self.advanceActivePlayer()
-                    if not self.isOver():
-                        self.makeMove(move)
-            case Phase.OUST_1_0_1: # todo: ship die face effect
+            case Phase.OUST_1_0_1:  # todo: ship die face effect
                 if move[0] == Move.CHOOSE_DIE_OR:
                     mult = 1
                     if self.players[0].getDie2Result() == DieFace.TIMES3:
@@ -767,12 +915,258 @@ class BoardState:
                     self.resolveShield(3, 1)
                     self.phase = Phase.ACTIVE_PLAYER_PERFORM_FEAT_2
                     self.makeMove((Move.RETURN_TO_FEAT, self.activePlayer, ()))
+            case Phase.CHOOSE_BOAR_PLAYER_RED_1:
+                if move[0] == Move.CHOOSE_BOAR_PLAYER:
+                    match move[2][0]:
+                        case 0:
+                            self.phase = Phase.FORGE_RED_BOAR_0_1
+                        case 1:
+                            self.phase = Phase.FORGE_RED_BOAR_1_1
+                        case 2:
+                            self.phase = Phase.FORGE_RED_BOAR_2_1
+                        case 3:
+                            self.phase = Phase.FORGE_RED_BOAR_3_1
+            case Phase.CHOOSE_BOAR_PLAYER_BLUE_1:
+                if move[0] == Move.CHOOSE_BOAR_PLAYER:
+                    match move[2][0]:
+                        case 0:
+                            self.phase = Phase.FORGE_BLUE_BOAR_0_1
+                        case 1:
+                            self.phase = Phase.FORGE_BLUE_BOAR_1_1
+                        case 2:
+                            self.phase = Phase.FORGE_BLUE_BOAR_2_1
+                        case 3:
+                            self.phase = Phase.FORGE_BLUE_BOAR_3_1
+            case Phase.CHOOSE_BOAR_PLAYER_YELLOW_1:
+                if move[0] == Move.CHOOSE_BOAR_PLAYER:
+                    match move[2][0]:
+                        case 0:
+                            self.phase = Phase.FORGE_YELLOW_BOAR_0_1
+                        case 1:
+                            self.phase = Phase.FORGE_YELLOW_BOAR_1_1
+                        case 2:
+                            self.phase = Phase.FORGE_YELLOW_BOAR_2_1
+                        case 3:
+                            self.phase = Phase.FORGE_YELLOW_BOAR_3_1
+            case Phase.CHOOSE_BOAR_PLAYER_GREEN_1:
+                if move[0] == Move.CHOOSE_BOAR_PLAYER:
+                    match move[2][0]:
+                        case 0:
+                            self.phase = Phase.FORGE_GREEN_BOAR_0_1
+                        case 1:
+                            self.phase = Phase.FORGE_GREEN_BOAR_1_1
+                        case 2:
+                            self.phase = Phase.FORGE_GREEN_BOAR_2_1
+                        case 3:
+                            self.phase = Phase.FORGE_GREEN_BOAR_3_1
+            case Phase.FORGE_RED_BOAR_0_1 | Phase.FORGE_BLUE_BOAR_0_1 | Phase.FORGE_YELLOW_BOAR_0_1 | Phase.FORGE_GREEN_BOAR_0_1:
+                if move[0] == Move.FORGE_FACE:
+                    self.players[0].forgeBoarFace(move[2])
+                    if self.players[self.activePlayer].sun >= 2:
+                        self.phase = Phase.EXTRA_TURN_DECISION
+                    else:
+                        self.phase = Phase.TURN_START
+                        self.advanceActivePlayer()
+            case Phase.FORGE_RED_BOAR_1_1 | Phase.FORGE_BLUE_BOAR_1_1 | Phase.FORGE_YELLOW_BOAR_1_1 | Phase.FORGE_GREEN_BOAR_1_1:
+                if move[0] == Move.FORGE_FACE:
+                    self.players[1].forgeBoarFace(move[2])
+                    if self.players[self.activePlayer].sun >= 2:
+                        self.phase = Phase.EXTRA_TURN_DECISION
+                    else:
+                        self.phase = Phase.TURN_START
+                        self.advanceActivePlayer()
+            case Phase.FORGE_RED_BOAR_2_1 | Phase.FORGE_BLUE_BOAR_2_1 | Phase.FORGE_YELLOW_BOAR_2_1 | Phase.FORGE_GREEN_BOAR_2_1:
+                if move[0] == Move.FORGE_FACE:
+                    self.players[2].forgeBoarFace(move[2])
+                    if self.players[self.activePlayer].sun >= 2:
+                        self.phase = Phase.EXTRA_TURN_DECISION
+                    else:
+                        self.phase = Phase.TURN_START
+                        self.advanceActivePlayer()
+            case Phase.FORGE_RED_BOAR_3_1 | Phase.FORGE_BLUE_BOAR_3_1 | Phase.FORGE_YELLOW_BOAR_3_1 | Phase.FORGE_GREEN_BOAR_3_1:
+                if move[0] == Move.FORGE_FACE:
+                    self.players[3].forgeBoarFace(move[2])
+                    if self.players[self.activePlayer].sun >= 2:
+                        self.phase = Phase.EXTRA_TURN_DECISION
+                    else:
+                        self.phase = Phase.TURN_START
+                        self.advanceActivePlayer()
+            case Phase.CHOOSE_BOAR_PLAYER_RED_2:
+                if move[0] == Move.CHOOSE_BOAR_PLAYER:
+                    match move[2][0]:
+                        case 0:
+                            self.phase = Phase.FORGE_RED_BOAR_0_2
+                        case 1:
+                            self.phase = Phase.FORGE_RED_BOAR_1_2
+                        case 2:
+                            self.phase = Phase.FORGE_RED_BOAR_2_2
+                        case 3:
+                            self.phase = Phase.FORGE_RED_BOAR_3_2
+            case Phase.CHOOSE_BOAR_PLAYER_BLUE_2:
+                if move[0] == Move.CHOOSE_BOAR_PLAYER:
+                    match move[2][0]:
+                        case 0:
+                            self.phase = Phase.FORGE_BLUE_BOAR_0_2
+                        case 1:
+                            self.phase = Phase.FORGE_BLUE_BOAR_1_2
+                        case 2:
+                            self.phase = Phase.FORGE_BLUE_BOAR_2_2
+                        case 3:
+                            self.phase = Phase.FORGE_BLUE_BOAR_3_2
+            case Phase.CHOOSE_BOAR_PLAYER_YELLOW_2:
+                if move[0] == Move.CHOOSE_BOAR_PLAYER:
+                    match move[2][0]:
+                        case 0:
+                            self.phase = Phase.FORGE_YELLOW_BOAR_0_2
+                        case 1:
+                            self.phase = Phase.FORGE_YELLOW_BOAR_1_2
+                        case 2:
+                            self.phase = Phase.FORGE_YELLOW_BOAR_2_2
+                        case 3:
+                            self.phase = Phase.FORGE_YELLOW_BOAR_3_2
+            case Phase.CHOOSE_BOAR_PLAYER_GREEN_2:
+                if move[0] == Move.CHOOSE_BOAR_PLAYER:
+                    match move[2][0]:
+                        case 0:
+                            self.phase = Phase.FORGE_GREEN_BOAR_0_2
+                        case 1:
+                            self.phase = Phase.FORGE_GREEN_BOAR_1_2
+                        case 2:
+                            self.phase = Phase.FORGE_GREEN_BOAR_2_2
+                        case 3:
+                            self.phase = Phase.FORGE_GREEN_BOAR_3_2
+            case Phase.FORGE_RED_BOAR_0_2 | Phase.FORGE_BLUE_BOAR_0_2 | Phase.FORGE_YELLOW_BOAR_0_2 | Phase.FORGE_GREEN_BOAR_0_2:
+                if move[0] == Move.FORGE_FACE:
+                    self.players[0].forgeBoarFace(move[2])
+                    self.phase = Phase.TURN_START
+                    self.advanceActivePlayer()
+            case Phase.FORGE_RED_BOAR_1_2 | Phase.FORGE_BLUE_BOAR_1_2 | Phase.FORGE_YELLOW_BOAR_1_2 | Phase.FORGE_GREEN_BOAR_1_2:
+                if move[0] == Move.FORGE_FACE:
+                    self.players[1].forgeBoarFace(move[2])
+                    self.phase = Phase.TURN_START
+                    self.advanceActivePlayer()
+            case Phase.FORGE_RED_BOAR_2_2 | Phase.FORGE_BLUE_BOAR_2_2 | Phase.FORGE_YELLOW_BOAR_2_2 | Phase.FORGE_GREEN_BOAR_2_2:
+                if move[0] == Move.FORGE_FACE:
+                    self.players[2].forgeBoarFace(move[2])
+                    self.phase = Phase.TURN_START
+                    self.advanceActivePlayer()
+            case Phase.FORGE_RED_BOAR_3_2 | Phase.FORGE_BLUE_BOAR_3_2 | Phase.FORGE_YELLOW_BOAR_3_2 | Phase.FORGE_GREEN_BOAR_3_2:
+                if move[0] == Move.FORGE_FACE:
+                    self.players[3].forgeBoarFace(move[2])
+                    self.phase = Phase.TURN_START
+                    self.advanceActivePlayer()
+            case Phase.BOAR_CHOICE_0_1:
+                if move[0] == Move.BOAR_CHOICE:
+                    match move[2][0]:
+                        case "sun":
+                            self.players[move[1]].gainSun(1)
+                        case "moon":
+                            self.players[move[1]].gainMoon(1)
+                        case "vp":
+                            self.players[move[1]].gainVP(3)
+                    self.phase = Phase.RESOLVE_DIE_0_2
+                    self.makeMove((Move.PASS, 0, ()))
+            case Phase.BOAR_CHOICE_0_2:
+                if move[0] == Move.BOAR_CHOICE:
+                    match move[2][0]:
+                        case "sun":
+                            self.players[move[1]].gainSun(1)
+                        case "moon":
+                            self.players[move[1]].gainMoon(1)
+                        case "vp":
+                            self.players[move[1]].gainVP(3)
+                    self.phase = Phase.RESOLVE_DIE_1_1
+                    self.makeMove((Move.PASS, 0, ()))
+            case Phase.BOAR_CHOICE_1_1:
+                if move[0] == Move.BOAR_CHOICE:
+                    match move[2][0]:
+                        case "sun":
+                            self.players[move[1]].gainSun(1)
+                        case "moon":
+                            self.players[move[1]].gainMoon(1)
+                        case "vp":
+                            self.players[move[1]].gainVP(3)
+                    self.phase = Phase.RESOLVE_DIE_1_2
+                    self.makeMove((Move.PASS, 1, ()))
+            case Phase.BOAR_CHOICE_1_2:
+                if move[0] == Move.BOAR_CHOICE:
+                    match move[2][0]:
+                        case "sun":
+                            self.players[move[1]].gainSun(1)
+                        case "moon":
+                            self.players[move[1]].gainMoon(1)
+                        case "vp":
+                            self.players[move[1]].gainVP(3)
+                    if len(self.players) > 2:
+                        self.phase = Phase.RESOLVE_DIE_2_1
+                        self.makeMove(move)
+                    elif self.players[self.activePlayer].hasReinfEffects():
+                        self.players[self.activePlayer].populateReinfEffects()
+                        self.phase = Phase.CHOOSE_REINF_EFFECT
+                    else:
+                        self.phase = Phase.ACTIVE_PLAYER_CHOICE_1
+                    self.makeMove((Move.PASS, 1, ()))
+            case Phase.BOAR_CHOICE_2_1:
+                if move[0] == Move.BOAR_CHOICE:
+                    match move[2][0]:
+                        case "sun":
+                            self.players[move[1]].gainSun(1)
+                        case "moon":
+                            self.players[move[1]].gainMoon(1)
+                        case "vp":
+                            self.players[move[1]].gainVP(3)
+                    self.phase = Phase.RESOLVE_DIE_2_2
+                    self.makeMove((Move.PASS, 2, ()))
+            case Phase.BOAR_CHOICE_2_2:
+                if move[0] == Move.BOAR_CHOICE:
+                    match move[2][0]:
+                        case "sun":
+                            self.players[move[1]].gainSun(1)
+                        case "moon":
+                            self.players[move[1]].gainMoon(1)
+                        case "vp":
+                            self.players[move[1]].gainVP(3)
+                    if len(self.players) > 3:
+                        self.phase = Phase.RESOLVE_DIE_3_1
+                        self.makeMove(move)
+                    elif self.players[self.activePlayer].hasReinfEffects():
+                        self.players[self.activePlayer].populateReinfEffects()
+                        self.phase = Phase.CHOOSE_REINF_EFFECT
+                    else:
+                        self.phase = Phase.ACTIVE_PLAYER_CHOICE_1
+                    self.makeMove((Move.PASS, 2, ()))
+            case Phase.BOAR_CHOICE_3_1:
+                if move[0] == Move.BOAR_CHOICE:
+                    match move[2][0]:
+                        case "sun":
+                            self.players[move[1]].gainSun(1)
+                        case "moon":
+                            self.players[move[1]].gainMoon(1)
+                        case "vp":
+                            self.players[move[1]].gainVP(3)
+                    self.phase = Phase.RESOLVE_DIE_3_2
+                    self.makeMove((Move.PASS, 3, ()))
+            case Phase.BOAR_CHOICE_3_2:
+                if move[0] == Move.BOAR_CHOICE:
+                    match move[2][0]:
+                        case "sun":
+                            self.players[move[1]].gainSun(1)
+                        case "moon":
+                            self.players[move[1]].gainMoon(1)
+                        case "vp":
+                            self.players[move[1]].gainVP(3)
+                    if self.players[self.activePlayer].hasReinfEffects():
+                        self.players[self.activePlayer].populateReinfEffects()
+                        self.phase = Phase.CHOOSE_REINF_EFFECT
+                    else:
+                        self.phase = Phase.ACTIVE_PLAYER_CHOICE_1
+                    self.makeMove((Move.PASS, 3, ()))
         # todo: finish
 
     def getOptions(self):
         print(self.phase)
-        #self.printBoardState()
-        ret = ((Move.PASS, self.activePlayer, ()), )
+        # self.printBoardState()
+        ret = ((Move.PASS, self.activePlayer, ()),)
         match self.phase:
             case Phase.RESOLVE_DIE_0_1:
                 ret = self.players[0].getDieOptions(True)
@@ -790,54 +1184,56 @@ class BoardState:
                 ret = self.players[3].getDieOptions(True)
             case Phase.RESOLVE_DIE_3_2:
                 ret = self.players[3].getDieOptions(False)
-            case Phase.RESOLVE_REINF_EFFECTS:
+            case Phase.CHOOSE_REINF_EFFECT:
                 ret = self.players[self.activePlayer].getReinfOptions()
-            case Phase.ACTIVE_PLAYER_CHOICE_1:
+            case Phase.RESOLVE_ELDER_REINF:
+                ret = ((Move.USE_ELDER, self.activePlayer, (True,)), (Move.USE_ELDER, self.activePlayer, (False,)))
+            case Phase.RESOLVE_OWL_REINF:
+                ret = ((Move.OWL_CHOICE, self.activePlayer, ("gold",)), (Move.OWL_CHOICE, self.activePlayer, ("sun",)),
+                       (Move.OWL_CHOICE, self.activePlayer, ("moon",)))
+            case Phase.RESOLVE_HIND_REINF:
+                pass  # todo
+            case Phase.RESOLVE_TREE_REINF:
+                pass  # todo
+            case Phase.RESOLVE_MERCHANT_REINF:
+                pass  # todo
+            case Phase.RESOLVE_LIGHT_REINF:
+                pass  # todo
+            case Phase.RESOLVE_COMPANION_REINF:
+                pass  # todo
+            case Phase.ACTIVE_PLAYER_CHOICE_1 | Phase.ACTIVE_PLAYER_CHOICE_2:
                 ret = (
                     (Move.CHOOSE_BUY_FACES, self.activePlayer, ()), (Move.CHOOSE_PERFORM_FEAT, self.activePlayer, ()))
-            case Phase.ACTIVE_PLAYER_CHOICE_2:
-                ret = (
-                    (Move.CHOOSE_BUY_FACES, self.activePlayer, ()), (Move.CHOOSE_PERFORM_FEAT, self.activePlayer, ()))
-            case Phase.ACTIVE_PLAYER_BUY_FACES_1:
+            case Phase.ACTIVE_PLAYER_BUY_FACES_1 | Phase.ACTIVE_PLAYER_BUY_FACES_2:
                 if self.players[self.activePlayer].unforgedFaces:
                     ret = self.generateForgeFace(self.players[self.activePlayer].unforgedFaces[0])
                 else:
-                    ret = self.generateBuyFaces()
-            case Phase.ACTIVE_PLAYER_BUY_FACES_2:
-                if self.players[self.activePlayer].unforgedFaces:
-                    ret = self.generateForgeFace(self.players[self.activePlayer].unforgedFaces[0])
-                else:
-                    ret = self.generateBuyFaces()
-            case Phase.ACTIVE_PLAYER_PERFORM_FEAT_1:
-                ret = self.generatePerformFeats()
-            case Phase.ACTIVE_PLAYER_PERFORM_FEAT_2:
+                    ret = self.generateBuyFaces(self.players[self.activePlayer].gold)
+            case Phase.ACTIVE_PLAYER_PERFORM_FEAT_1 | Phase.ACTIVE_PLAYER_PERFORM_FEAT_2:
                 ret = self.generatePerformFeats()
             case Phase.EXTRA_TURN_DECISION:
                 ret = (
                     (Move.TAKE_EXTRA_TURN, self.activePlayer, (True,)),
                     (Move.TAKE_EXTRA_TURN, self.activePlayer, (False,)))
-            case Phase.FORGE_SHIP_FACE_1:
+            case Phase.FORGE_SHIP_FACE_1 | Phase.FORGE_SHIP_FACE_2:
                 ret = self.generateForgeFace(self.players[self.activePlayer].unforgedFaces[0])
-            case Phase.FORGE_SHIP_FACE_2:
-                ret = self.generateForgeFace(self.players[self.activePlayer].unforgedFaces[0])
-            case Phase.CHOOSE_SHIELD_FACE_1:
+            case Phase.CHOOSE_SHIELD_FACE_1 | Phase.CHOOSE_SHIELD_FACE_2:
                 if self.players[self.activePlayer].unforgedFaces:
                     ret = self.generateForgeFace(self.players[self.activePlayer].unforgedFaces[0])
                 else:
                     ret = self.generateChooseShield()
-            case Phase.CHOOSE_SHIELD_FACE_2:
-                if self.players[self.activePlayer].unforgedFaces:
-                    ret = self.generateForgeFace(self.players[self.activePlayer].unforgedFaces[0])
-                else:
-                    ret = self.generateChooseShield()
-            case Phase.FORGE_MIRROR_FACE_1:
+            case Phase.FORGE_MIRROR_FACE_1 | Phase.FORGE_MIRROR_FACE_2:
                 ret = self.generateForgeFace(self.players[self.activePlayer].unforgedFaces[0])
-            case Phase.FORGE_MIRROR_FACE_2:
+            case Phase.FORGE_HELMET_FACE_1 | Phase.FORGE_HELMET_FACE_2:
                 ret = self.generateForgeFace(self.players[self.activePlayer].unforgedFaces[0])
-            case Phase.FORGE_HELMET_FACE_1:
-                ret = self.generateForgeFace(self.players[self.activePlayer].unforgedFaces[0])
-            case Phase.FORGE_HELMET_FACE_2:
-                ret = self.generateForgeFace(self.players[self.activePlayer].unforgedFaces[0])
+            case Phase.RESOLVE_SHIPS_0:
+                ret = self.generateShipBuyFace(0)
+            case Phase.RESOLVE_SHIPS_1:
+                ret = self.generateShipBuyFace(1)
+            case Phase.RESOLVE_SHIPS_2:
+                ret = self.generateShipBuyFace(2)
+            case Phase.RESOLVE_SHIPS_3:
+                ret = self.generateShipBuyFace(3)
             case Phase.OUST_1_0_1:
                 ret = self.players[0].getDieOptions(True)
             case Phase.OUST_1_0_2:
@@ -870,11 +1266,64 @@ class BoardState:
                 ret = self.players[3].getDieOptions(True)
             case Phase.OUST_2_3_2:
                 ret = self.players[3].getDieOptions(False)
+            case Phase.CHOOSE_BOAR_PLAYER_RED_1 | Phase.CHOOSE_BOAR_PLAYER_BLUE_1 | Phase.CHOOSE_BOAR_PLAYER_YELLOW_1 | Phase.CHOOSE_BOAR_PLAYER_GREEN_1 | Phase.CHOOSE_BOAR_PLAYER_RED_2 | Phase.CHOOSE_BOAR_PLAYER_BLUE_2 | Phase.CHOOSE_BOAR_PLAYER_YELLOW_2 | Phase.CHOOSE_BOAR_PLAYER_GREEN_2:
+                ret = []
+                for player in self.players:
+                    if player.playerID != self.activePlayer:
+                        ret.append((Move.CHOOSE_BOAR_PLAYER, self.activePlayer, (player.playerID,)))
+                ret = tuple(ret)
+            case Phase.FORGE_RED_BOAR_0_1 | Phase.FORGE_RED_BOAR_0_2:
+                ret = self.generateForgeBoarFace(0, DieFace.REDBOAR)
+            case Phase.FORGE_RED_BOAR_1_1 | Phase.FORGE_RED_BOAR_1_2:
+                ret = self.generateForgeBoarFace(1, DieFace.REDBOAR)
+            case Phase.FORGE_RED_BOAR_2_1 | Phase.FORGE_RED_BOAR_2_2:
+                ret = self.generateForgeBoarFace(2, DieFace.REDBOAR)
+            case Phase.FORGE_RED_BOAR_3_1 | Phase.FORGE_RED_BOAR_3_2:
+                ret = self.generateForgeBoarFace(3, DieFace.REDBOAR)
+            case Phase.FORGE_BLUE_BOAR_0_1 | Phase.FORGE_BLUE_BOAR_0_2:
+                ret = self.generateForgeBoarFace(0, DieFace.BLUEBOAR)
+            case Phase.FORGE_BLUE_BOAR_1_1 | Phase.FORGE_BLUE_BOAR_1_2:
+                ret = self.generateForgeBoarFace(1, DieFace.BLUEBOAR)
+            case Phase.FORGE_BLUE_BOAR_2_1 | Phase.FORGE_BLUE_BOAR_2_2:
+                ret = self.generateForgeBoarFace(2, DieFace.BLUEBOAR)
+            case Phase.FORGE_BLUE_BOAR_3_1 | Phase.FORGE_BLUE_BOAR_3_2:
+                ret = self.generateForgeBoarFace(3, DieFace.BLUEBOAR)
+            case Phase.FORGE_YELLOW_BOAR_0_1 | Phase.FORGE_YELLOW_BOAR_0_2:
+                ret = self.generateForgeBoarFace(0, DieFace.YELLOWBOAR)
+            case Phase.FORGE_YELLOW_BOAR_1_1 | Phase.FORGE_YELLOW_BOAR_1_2:
+                ret = self.generateForgeBoarFace(1, DieFace.YELLOWBOAR)
+            case Phase.FORGE_YELLOW_BOAR_2_1 | Phase.FORGE_YELLOW_BOAR_2_2:
+                ret = self.generateForgeBoarFace(2, DieFace.YELLOWBOAR)
+            case Phase.FORGE_YELLOW_BOAR_3_1 | Phase.FORGE_YELLOW_BOAR_3_2:
+                ret = self.generateForgeBoarFace(3, DieFace.YELLOWBOAR)
+            case Phase.FORGE_GREEN_BOAR_0_1 | Phase.FORGE_GREEN_BOAR_0_2:
+                ret = self.generateForgeBoarFace(0, DieFace.GREENBOAR)
+            case Phase.FORGE_GREEN_BOAR_1_1 | Phase.FORGE_GREEN_BOAR_1_2:
+                ret = self.generateForgeBoarFace(1, DieFace.GREENBOAR)
+            case Phase.FORGE_GREEN_BOAR_2_1 | Phase.FORGE_GREEN_BOAR_2_2:
+                ret = self.generateForgeBoarFace(2, DieFace.GREENBOAR)
+            case Phase.FORGE_GREEN_BOAR_3_1 | Phase.FORGE_GREEN_BOAR_3_2:
+                ret = self.generateForgeBoarFace(3, DieFace.GREENBOAR)
+            case Phase.BOAR_CHOICE_0_1:
+                ret = self.generateBoarChoice(self.players[0].getDie1Result())
+            case Phase.BOAR_CHOICE_0_2:
+                ret = self.generateBoarChoice(self.players[0].getDie2Result())
+            case Phase.BOAR_CHOICE_1_1:
+                ret = self.generateBoarChoice(self.players[1].getDie1Result())
+            case Phase.BOAR_CHOICE_1_2:
+                ret = self.generateBoarChoice(self.players[1].getDie2Result())
+            case Phase.BOAR_CHOICE_2_1:
+                ret = self.generateBoarChoice(self.players[2].getDie1Result())
+            case Phase.BOAR_CHOICE_2_2:
+                ret = self.generateBoarChoice(self.players[2].getDie2Result())
+            case Phase.BOAR_CHOICE_3_1:
+                ret = self.generateBoarChoice(self.players[3].getDie1Result())
+            case Phase.BOAR_CHOICE_3_2:
+                ret = self.generateBoarChoice(self.players[3].getDie2Result())
             # todo: other actions
         return ret
 
-    def generateBuyFaces(self):
-        gold = self.players[self.activePlayer].gold
+    def generateBuyFaces(self, gold):
         ret = []
         if gold >= 2:
             if self.temple[0]:
@@ -966,7 +1415,8 @@ class BoardState:
                                                     (self.temple[1][0], self.temple[2][0], self.temple[3][0])))
                                     if self.temple[0] and self.temple[1] and self.temple[4]:
                                         for face in self.temple[4]:
-                                            ret.append((Move.BUY_FACES, self.activePlayer, (self.temple[0][0], self.temple[1][0], face)))
+                                            ret.append((Move.BUY_FACES, self.activePlayer,
+                                                        (self.temple[0][0], self.temple[1][0], face)))
                                     if gold >= 9:
                                         if self.temple[0] and self.temple[1] and self.temple[5]:
                                             ret.append((Move.BUY_FACES, self.activePlayer,
@@ -1210,8 +1660,40 @@ class BoardState:
                                                             i += 1
 
         # todo, etc
-        if not ret:
-            ret.append((Move.PASS, self.activePlayer, ()))
+        ret.append((Move.PASS, self.activePlayer, ()))
+        return tuple(ret)
+
+    def generateShipBuyFace(self, player):
+        ret = []
+        gold = self.players[player].gold + 2
+        if gold >= 2:
+            if self.temple[0]:
+                ret.append((Move.BUY_FACES, player, (self.temple[0][0],)))
+            if self.temple[1]:
+                ret.append((Move.BUY_FACES, player, (self.temple[1][0],)))
+            if gold >= 3:
+                if self.temple[2]:
+                    ret.append((Move.BUY_FACES, player, (self.temple[2][0],)))
+                if self.temple[3]:
+                    ret.append((Move.BUY_FACES, player, (self.temple[3][0],)))
+                if gold >= 4:
+                    for face in self.temple[4]:
+                        ret.append((Move.BUY_FACES, player, (face,)))
+                    if gold >= 5:
+                        if self.temple[5]:
+                            ret.append((Move.BUY_FACES, player, (self.temple[5][0],)))
+                        if gold >= 6:
+                            if self.temple[6]:
+                                ret.append((Move.BUY_FACES, player, (self.temple[6][0],)))
+                            if gold >= 8:
+                                if self.temple[7]:
+                                    ret.append((Move.BUY_FACES, player, (self.temple[7][0],)))
+                                if self.temple[8]:
+                                    ret.append((Move.BUY_FACES, player, (self.temple[8][0],)))
+                                if gold >= 12:
+                                    for face in self.temple[9]:
+                                        ret.append((Move.BUY_FACES, player, (face,)))
+        ret.append((Move.PASS, player, ()))
         return tuple(ret)
 
     def generatePerformFeats(self):
@@ -1261,23 +1743,52 @@ class BoardState:
         if sun >= 5 and moon >= 5:
             if self.islands[7]:
                 ret.append((Move.PERFORM_FEAT, self.activePlayer, (self.islands[7][0],)))
-        if not ret:
-            ret.append((Move.PASS, self.activePlayer, ()))
+        ret.append((Move.PASS, self.activePlayer, ()))
         return tuple(ret)
 
     def generateForgeFace(self, face):
         ret = []
         for existingFace in self.players[self.activePlayer].die1.faces:
-            ret.append((Move.FORGE_FACE, self.activePlayer, (1, face, existingFace)))
+            if not Data.isBoarFace(existingFace):
+                ret.append((Move.FORGE_FACE, self.activePlayer, (1, face, existingFace)))
         for existingFace in self.players[self.activePlayer].die2.faces:
-            ret.append((Move.FORGE_FACE, self.activePlayer, (2, face, existingFace)))
-        ret = set(ret) # remove duplicates
+            if not Data.isBoarFace(existingFace):
+                ret.append((Move.FORGE_FACE, self.activePlayer, (2, face, existingFace)))
+        ret = set(ret)  # remove duplicates
         return tuple(ret)
+
+    def generateForgeBoarFace(self, player, face):
+        ret = []
+        for existingFace in self.players[player].die1.faces:
+            if not Data.isBoarFace(existingFace):
+                ret.append((Move.FORGE_FACE, player, (1, face, existingFace)))
+        for existingFace in self.players[player].die2.faces:
+            if not Data.isBoarFace(existingFace):
+                ret.append((Move.FORGE_FACE, player, (2, face, existingFace)))
+        ret = set(ret)  # remove duplicates
+        return tuple(ret)
+
+    def generateBoarChoice(self, face):
+        match face:
+            case DieFace.REDBOAR:
+                feat = HeroicFeat.TENACIOUS_BOAR_RED
+            case DieFace.BLUEBOAR:
+                feat = HeroicFeat.TENACIOUS_BOAR_BLUE
+            case DieFace.YELLOWBOAR:
+                feat = HeroicFeat.TENACIOUS_BOAR_YELLOW
+            case DieFace.GREENBOAR:
+                feat = HeroicFeat.TENACIOUS_BOAR_GREEN
+        for p in self.players:
+            if p.hasFeat(feat):
+                player = p.playerID
+                break
+        return (Move.BOAR_CHOICE, player, ("sun",)), (Move.BOAR_CHOICE, player, ("moon",)), (
+            Move.BOAR_CHOICE, player, ("vp",))
 
     def generateChooseShield(self):
         ret = []
         for face in self.shields:
-            ret.append((Move.BUY_FACES, self.activePlayer, (face, )))
+            ret.append((Move.BUY_FACES, self.activePlayer, (face,)))
         return tuple(ret)
 
     def resolveShield(self, player, die):
@@ -1338,6 +1849,23 @@ class BoardState:
             else:
                 self.players[player].gainVP(3)
 
+    def selectReinfState(self, effect):
+        match effect:
+            case "ELDER_REINF":
+                self.phase = Phase.RESOLVE_ELDER_REINF
+            case "OWL_REINF":
+                self.phase = Phase.RESOLVE_OWL_REINF
+            case "HIND_REINF":
+                self.phase = Phase.RESOLVE_HIND_REINF
+            case "TREE_REINF":
+                self.phase = Phase.RESOLVE_TREE_REINF
+            case "MERCHANT_REINF":
+                self.phase = Phase.RESOLVE_MERCHANT_REINF
+            case "LIGHT_REINF":
+                self.phase = Phase.RESOLVE_LIGHT_REINF
+            case "COMPANION_INST_REINF":
+                self.phase = Phase.RESOLVE_COMPANION_REINF
+
     def resolveInstEffect(self, effect):
         match effect:
             case "SPRITS_INST":
@@ -1356,81 +1884,99 @@ class BoardState:
                 else:
                     self.phase = Phase.CHOOSE_SHIELD_FACE_2
             case "MINOTAUR_INST":
-                self.makeMove((Move.PASS, self.activePlayer, ())) # todo
-            case "TRITON_INST": # todo: using triton tokens
+                self.makeMove((Move.PASS, self.activePlayer, ()))  # todo
+            case "TRITON_INST":  # todo: using triton tokens
                 self.players[self.activePlayer].tritonTokens += 1
                 self.makeMove((Move.PASS, self.activePlayer, ()))
-            case "MIRROR_INST": # todo: mirror face effect
+            case "MIRROR_INST":  # todo: mirror face effect
                 self.players[self.activePlayer].unforgedFaces.append(DieFace.MIRROR)
                 if self.phase == Phase.ACTIVE_PLAYER_PERFORM_FEAT_1:
                     self.phase = Phase.FORGE_MIRROR_FACE_1
                 else:
                     self.phase = Phase.FORGE_MIRROR_FACE_2
             case "CYCLOPS_INST":
-                self.makeMove((Move.PASS, self.activePlayer, ())) # todo
+                self.makeMove((Move.PASS, self.activePlayer, ()))  # todo
             case "SPHINX_INST":
-                self.makeMove((Move.PASS, self.activePlayer, ())) # todo
+                self.makeMove((Move.PASS, self.activePlayer, ()))  # todo
             case "TYPHON_INST":
                 self.players[self.activePlayer].gainVP(self.players[self.activePlayer].numForged)
                 self.makeMove((Move.PASS, self.activePlayer, ()))
             case "SENTINEL_INST":
-                self.makeMove((Move.PASS, self.activePlayer, ())) # todo
+                self.makeMove((Move.PASS, self.activePlayer, ()))  # todo
             case "CANCER_INST":
-                self.makeMove((Move.PASS, self.activePlayer, ())) # todo
+                self.makeMove((Move.PASS, self.activePlayer, ()))  # todo
             case "HELMET_INST":
                 self.players[self.activePlayer].unforgedFaces.append(DieFace.TIMES3)
                 if self.phase == Phase.ACTIVE_PLAYER_PERFORM_FEAT_1:
                     self.phase = Phase.FORGE_HELMET_FACE_1
                 else:
                     self.phase = Phase.FORGE_HELMET_FACE_2
-            case "CERBERUS_INST": # todo: using cerberus tokens
+            case "CERBERUS_INST":  # todo: using cerberus tokens
                 self.players[self.activePlayer].cerberusTokens += 1
                 self.makeMove((Move.PASS, self.activePlayer, ()))
-            case "BOAR_INST_AUTO":
-                self.makeMove((Move.PASS, self.activePlayer, ())) # todo
+            case "BOAR_INST_AUTO_RED":
+                if self.phase == Phase.ACTIVE_PLAYER_PERFORM_FEAT_1:
+                    self.phase = Phase.CHOOSE_BOAR_PLAYER_RED_1
+                else:
+                    self.phase = Phase.CHOOSE_BOAR_PLAYER_RED_2
+            case "BOAR_INST_AUTO_BLUE":
+                if self.phase == Phase.ACTIVE_PLAYER_PERFORM_FEAT_1:
+                    self.phase = Phase.CHOOSE_BOAR_PLAYER_BLUE_1
+                else:
+                    self.phase = Phase.CHOOSE_BOAR_PLAYER_BLUE_2
+            case "BOAR_INST_AUTO_YELLOW":
+                if self.phase == Phase.ACTIVE_PLAYER_PERFORM_FEAT_1:
+                    self.phase = Phase.CHOOSE_BOAR_PLAYER_YELLOW_1
+                else:
+                    self.phase = Phase.CHOOSE_BOAR_PLAYER_YELLOW_2
+            case "BOAR_INST_AUTO_GREEN":
+                if self.phase == Phase.ACTIVE_PLAYER_PERFORM_FEAT_1:
+                    self.phase = Phase.CHOOSE_BOAR_PLAYER_GREEN_1
+                else:
+                    self.phase = Phase.CHOOSE_BOAR_PLAYER_GREEN_2  # todo: will need more cases here
             case "SATYRS_INST":
-                self.makeMove((Move.PASS, self.activePlayer, ())) # todo
+                self.makeMove((Move.PASS, self.activePlayer, ()))  # todo
             case "CHEST_INST":
                 self.players[self.activePlayer].chestEffect()
                 self.makeMove((Move.PASS, self.activePlayer, ()))
             case "HAMMER_INST":
-                self.makeMove((Move.PASS, self.activePlayer, ())) # todo
+                self.makeMove((Move.PASS, self.activePlayer, ()))  # todo
             case "NYMPH_INST":
-                self.makeMove((Move.PASS, self.activePlayer, ())) # todo
+                self.makeMove((Move.PASS, self.activePlayer, ()))  # todo
             case "OMNISCIENT_INST":
-                self.makeMove((Move.PASS, self.activePlayer, ())) # todo
+                self.makeMove((Move.PASS, self.activePlayer, ()))  # todo
             case "GOLDSMITH_INST":
-                self.makeMove((Move.PASS, self.activePlayer, ())) # todo
+                self.makeMove((Move.PASS, self.activePlayer, ()))  # todo
             case "TRIDENT_INST":
-                self.makeMove((Move.PASS, self.activePlayer, ())) # todo
+                self.makeMove((Move.PASS, self.activePlayer, ()))  # todo
             case "LEFTHAND_INST":
-                self.makeMove((Move.PASS, self.activePlayer, ())) # todo
+                self.makeMove((Move.PASS, self.activePlayer, ()))  # todo
             case "FIRE_INST":
-                self.makeMove((Move.PASS, self.activePlayer, ())) # todo
+                self.makeMove((Move.PASS, self.activePlayer, ()))  # todo
             case "TITAN_INST":
-                self.makeMove((Move.PASS, self.activePlayer, ())) # todo
+                self.makeMove((Move.PASS, self.activePlayer, ()))  # todo
             case "GODDESS_INST":
-                self.makeMove((Move.PASS, self.activePlayer, ())) # todo
+                self.makeMove((Move.PASS, self.activePlayer, ()))  # todo
             case "RIGHTHAND_INST":
-                self.makeMove((Move.PASS, self.activePlayer, ())) # todo
+                self.makeMove((Move.PASS, self.activePlayer, ()))  # todo
             case "NIGHT_INST":
-                self.makeMove((Move.PASS, self.activePlayer, ())) # todo
+                self.makeMove((Move.PASS, self.activePlayer, ()))  # todo
             case "MISTS_INST":
-                self.makeMove((Move.PASS, self.activePlayer, ())) # todo
+                self.makeMove((Move.PASS, self.activePlayer, ()))  # todo
             case "ANCESTOR_INST":
-                self.makeMove((Move.PASS, self.activePlayer, ())) # todo
+                self.makeMove((Move.PASS, self.activePlayer, ()))  # todo
             case "WIND_INST":
-                self.makeMove((Move.PASS, self.activePlayer, ())) # todo
+                self.makeMove((Move.PASS, self.activePlayer, ()))  # todo
             case "DIE_INST":
-                self.makeMove((Move.PASS, self.activePlayer, ())) # todo
+                self.makeMove((Move.PASS, self.activePlayer, ()))  # todo
             case "COMPANION_INST_REINF":
-                self.makeMove((Move.PASS, self.activePlayer, ())) # todo
+                self.makeMove((Move.PASS, self.activePlayer, ()))  # todo
             case "SCEPTER_INST":
-                self.makeMove((Move.PASS, self.activePlayer, ())) # todo
+                self.makeMove((Move.PASS, self.activePlayer, ()))  # todo
 
     def oust(self, player, actionNum):
         player.location = 0
-        player.divineBlessing() # todo: change all divine blessings when implementing dice rolls as decisions
+        player.divineBlessing()  # todo: change all divine blessings when implementing dice rolls as decisions
         if actionNum == 1:
             match player.playerID:
                 case 0:
@@ -1457,6 +2003,8 @@ class BoardState:
         if self.activePlayer >= len(self.players):
             self.activePlayer = 0
             self.round += 1
+        if not self.isOver():
+            self.makeMove((Move.PASS, self.activePlayer, ()))
 
     def getWinners(self):
         ret = []
@@ -1503,14 +2051,21 @@ class BoardState:
         i = 0
         while i < 15:
             feats = Data.getFeatsByPosition(i)
-            self.addFeat(i, feats[random.randrange(len(feats))]) # todo: boars should be distinct
+            self.addFeat(i, feats[random.randrange(len(feats))])  # todo: boars should be distinct
             i += 1
 
     def addFeat(self, island, feat):
-        j = 0
-        while j < len(self.players):
-            self.islands[island].append(feat)
-            j += 1
+        if feat == HeroicFeat.TENACIOUS_BOAR:
+            self.islands[island].append(HeroicFeat.TENACIOUS_BOAR_RED)
+            self.islands[island].append(HeroicFeat.TENACIOUS_BOAR_BLUE)
+            self.islands[island].append(HeroicFeat.TENACIOUS_BOAR_GREEN)
+            self.islands[island].append(HeroicFeat.TENACIOUS_BOAR_YELLOW)
+        else:
+            j = 0
+            while j < len(self.players):
+                self.islands[island].append(feat)
+                j += 1
+
 
 class Player:
     def __init__(self, playerID, ai):
@@ -1526,6 +2081,7 @@ class Player:
         self.tritonTokens = 0
         self.feats = []
         self.unforgedFaces = []
+        self.unusedReinfEffects = []
         self.die1 = createLightDie()
         self.die2 = createDarkDie()
         self.location = 0  # 0 is portal, 1-7 are islands
@@ -1549,6 +2105,7 @@ class Player:
         ret.location = self.location
         ret.numForged = self.numForged
         ret.unforgedFaces = copy.deepcopy(self.unforgedFaces)
+        ret.unusedReinfEffects = copy.deepcopy(self.unusedReinfEffects)
         return ret
 
     def chestEffect(self):
@@ -1640,6 +2197,22 @@ class Player:
         self.unforgedFaces.remove(forgeInfo[1])
         self.numForged += 1
 
+    def forgeBoarFace(self, forgeInfo):
+        if forgeInfo[0] == 1:
+            die = self.die1
+        else:
+            die = self.die2
+        die.faces.remove(forgeInfo[2])
+        die.faces.append(forgeInfo[1])
+        die.upFace = 5
+        self.numForged += 1
+
+    def hasFeat(self, feat):
+        for myFeat in self.feats:
+            if myFeat == feat:
+                return True
+        return False
+
     def performFeat(self, feat):
         self.gainSun(-Data.getSunCost(feat))
         self.gainMoon(-Data.getMoonCost(feat))
@@ -1671,8 +2244,18 @@ class Player:
                 return True
         return False
 
+    def populateReinfEffects(self):
+        for feat in self.feats:
+            effect = Data.getEffect(feat)
+            if "REINF" in effect:
+                self.unusedReinfEffects.append(effect)
+
     def getReinfOptions(self):
-        return ((Move.PASS, self.playerID, ()), )  # todo (need to track which ones have been used somehow)
+        ret = []
+        for effect in self.unusedReinfEffects:
+            if effect not in ret:
+                ret.append((Move.CHOOSE_REINF_EFFECT, self.playerID, (effect,)))
+        return tuple(ret)
 
     def printPlayerInfo(self):
         print(f"Player {self.playerID}:\nGold: {self.gold}/{self.maxGold}\nSun: {self.sun}/{self.maxSun}")
