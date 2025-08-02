@@ -114,7 +114,7 @@ class TicTacToeState:
 """
 
 
-def mcts(rootState, numSims):
+def mcts(rootState, numSims): # todo: currently dice roll decisions are treated as regular decisions instead of chance nodes
     root = Node(rootState.copyState())
     if len(root.state.getOptions()) == 1:
         return root.state.getOptions()[0]
