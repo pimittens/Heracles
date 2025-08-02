@@ -1,6 +1,5 @@
 import Game
 import MCTS
-import Data
 
 players = [Game.Player(0, True), Game.Player(1, True), Game.Player(2, True), Game.Player(3, True)]
 theBoard = Game.BoardState(players, True)
@@ -30,7 +29,10 @@ while not theBoard.isOver():
         print(f"{i}: {option}")
         i += 1
     if theBoard.players[options[0][1]].ai:
-        theBoard.makeMove(MCTS.mcts(theBoard.copyState(), 10))
+        if options[0] == Game.Move.ROLL:
+            theBoard.makeMove(options[len(options) - 1]) # always do random roll
+        else:
+            theBoard.makeMove(MCTS.mcts(theBoard.copyState(), 10))
     else:
         theBoard.makeMove(options[0])
     """
