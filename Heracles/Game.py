@@ -284,8 +284,8 @@ class BoardState:
         return self.round > 10
 
     def makeMove(self, move):
-        #print(f"Round: {self.round}, Phase: {self.phase}. Making move: {move}. Islands: {self.islands}. Island Choice: {self.islandChoice}")
-        #self.printBoardState()
+        # print(f"Round: {self.round}, Phase: {self.phase}. Making move: {move}. Islands: {self.islands}. Island Choice: {self.islandChoice}")
+        # self.printBoardState()
         self.lastPlayer = move[1]
         match self.phase:
             case Phase.TURN_START:
@@ -704,6 +704,7 @@ class BoardState:
                     self.players[self.activePlayer].location = island
                     if ousted:
                         self.islandChoice = Data.getPosition(move[2][0])
+                        self.phase = Phase.OUST_ROLL_DIE_1
                     else:
                         self.islands[Data.getPosition(move[2][0])].remove(move[2][0])
                         self.players[self.activePlayer].performFeat(move[2][0])
@@ -738,6 +739,7 @@ class BoardState:
                             break
                     if ousted:
                         self.islandChoice = Data.getPosition(move[2][0])
+                        self.phase = Phase.OUST_ROLL_DIE_1
                     else:
                         self.islands[Data.getPosition(move[2][0])].remove(move[2][0])
                         self.players[self.activePlayer].performFeat(move[2][0])
@@ -1450,7 +1452,7 @@ class BoardState:
         # todo: finish
 
     def getOptions(self):
-        #print(self.phase)
+        # print(self.phase)
         # self.printBoardState()
         ret = ((Move.PASS, self.activePlayer, ()),)
         match self.phase:
@@ -2348,6 +2350,8 @@ class BoardState:
                     self.returnPhase = Phase.OUST_2_2_1
                 case 3:
                     self.returnPhase = Phase.OUST_2_3_1
+        self.players[player].checkBears()
+        self.players[self.activePlayer].checkBears()
 
     def advanceActivePlayer(self):
         self.activePlayer += 1
@@ -2557,6 +2561,11 @@ class Player:
         die.faces.append(forgeInfo[1])
         die.upFace = 5
         self.numForged += 1
+
+    def checkBears(self):
+        for feat in self.feats:
+            if feat == HeroicFeat.GREAT_BEAR:
+                self.gainVP(3)
 
     def hasFeat(self, feat):
         for myFeat in self.feats:
