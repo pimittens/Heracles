@@ -5,6 +5,8 @@
     "sun" : 0,
     "moon" : 0,
     "vp" : 0,
+    "ancientshard" : 0,
+    "loyalty" : 0,
     "isOr" : false,
     "level" : 0
   },
@@ -14,6 +16,8 @@
     "sun" : 0,
     "moon" : 0,
     "vp" : 0,
+    "ancientshard" : 0,
+    "loyalty" : 0,
     "isOr" : false,
     "level" : 1
   },
@@ -23,6 +27,8 @@
     "sun" : 0,
     "moon" : 0,
     "vp" : 0,
+    "ancientshard" : 0,
+    "loyalty" : 0,
     "isOr" : false,
     "level" : 2
   },
@@ -32,6 +38,8 @@
     "sun" : 0,
     "moon" : 0,
     "vp" : 0,
+    "ancientshard" : 0,
+    "loyalty" : 0,
     "isOr" : false,
     "level" : 3
   },
@@ -41,6 +49,8 @@
     "sun" : 1,
     "moon" : 0,
     "vp" : 0,
+    "ancientshard" : 0,
+    "loyalty" : 0,
     "isOr" : false,
     "level" : 2
   },
@@ -50,6 +60,8 @@
     "sun" : 2,
     "moon" : 0,
     "vp" : 0,
+    "ancientshard" : 0,
+    "loyalty" : 0,
     "isOr" : false,
     "level" : 6
   },
@@ -59,6 +71,8 @@
     "sun" : 0,
     "moon" : 1,
     "vp" : 0,
+    "ancientshard" : 0,
+    "loyalty" : 0,
     "isOr" : false,
     "level" : 1
   },
@@ -68,6 +82,8 @@
     "sun" : 0,
     "moon" : 2,
     "vp" : 0,
+    "ancientshard" : 0,
+    "loyalty" : 0,
     "isOr" : false,
     "level" : 5
   },
@@ -77,6 +93,8 @@
     "sun" : 0,
     "moon" : 0,
     "vp" : 2,
+    "ancientshard" : 0,
+    "loyalty" : 0,
     "isOr" : false,
     "level" : 0
   },
@@ -86,6 +104,8 @@
     "sun" : 0,
     "moon" : 0,
     "vp" : 3,
+    "ancientshard" : 0,
+    "loyalty" : 0,
     "isOr" : false,
     "level" : 6
   },
@@ -95,6 +115,8 @@
     "sun" : 0,
     "moon" : 0,
     "vp" : 4,
+    "ancientshard" : 0,
+    "loyalty" : 0,
     "isOr" : false,
     "level" : 7
   },
@@ -104,6 +126,8 @@
     "sun" : 0,
     "moon" : 1,
     "vp" : 0,
+    "ancientshard" : 0,
+    "loyalty" : 0,
     "isOr" : false,
     "level" : 3
   },
@@ -113,6 +137,8 @@
     "sun" : 1,
     "moon" : 0,
     "vp" : 1,
+    "ancientshard" : 0,
+    "loyalty" : 0,
     "isOr" : false,
     "level" : 3
   },
@@ -122,6 +148,8 @@
     "sun" : 1,
     "moon" : 1,
     "vp" : 0,
+    "ancientshard" : 0,
+    "loyalty" : 0,
     "isOr" : true,
     "level" : 3
   },
@@ -131,6 +159,8 @@
     "sun" : 0,
     "moon" : 0,
     "vp" : 2,
+    "ancientshard" : 0,
+    "loyalty" : 0,
     "isOr" : true,
     "level" : 4
   },
@@ -140,6 +170,8 @@
     "sun" : 1,
     "moon" : 1,
     "vp" : 1,
+    "ancientshard" : 0,
+    "loyalty" : 0,
     "isOr" : false,
     "level" : 7
   },
@@ -149,6 +181,8 @@
     "sun" : 0,
     "moon" : 2,
     "vp" : 2,
+    "ancientshard" : 0,
+    "loyalty" : 0,
     "isOr" : false,
     "level" : 7
   },
@@ -158,6 +192,8 @@
     "sun" : 2,
     "moon" : 2,
     "vp" : 0,
+    "ancientshard" : 0,
+    "loyalty" : 0,
     "isOr" : true,
     "level" : 7
   },
@@ -167,6 +203,8 @@
     "sun" : 0,
     "moon" : 0,
     "vp" : 0,
+    "ancientshard" : 0,
+    "loyalty" : 0,
     "isOr" : false,
     "level" : 0
   },
@@ -176,6 +214,8 @@
     "sun" : 0,
     "moon" : 0,
     "vp" : 0,
+    "ancientshard" : 0,
+    "loyalty" : 0,
     "isOr" : false,
     "level" : 0
   },
@@ -185,6 +225,8 @@
     "sun" : 0,
     "moon" : 0,
     "vp" : 0,
+    "ancientshard" : 0,
+    "loyalty" : 0,
     "isOr" : false,
     "level" : 0
   },
@@ -194,6 +236,8 @@
     "sun" : 0,
     "moon" : 0,
     "vp" : 0,
+    "ancientshard" : 0,
+    "loyalty" : 0,
     "isOr" : false,
     "level" : 0
   },
@@ -203,6 +247,8 @@
     "sun" : 0,
     "moon" : 0,
     "vp" : 0,
+    "ancientshard" : 0,
+    "loyalty" : 0,
     "isOr" : false,
     "level" : 0
   },
@@ -212,6 +258,8 @@
     "sun" : 1,
     "moon" : 1,
     "vp" : 0,
+    "ancientshard" : 0,
+    "loyalty" : 0,
     "isOr" : true,
     "level" : 0
   },
@@ -221,6 +269,8 @@
     "sun" : 1,
     "moon" : 1,
     "vp" : 0,
+    "ancientshard" : 0,
+    "loyalty" : 0,
     "isOr" : true,
     "level" : 0
   },
@@ -230,6 +280,8 @@
     "sun" : 1,
     "moon" : 1,
     "vp" : 0,
+    "ancientshard" : 0,
+    "loyalty" : 0,
     "isOr" : true,
     "level" : 0
   },
@@ -239,6 +291,8 @@
     "sun" : 1,
     "moon" : 1,
     "vp" : 0,
+    "ancientshard" : 0,
+    "loyalty" : 0,
     "isOr" : true,
     "level" : 0
   },
@@ -248,6 +302,8 @@
     "sun" : 0,
     "moon" : 0,
     "vp" : 0,
+    "ancientshard" : 0,
+    "loyalty" : 0,
     "isOr" : false,
     "level" : 0
   },
@@ -257,6 +313,162 @@
     "sun" : 0,
     "moon" : 0,
     "vp" : 0,
+    "ancientshard" : 0,
+    "loyalty" : 0,
+    "isOr" : false,
+    "level" : 0
+  },
+  {
+    "name" : "MAZERED",
+    "gold" : 0,
+    "sun" : 0,
+    "moon" : 0,
+    "vp" : 0,
+    "ancientshard" : 0,
+    "loyalty" : 0,
+    "isOr" : false,
+    "level" : 0
+  },
+  {
+    "name" : "MAZEBLUE",
+    "gold" : 0,
+    "sun" : 0,
+    "moon" : 0,
+    "vp" : 0,
+    "ancientshard" : 0,
+    "loyalty" : 0,
+    "isOr" : false,
+    "level" : 0
+  },
+  {
+    "name" : "ANCIENTSHARD1",
+    "gold" : 0,
+    "sun" : 0,
+    "moon" : 0,
+    "vp" : 0,
+    "ancientshard" : 1,
+    "loyalty" : 0,
+    "isOr" : false,
+    "level" : 0
+  },
+  {
+    "name" : "VP1LOYALTY1",
+    "gold" : 0,
+    "sun" : 0,
+    "moon" : 0,
+    "vp" : 1,
+    "ancientshard" : 0,
+    "loyalty" : 1,
+    "isOr" : false,
+    "level" : 0
+  },
+  {
+    "name" : "REDCHAOS",
+    "gold" : 0,
+    "sun" : 0,
+    "moon" : 0,
+    "vp" : 0,
+    "ancientshard" : 0,
+    "loyalty" : 0,
+    "isOr" : false,
+    "level" : 0
+  },
+  {
+    "name" : "BLUECHAOS",
+    "gold" : 0,
+    "sun" : 0,
+    "moon" : 0,
+    "vp" : 0,
+    "ancientshard" : 0,
+    "loyalty" : 0,
+    "isOr" : false,
+    "level" : 0
+  },
+  {
+    "name" : "YELLOWCHAOS",
+    "gold" : 0,
+    "sun" : 0,
+    "moon" : 0,
+    "vp" : 0,
+    "ancientshard" : 0,
+    "loyalty" : 0,
+    "isOr" : false,
+    "level" : 0
+  },
+  {
+    "name" : "GREENCHAOS",
+    "gold" : 0,
+    "sun" : 0,
+    "moon" : 0,
+    "vp" : 0,
+    "ancientshard" : 0,
+    "loyalty" : 0,
+    "isOr" : false,
+    "level" : 0
+  },
+  {
+    "name" : "REDMISFORTUNE",
+    "gold" : 0,
+    "sun" : 0,
+    "moon" : 0,
+    "vp" : 0,
+    "ancientshard" : 1,
+    "loyalty" : 1,
+    "isOr" : true,
+    "level" : 0
+  },
+  {
+    "name" : "BLUEMISFORTUNE",
+    "gold" : 0,
+    "sun" : 0,
+    "moon" : 0,
+    "vp" : 0,
+    "ancientshard" : 1,
+    "loyalty" : 1,
+    "isOr" : true,
+    "level" : 0
+  },
+  {
+    "name" : "YELLOWMISFORTUNE",
+    "gold" : 0,
+    "sun" : 0,
+    "moon" : 0,
+    "vp" : 0,
+    "ancientshard" : 1,
+    "loyalty" : 1,
+    "isOr" : true,
+    "level" : 0
+  },
+  {
+    "name" : "GREENMISFORTUNE",
+    "gold" : 0,
+    "sun" : 0,
+    "moon" : 0,
+    "vp" : 0,
+    "ancientshard" : 1,
+    "loyalty" : 1,
+    "isOr" : true,
+    "level" : 0
+  },
+  {
+    "name" : "GOLD3ANCIENTSHARD1",
+    "gold" : 3,
+    "sun" : 0,
+    "moon" : 0,
+    "vp" : 0,
+    "ancientshard" : 1,
+    "loyalty" : 0,
+    "isOr" : false,
+    "level" : 0
+  },
+  {
+    "name" : "VP1GOLD2LOYALTY1",
+    "gold" : 2,
+    "sun" : 0,
+    "moon" : 0,
+    "vp" : 1,
+    "ancientshard" : 0,
+    "loyalty" : 1,
     "isOr" : false,
     "level" : 0
   }

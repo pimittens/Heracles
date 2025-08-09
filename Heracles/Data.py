@@ -1,5 +1,104 @@
 import json
 from types import SimpleNamespace
+from enum import Enum
+
+
+class HeroicFeat(Enum):
+    THE_BLACKSMITHS_HAMMER = 1
+    THE_BLACKSMITHS_CHEST = 2
+    THE_SILVER_HIND = 3
+    GREAT_BEAR = 4
+    SATYRS = 5
+    TENACIOUS_BOAR = 6
+    TENACIOUS_BOAR_RED = 7
+    TENACIOUS_BOAR_BLUE = 8
+    TENACIOUS_BOAR_GREEN = 9
+    TENACIOUS_BOAR_YELLOW = 10
+    FERRYMAN = 11
+    CERBERUS = 12
+    HELMET_OF_INVISIBILITY = 13
+    CANCER = 14
+    SENTINEL = 15
+    HYDRA = 16
+    TYPHON = 17
+    SPHINX = 18
+    CYCLOPS = 19
+    MIRROR_OF_THE_ABYSS = 20
+    GORGON = 21
+    TRITON = 22
+    MINOTAUR = 23
+    THE_GUARDIANS_SHIELD = 24
+    THE_GUARDIANS_OWL = 25
+    CELESTIAL_SHIP = 26
+    WILD_SPIRITS = 27
+    THE_ELDER = 28
+    THE_TREE = 29
+    THE_MERCHANT = 30
+    THE_WOOD_NYMPH = 31
+    THE_LIGHT = 32
+    THE_OMNISCIENT = 33
+    THE_GOLDSMITH = 34
+    THE_ABYSSAL_TRIDENT = 35
+    THE_LEFT_HAND = 36
+    THE_ETERNAL_FIRE = 37
+    THE_FIRST_TITAN = 38
+    THE_GODDESS = 39
+    THE_RIGHT_HAND = 40
+    THE_ETERNAL_NIGHT = 41
+    THE_MISTS = 42
+    THE_ANCESTOR = 43
+    THE_WIND = 44
+    THE_CELESTIAL_DIE = 45
+    THE_COMPANION = 46
+    THE_BLACKSMITHS_SCEPTER = 47
+    THE_TWINS = 48
+
+
+class DieFace(Enum):
+    GOLD1 = 1
+    SUN1 = 2
+    MOON1 = 3
+    VP2 = 4
+    GOLD3 = 5
+    GOLD4 = 6
+    GOLD6 = 7
+    GOLD2MOON1 = 8
+    VP1SUN1 = 9
+    GOLD1SUN1MOON1OR = 10
+    GOLD3VP2OR = 11
+    MOON2 = 12
+    SUN2 = 13
+    VP3 = 14
+    VP4 = 15
+    GOLD1SUN1MOON1VP1 = 16
+    MOON2VP2 = 17
+    GOLD2SUN2MOON2OR = 18
+    MIRROR = 19
+    REDSHIELD = 20
+    YELLOWSHIELD = 21
+    GREENSHIELD = 22
+    BLUESHIELD = 23
+    REDBOAR = 24
+    YELLOWBOAR = 25
+    GREENBOAR = 26
+    BLUEBOAR = 27
+    TIMES3 = 28
+    SHIP = 29
+    MAZERED = 30
+    MAZEBLUE = 31
+    ANCIENTSHARD1 = 32
+    VP1LOYALTY1 = 33
+    REDCHAOS = 34
+    BLUECHAOS = 35
+    YELLOWCHAOS = 36
+    GREENCHAOS = 37
+    REDMISFORTUNE = 38
+    BLUEMISFORTUNE = 39
+    YELLOWMISFORTUNE = 40
+    GREENMISFORTUNE = 41
+    GOLD3ANCIENTSHARD1 = 42
+    VP1GOLD2LOYALTY1 = 43
+
 
 facesData = tuple(json.loads(open("Faces.json").read(), object_hook=SimpleNamespace))
 featsData = tuple(json.loads(open("Feats.json").read(), object_hook=SimpleNamespace))
@@ -13,7 +112,6 @@ def getLevel(face):
 
 
 def getPool(face):
-    from Game import DieFace
     level = getLevel(face)
     if level == 1:
         if face == DieFace.GOLD3:
@@ -48,12 +146,12 @@ def getResourceValues(face):
     get the resources provided by a face
 
     :param face: the face
-    :return: a tuple containing the gold, sun, moon, and vp for the face
+    :return: a tuple containing the gold, sun, moon, vp, ancient shards, and loyalty for the face
     """
     for f in facesData:
         if f.name == face.name:
-            return f.gold, f.sun, f.moon, f.vp
-    return 0, 0, 0, 0
+            return f.gold, f.sun, f.moon, f.vp, f.ancientshard, f.loyalty
+    return 0, 0, 0, 0, 0, 0
 
 
 def getIsOr(face):
@@ -64,12 +162,10 @@ def getIsOr(face):
 
 
 def isBoarFace(face):
-    from Game import DieFace
     return face == DieFace.REDBOAR or face == DieFace.BLUEBOAR or face == DieFace.YELLOWBOAR or face == DieFace.GREENBOAR
 
 
 def isBoarFeat(feat):
-    from Game import HeroicFeat
     return feat == HeroicFeat.TENACIOUS_BOAR or feat == HeroicFeat.TENACIOUS_BOAR_RED or feat == HeroicFeat.TENACIOUS_BOAR_BLUE or feat == HeroicFeat.TENACIOUS_BOAR_YELLOW or feat == HeroicFeat.TENACIOUS_BOAR_GREEN
 
 
@@ -77,14 +173,12 @@ def getPosition(feat):
     for f in featsData:
         if f.name == feat.name:
             return f.position
-    from Game import HeroicFeat
     if feat == HeroicFeat.TENACIOUS_BOAR_RED or feat == HeroicFeat.TENACIOUS_BOAR_BLUE or feat == HeroicFeat.TENACIOUS_BOAR_YELLOW or feat == HeroicFeat.TENACIOUS_BOAR_GREEN:
         return 11
     return -1
 
 
 def getFeatsByPosition(pos):
-    from Game import HeroicFeat
     ret = []
     for f in featsData:
         if f.position == pos:
@@ -107,7 +201,6 @@ def getPoints(feat):
 
 
 def getEffect(feat):
-    from Game import HeroicFeat
     if feat == HeroicFeat.TENACIOUS_BOAR_RED:
         return "BOAR_INST_AUTO_RED"
     elif feat == HeroicFeat.TENACIOUS_BOAR_BLUE:
@@ -148,6 +241,6 @@ def getIsland(feat):
     pos = getPosition(feat)
     if pos <= 5:
         return (pos + 2) // 2
-    if pos > 5 and pos < 9:
+    if 5 < pos < 9:
         return 4
     return (pos + 1) // 2
