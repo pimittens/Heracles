@@ -25,6 +25,11 @@ class Phase(Enum):
     RESOLVE_SHIPS = 18
     BOAR_CHOICE_1 = 19
     BOAR_CHOICE_2 = 20
+    MISFORTUNE_1_1 = 21 # die number (blessing player), die number being resolved by misfortune player
+    MISFORTUNE_1_2 = 22
+    MISFORTUNE_2_2 = 23 # these go in reverse order since the misfortune face is on die 2
+    MISFORTUNE_2_1 = 24
+
 
     CHOOSE_REINF_EFFECT = 10
     RESOLVE_ELDER_REINF = 11
@@ -304,7 +309,7 @@ class BoardState:
                     self.players[self.blessingPlayer].mirrorChoice1 = move[2][0]
                     self.phase = Phase.MIRROR_2_CHOICE
                     self.makeMove((Move.PASS, self.blessingPlayer, ()))
-                elif self.players[self.blessingPlayer].getDie1Result() != Data.DieFace.MIRROR:
+                elif self.players[self.blessingPlayer].getDie1UpFace() != Data.DieFace.MIRROR:
                     self.phase = Phase.MIRROR_2_CHOICE
                     self.makeMove((Move.PASS, self.blessingPlayer, ()))
             case Phase.MIRROR_2_CHOICE:
@@ -312,7 +317,7 @@ class BoardState:
                     self.players[self.blessingPlayer].mirrorChoice2 = move[2][0]
                     self.phase = Phase.DIE_1_CHOOSE_OR
                     self.makeMove((Move.PASS, self.blessingPlayer, ()))
-                elif self.players[self.blessingPlayer].getDie2Result() != Data.DieFace.MIRROR:
+                elif self.players[self.blessingPlayer].getDie2UpFace() != Data.DieFace.MIRROR:
                     self.phase = Phase.MIRROR_2_CHOICE
                     self.makeMove((Move.PASS, self.blessingPlayer, ()))
             case Phase.DIE_1_CHOOSE_OR:
@@ -320,7 +325,7 @@ class BoardState:
                     self.players[self.blessingPlayer].orChoice1 = move[2][0]
                     self.phase = Phase.DIE_2_CHOOSE_OR
                     self.makeMove((Move.PASS, self.blessingPlayer, ()))
-                elif not Data.getIsOr(self.players[self.blessingPlayer].getDie1Result()):
+                elif not Data.getIsOr(self.players[self.blessingPlayer].getDie1UpFace()):
                     self.phase = Phase.DIE_2_CHOOSE_OR
                     self.makeMove((Move.PASS, self.blessingPlayer, ()))
             case Phase.DIE_2_CHOOSE_OR:
@@ -328,7 +333,7 @@ class BoardState:
                     self.players[self.blessingPlayer].orChoice2 = move[2][0]
                     self.phase = Phase.APPLY_DICE_EFFECTS
                     self.makeMove((Move.PASS, self.blessingPlayer, ()))
-                elif not Data.getIsOr(self.players[self.blessingPlayer].getDie1Result()):
+                elif not Data.getIsOr(self.players[self.blessingPlayer].getDie1UpFace()):
                     self.phase = Phase.APPLY_DICE_EFFECTS
                     self.makeMove((Move.PASS, self.blessingPlayer, ()))
             case Phase.APPLY_DICE_EFFECTS:
@@ -341,10 +346,48 @@ class BoardState:
                 self.makeMove((Move.PASS, self.blessingPlayer, ()))
             case Phase.RESOLVE_SHIPS:
                 # todo: resolve ships
+                self.phase = Phase.BOAR_CHOICE_1
+                self.makeMove((Move.PASS, self.blessingPlayer, ()))
             case Phase.BOAR_CHOICE_1:
-                # todo: if die 1 was boar, make choice, else go to boar choice 2
+                if move[0] == Move.BOAR_CHOICE:
+                    match move[2][0]:
+                        case "sun":
+                            self.players[move[1]].gainSun(1)
+                        case "moon":
+                            self.players[move[1]].gainMoon(1)
+                        case "vp":
+                            self.players[move[1]].gainVP(3)
+                    self.phase = Phase.BOAR_CHOICE_2
+                    self.makeMove((Move.PASS, self.blessingPlayer, ()))
+                elif not self.players[self.blessingPlayer].die1IsBoar():
+                    self.phase = Phase.BOAR_CHOICE_2
+                    self.makeMove((Move.PASS, self.blessingPlayer, ()))
             case Phase.BOAR_CHOICE_2:
-                # todo: if die 2 was boar, make choice, else go to boar choice 2
+                if move[0] == Move.BOAR_CHOICE:
+                    match move[2][0]:
+                        case "sun":
+                            self.players[move[1]].gainSun(1)
+                        case "moon":
+                            self.players[move[1]].gainMoon(1)
+                        case "vp":
+                            self.players[move[1]].gainVP(3)
+                    self.phase = Phase.MISFORTUNE_1_1
+                    self.makeMove((Move.PASS, self.blessingPlayer, ()))
+                elif not self.players[self.blessingPlayer].die2IsBoar():
+                    self.phase = Phase.MISFORTUNE_1_1
+                    self.makeMove((Move.PASS, self.blessingPlayer, ()))
+            case Phase.MISFORTUNE_1_1:
+                if move[0] == Move.CHOOSE_DIE_OR:
+                    self.
+                elif not self.players[self.blessingPlayer].die1IsMisfortune():
+                    self.phase = Phase.MISFORTUNE_2_2 # note: do 2 first since it will always be the misfortune face
+                    self.makeMove((Move.PASS, self.blessingPlayer, ()))
+            case Phase.MISFORTUNE_2_2:
+                if move[0] == Move.CHOOSE_DIE_OR:
+                    self.
+                elif not self.players[self.blessingPlayer].die1IsMisfortune():
+                    self.phase = 
+                    self.makeMove((Move.PASS, self.blessingPlayer, ()))
             case Phase.CHOOSE_REINF_EFFECT:
                 if not self.players[self.activePlayer].unusedReinfEffects:
                     self.phase = Phase.ACTIVE_PLAYER_CHOICE_1
@@ -562,42 +605,42 @@ class BoardState:
             case Phase.OUST_1_0_1:
                 if move[0] == Move.CHOOSE_DIE_OR:
                     mult = 1
-                    if self.players[0].getDie2Result() == Data.DieFace.TIMES3:
+                    if self.players[0].getDie2UpFace() == Data.DieFace.TIMES3:
                         mult = 3
                     self.players[0].gainResource(move[2][0], move[2][1] * mult)
-                    self.resolveShieldOr(0, self.players[0].getDie2Result(), move[2][0])
-                    if Data.isBoarFace(self.players[0].getDie1Result()):
+                    self.resolveShieldOr(0, self.players[0].getDie2UpFace(), move[2][0])
+                    if Data.isBoarFace(self.players[0].getDie1UpFace()):
                         self.returnPhase = Phase.OUST_1_0_2
                         self.phase = Phase.BOAR_CHOICE_0_1
                     else:
                         self.phase = Phase.OUST_1_0_2
                         self.makeMove((Move.PASS, 0, ()))
-                elif not Data.getIsOr(self.players[0].getDie1Result()) and not self.players[
-                                                                                   0].getDie1Result() == Data.DieFace.MIRROR:
+                elif not Data.getIsOr(self.players[0].getDie1UpFace()) and not self.players[
+                                                                                   0].getDie1UpFace() == Data.DieFace.MIRROR:
                     self.players[0].gainDiceEffects(1, True)
                     self.resolveShield(0, 2)
-                    if self.players[0].getDie1Result() == Data.DieFace.SHIP:
+                    if self.players[0].getDie1UpFace() == Data.DieFace.SHIP:
                         self.shipsToResolve += 1
                     self.phase = Phase.OUST_1_0_2
                     self.makeMove(move)
             case Phase.OUST_1_0_2:
                 if move[0] == Move.CHOOSE_DIE_OR:
                     mult = 1
-                    if self.players[0].getDie1Result() == Data.DieFace.TIMES3:
+                    if self.players[0].getDie1UpFace() == Data.DieFace.TIMES3:
                         mult = 3
                     self.players[0].gainResource(move[2][0], move[2][1] * mult)
-                    self.resolveShieldOr(0, self.players[0].getDie1Result(), move[2][0])
-                    if Data.isBoarFace(self.players[0].getDie2Result()):
+                    self.resolveShieldOr(0, self.players[0].getDie1UpFace(), move[2][0])
+                    if Data.isBoarFace(self.players[0].getDie2UpFace()):
                         self.returnPhase = Phase.ACTIVE_PLAYER_PERFORM_FEAT_1
                         self.phase = Phase.BOAR_CHOICE_0_2
                     else:
                         self.phase = Phase.ACTIVE_PLAYER_PERFORM_FEAT_1
                         self.makeMove((Move.RETURN_TO_FEAT, self.activePlayer, ()))
-                elif not Data.getIsOr(self.players[0].getDie2Result()) and not self.players[
-                                                                                   0].getDie2Result() == Data.DieFace.MIRROR:
+                elif not Data.getIsOr(self.players[0].getDie2UpFace()) and not self.players[
+                                                                                   0].getDie2UpFace() == Data.DieFace.MIRROR:
                     self.players[0].gainDiceEffects(2, True)
                     self.resolveShield(0, 1)
-                    if self.players[0].getDie2Result() == Data.DieFace.SHIP:
+                    if self.players[0].getDie2UpFace() == Data.DieFace.SHIP:
                         self.shipsToResolve += 1
                     if self.shipsToResolve > 0:
                         self.returnPhase = Phase.ACTIVE_PLAYER_PERFORM_FEAT_1
@@ -608,42 +651,42 @@ class BoardState:
             case Phase.OUST_2_0_1:
                 if move[0] == Move.CHOOSE_DIE_OR:
                     mult = 1
-                    if self.players[0].getDie2Result() == Data.DieFace.TIMES3:
+                    if self.players[0].getDie2UpFace() == Data.DieFace.TIMES3:
                         mult = 3
                     self.players[0].gainResource(move[2][0], move[2][1] * mult)
-                    self.resolveShieldOr(0, self.players[0].getDie2Result(), move[2][0])
-                    if Data.isBoarFace(self.players[0].getDie1Result()):
+                    self.resolveShieldOr(0, self.players[0].getDie2UpFace(), move[2][0])
+                    if Data.isBoarFace(self.players[0].getDie1UpFace()):
                         self.returnPhase = Phase.OUST_2_0_2
                         self.phase = Phase.BOAR_CHOICE_0_1
                     else:
                         self.phase = Phase.OUST_2_0_2
                         self.makeMove((Move.PASS, 0, ()))
-                elif not Data.getIsOr(self.players[0].getDie1Result()) and not self.players[
-                                                                                   0].getDie1Result() == Data.DieFace.MIRROR:
+                elif not Data.getIsOr(self.players[0].getDie1UpFace()) and not self.players[
+                                                                                   0].getDie1UpFace() == Data.DieFace.MIRROR:
                     self.players[0].gainDiceEffects(1, True)
                     self.resolveShield(0, 2)
-                    if self.players[0].getDie1Result() == Data.DieFace.SHIP:
+                    if self.players[0].getDie1UpFace() == Data.DieFace.SHIP:
                         self.shipsToResolve += 1
                     self.phase = Phase.OUST_2_0_2
                     self.makeMove(move)
             case Phase.OUST_2_0_2:
                 if move[0] == Move.CHOOSE_DIE_OR:
                     mult = 1
-                    if self.players[0].getDie1Result() == Data.DieFace.TIMES3:
+                    if self.players[0].getDie1UpFace() == Data.DieFace.TIMES3:
                         mult = 3
                     self.players[0].gainResource(move[2][0], move[2][1] * mult)
-                    self.resolveShieldOr(0, self.players[0].getDie1Result(), move[2][0])
-                    if Data.isBoarFace(self.players[0].getDie2Result()):
+                    self.resolveShieldOr(0, self.players[0].getDie1UpFace(), move[2][0])
+                    if Data.isBoarFace(self.players[0].getDie2UpFace()):
                         self.returnPhase = Phase.ACTIVE_PLAYER_PERFORM_FEAT_2
                         self.phase = Phase.BOAR_CHOICE_0_2
                     else:
                         self.phase = Phase.ACTIVE_PLAYER_PERFORM_FEAT_2
                         self.makeMove((Move.RETURN_TO_FEAT, self.activePlayer, ()))
-                elif not Data.getIsOr(self.players[0].getDie2Result()) and not self.players[
-                                                                                   0].getDie2Result() == Data.DieFace.MIRROR:
+                elif not Data.getIsOr(self.players[0].getDie2UpFace()) and not self.players[
+                                                                                   0].getDie2UpFace() == Data.DieFace.MIRROR:
                     self.players[0].gainDiceEffects(2, True)
                     self.resolveShield(0, 1)
-                    if self.players[0].getDie2Result() == Data.DieFace.SHIP:
+                    if self.players[0].getDie2UpFace() == Data.DieFace.SHIP:
                         self.shipsToResolve += 1
                     if self.shipsToResolve > 0:
                         self.returnPhase = Phase.ACTIVE_PLAYER_PERFORM_FEAT_2
@@ -654,42 +697,42 @@ class BoardState:
             case Phase.OUST_1_1_1:
                 if move[0] == Move.CHOOSE_DIE_OR:
                     mult = 1
-                    if self.players[1].getDie2Result() == Data.DieFace.TIMES3:
+                    if self.players[1].getDie2UpFace() == Data.DieFace.TIMES3:
                         mult = 3
                     self.players[1].gainResource(move[2][0], move[2][1] * mult)
-                    self.resolveShieldOr(1, self.players[1].getDie2Result(), move[2][0])
-                    if Data.isBoarFace(self.players[1].getDie1Result()):
+                    self.resolveShieldOr(1, self.players[1].getDie2UpFace(), move[2][0])
+                    if Data.isBoarFace(self.players[1].getDie1UpFace()):
                         self.returnPhase = Phase.OUST_1_1_2
                         self.phase = Phase.BOAR_CHOICE_1_1
                     else:
                         self.phase = Phase.OUST_1_1_2
                         self.makeMove((Move.PASS, 1, ()))
-                elif not Data.getIsOr(self.players[1].getDie1Result()) and not self.players[
-                                                                                   1].getDie1Result() == Data.DieFace.MIRROR:
+                elif not Data.getIsOr(self.players[1].getDie1UpFace()) and not self.players[
+                                                                                   1].getDie1UpFace() == Data.DieFace.MIRROR:
                     self.players[1].gainDiceEffects(1, True)
                     self.resolveShield(1, 2)
-                    if self.players[1].getDie1Result() == Data.DieFace.SHIP:
+                    if self.players[1].getDie1UpFace() == Data.DieFace.SHIP:
                         self.shipsToResolve += 1
                     self.phase = Phase.OUST_1_1_2
                     self.makeMove(move)
             case Phase.OUST_1_1_2:
                 if move[0] == Move.CHOOSE_DIE_OR:
                     mult = 1
-                    if self.players[1].getDie1Result() == Data.DieFace.TIMES3:
+                    if self.players[1].getDie1UpFace() == Data.DieFace.TIMES3:
                         mult = 3
                     self.players[1].gainResource(move[2][0], move[2][1] * mult)
-                    self.resolveShieldOr(1, self.players[1].getDie1Result(), move[2][0])
-                    if Data.isBoarFace(self.players[1].getDie2Result()):
+                    self.resolveShieldOr(1, self.players[1].getDie1UpFace(), move[2][0])
+                    if Data.isBoarFace(self.players[1].getDie2UpFace()):
                         self.returnPhase = Phase.ACTIVE_PLAYER_PERFORM_FEAT_1
                         self.phase = Phase.BOAR_CHOICE_1_2
                     else:
                         self.phase = Phase.ACTIVE_PLAYER_PERFORM_FEAT_1
                         self.makeMove((Move.RETURN_TO_FEAT, self.activePlayer, ()))
-                elif not Data.getIsOr(self.players[1].getDie2Result()) and not self.players[
-                                                                                   1].getDie2Result() == Data.DieFace.MIRROR:
+                elif not Data.getIsOr(self.players[1].getDie2UpFace()) and not self.players[
+                                                                                   1].getDie2UpFace() == Data.DieFace.MIRROR:
                     self.players[1].gainDiceEffects(2, True)
                     self.resolveShield(1, 1)
-                    if self.players[1].getDie2Result() == Data.DieFace.SHIP:
+                    if self.players[1].getDie2UpFace() == Data.DieFace.SHIP:
                         self.shipsToResolve += 1
                     if self.shipsToResolve > 0:
                         self.returnPhase = Phase.ACTIVE_PLAYER_PERFORM_FEAT_1
@@ -700,42 +743,42 @@ class BoardState:
             case Phase.OUST_2_1_1:
                 if move[0] == Move.CHOOSE_DIE_OR:
                     mult = 1
-                    if self.players[1].getDie2Result() == Data.DieFace.TIMES3:
+                    if self.players[1].getDie2UpFace() == Data.DieFace.TIMES3:
                         mult = 3
                     self.players[1].gainResource(move[2][0], move[2][1] * mult)
-                    self.resolveShieldOr(1, self.players[1].getDie2Result(), move[2][0])
-                    if Data.isBoarFace(self.players[1].getDie1Result()):
+                    self.resolveShieldOr(1, self.players[1].getDie2UpFace(), move[2][0])
+                    if Data.isBoarFace(self.players[1].getDie1UpFace()):
                         self.returnPhase = Phase.OUST_2_1_2
                         self.phase = Phase.BOAR_CHOICE_1_1
                     else:
                         self.phase = Phase.OUST_2_1_2
                         self.makeMove((Move.PASS, 1, ()))
-                elif not Data.getIsOr(self.players[1].getDie1Result()) and not self.players[
-                                                                                   1].getDie1Result() == Data.DieFace.MIRROR:
+                elif not Data.getIsOr(self.players[1].getDie1UpFace()) and not self.players[
+                                                                                   1].getDie1UpFace() == Data.DieFace.MIRROR:
                     self.players[1].gainDiceEffects(1, True)
                     self.resolveShield(1, 2)
-                    if self.players[1].getDie1Result() == Data.DieFace.SHIP:
+                    if self.players[1].getDie1UpFace() == Data.DieFace.SHIP:
                         self.shipsToResolve += 1
                     self.phase = Phase.OUST_2_1_2
                     self.makeMove(move)
             case Phase.OUST_2_1_2:
                 if move[0] == Move.CHOOSE_DIE_OR:
                     mult = 1
-                    if self.players[1].getDie1Result() == Data.DieFace.TIMES3:
+                    if self.players[1].getDie1UpFace() == Data.DieFace.TIMES3:
                         mult = 3
                     self.players[1].gainResource(move[2][0], move[2][1] * mult)
-                    self.resolveShieldOr(1, self.players[1].getDie1Result(), move[2][0])
-                    if Data.isBoarFace(self.players[1].getDie2Result()):
+                    self.resolveShieldOr(1, self.players[1].getDie1UpFace(), move[2][0])
+                    if Data.isBoarFace(self.players[1].getDie2UpFace()):
                         self.returnPhase = Phase.ACTIVE_PLAYER_PERFORM_FEAT_2
                         self.phase = Phase.BOAR_CHOICE_1_2
                     else:
                         self.phase = Phase.ACTIVE_PLAYER_PERFORM_FEAT_2
                         self.makeMove((Move.RETURN_TO_FEAT, self.activePlayer, ()))
-                elif not Data.getIsOr(self.players[1].getDie2Result()) and not self.players[
-                                                                                   1].getDie2Result() == Data.DieFace.MIRROR:
+                elif not Data.getIsOr(self.players[1].getDie2UpFace()) and not self.players[
+                                                                                   1].getDie2UpFace() == Data.DieFace.MIRROR:
                     self.players[1].gainDiceEffects(2, True)
                     self.resolveShield(1, 1)
-                    if self.players[1].getDie2Result() == Data.DieFace.SHIP:
+                    if self.players[1].getDie2UpFace() == Data.DieFace.SHIP:
                         self.shipsToResolve += 1
                     if self.shipsToResolve > 0:
                         self.returnPhase = Phase.ACTIVE_PLAYER_PERFORM_FEAT_2
@@ -746,42 +789,42 @@ class BoardState:
             case Phase.OUST_1_2_1:
                 if move[0] == Move.CHOOSE_DIE_OR:
                     mult = 1
-                    if self.players[2].getDie2Result() == Data.DieFace.TIMES3:
+                    if self.players[2].getDie2UpFace() == Data.DieFace.TIMES3:
                         mult = 3
                     self.players[2].gainResource(move[2][0], move[2][1] * mult)
-                    self.resolveShieldOr(2, self.players[2].getDie2Result(), move[2][0])
-                    if Data.isBoarFace(self.players[2].getDie1Result()):
+                    self.resolveShieldOr(2, self.players[2].getDie2UpFace(), move[2][0])
+                    if Data.isBoarFace(self.players[2].getDie1UpFace()):
                         self.returnPhase = Phase.OUST_1_2_2
                         self.phase = Phase.BOAR_CHOICE_2_1
                     else:
                         self.phase = Phase.OUST_1_2_2
                         self.makeMove((Move.PASS, 2, ()))
-                elif not Data.getIsOr(self.players[2].getDie1Result()) and not self.players[
-                                                                                   2].getDie1Result() == Data.DieFace.MIRROR:
+                elif not Data.getIsOr(self.players[2].getDie1UpFace()) and not self.players[
+                                                                                   2].getDie1UpFace() == Data.DieFace.MIRROR:
                     self.players[2].gainDiceEffects(1, True)
                     self.resolveShield(2, 2)
-                    if self.players[2].getDie1Result() == Data.DieFace.SHIP:
+                    if self.players[2].getDie1UpFace() == Data.DieFace.SHIP:
                         self.shipsToResolve += 1
                     self.phase = Phase.OUST_1_2_2
                     self.makeMove(move)
             case Phase.OUST_1_2_2:
                 if move[0] == Move.CHOOSE_DIE_OR:
                     mult = 1
-                    if self.players[2].getDie1Result() == Data.DieFace.TIMES3:
+                    if self.players[2].getDie1UpFace() == Data.DieFace.TIMES3:
                         mult = 3
                     self.players[2].gainResource(move[2][0], move[2][1] * mult)
-                    self.resolveShieldOr(2, self.players[2].getDie1Result(), move[2][0])
-                    if Data.isBoarFace(self.players[2].getDie2Result()):
+                    self.resolveShieldOr(2, self.players[2].getDie1UpFace(), move[2][0])
+                    if Data.isBoarFace(self.players[2].getDie2UpFace()):
                         self.returnPhase = Phase.ACTIVE_PLAYER_PERFORM_FEAT_1
                         self.phase = Phase.BOAR_CHOICE_2_2
                     else:
                         self.phase = Phase.ACTIVE_PLAYER_PERFORM_FEAT_1
                         self.makeMove((Move.RETURN_TO_FEAT, self.activePlayer, ()))
-                elif not Data.getIsOr(self.players[2].getDie2Result()) and not self.players[
-                                                                                   2].getDie2Result() == Data.DieFace.MIRROR:
+                elif not Data.getIsOr(self.players[2].getDie2UpFace()) and not self.players[
+                                                                                   2].getDie2UpFace() == Data.DieFace.MIRROR:
                     self.players[2].gainDiceEffects(2, True)
                     self.resolveShield(2, 1)
-                    if self.players[2].getDie2Result() == Data.DieFace.SHIP:
+                    if self.players[2].getDie2UpFace() == Data.DieFace.SHIP:
                         self.shipsToResolve += 1
                     if self.shipsToResolve > 0:
                         self.returnPhase = Phase.ACTIVE_PLAYER_PERFORM_FEAT_1
@@ -792,42 +835,42 @@ class BoardState:
             case Phase.OUST_2_2_1:
                 if move[0] == Move.CHOOSE_DIE_OR:
                     mult = 1
-                    if self.players[2].getDie2Result() == Data.DieFace.TIMES3:
+                    if self.players[2].getDie2UpFace() == Data.DieFace.TIMES3:
                         mult = 3
                     self.players[2].gainResource(move[2][0], move[2][1] * mult)
-                    self.resolveShieldOr(2, self.players[2].getDie2Result(), move[2][0])
-                    if Data.isBoarFace(self.players[2].getDie1Result()):
+                    self.resolveShieldOr(2, self.players[2].getDie2UpFace(), move[2][0])
+                    if Data.isBoarFace(self.players[2].getDie1UpFace()):
                         self.returnPhase = Phase.OUST_2_2_2
                         self.phase = Phase.BOAR_CHOICE_2_1
                     else:
                         self.phase = Phase.OUST_2_2_2
                         self.makeMove((Move.PASS, 2, ()))
-                elif not Data.getIsOr(self.players[2].getDie1Result()) and not self.players[
-                                                                                   2].getDie1Result() == Data.DieFace.MIRROR:
+                elif not Data.getIsOr(self.players[2].getDie1UpFace()) and not self.players[
+                                                                                   2].getDie1UpFace() == Data.DieFace.MIRROR:
                     self.players[2].gainDiceEffects(1, True)
                     self.resolveShield(2, 2)
-                    if self.players[2].getDie1Result() == Data.DieFace.SHIP:
+                    if self.players[2].getDie1UpFace() == Data.DieFace.SHIP:
                         self.shipsToResolve += 1
                     self.phase = Phase.OUST_2_2_2
                     self.makeMove(move)
             case Phase.OUST_2_2_2:
                 if move[0] == Move.CHOOSE_DIE_OR:
                     mult = 1
-                    if self.players[2].getDie1Result() == Data.DieFace.TIMES3:
+                    if self.players[2].getDie1UpFace() == Data.DieFace.TIMES3:
                         mult = 3
                     self.players[2].gainResource(move[2][0], move[2][1] * mult)
-                    self.resolveShieldOr(2, self.players[2].getDie1Result(), move[2][0])
-                    if Data.isBoarFace(self.players[2].getDie2Result()):
+                    self.resolveShieldOr(2, self.players[2].getDie1UpFace(), move[2][0])
+                    if Data.isBoarFace(self.players[2].getDie2UpFace()):
                         self.returnPhase = Phase.ACTIVE_PLAYER_PERFORM_FEAT_2
                         self.phase = Phase.BOAR_CHOICE_2_2
                     else:
                         self.phase = Phase.ACTIVE_PLAYER_PERFORM_FEAT_2
                         self.makeMove((Move.RETURN_TO_FEAT, self.activePlayer, ()))
-                elif not Data.getIsOr(self.players[2].getDie2Result()) and not self.players[
-                                                                                   2].getDie2Result() == Data.DieFace.MIRROR:
+                elif not Data.getIsOr(self.players[2].getDie2UpFace()) and not self.players[
+                                                                                   2].getDie2UpFace() == Data.DieFace.MIRROR:
                     self.players[2].gainDiceEffects(2, True)
                     self.resolveShield(2, 1)
-                    if self.players[2].getDie2Result() == Data.DieFace.SHIP:
+                    if self.players[2].getDie2UpFace() == Data.DieFace.SHIP:
                         self.shipsToResolve += 1
                     if self.shipsToResolve > 0:
                         self.returnPhase = Phase.ACTIVE_PLAYER_PERFORM_FEAT_2
@@ -838,42 +881,42 @@ class BoardState:
             case Phase.OUST_1_3_1:
                 if move[0] == Move.CHOOSE_DIE_OR:
                     mult = 1
-                    if self.players[3].getDie2Result() == Data.DieFace.TIMES3:
+                    if self.players[3].getDie2UpFace() == Data.DieFace.TIMES3:
                         mult = 3
                     self.players[3].gainResource(move[2][0], move[2][1] * mult)
-                    self.resolveShieldOr(3, self.players[3].getDie2Result(), move[2][0])
-                    if Data.isBoarFace(self.players[3].getDie1Result()):
+                    self.resolveShieldOr(3, self.players[3].getDie2UpFace(), move[2][0])
+                    if Data.isBoarFace(self.players[3].getDie1UpFace()):
                         self.returnPhase = Phase.OUST_1_3_2
                         self.phase = Phase.BOAR_CHOICE_3_1
                     else:
                         self.phase = Phase.OUST_1_3_2
                         self.makeMove((Move.PASS, 3, ()))
-                elif not Data.getIsOr(self.players[3].getDie1Result()) and not self.players[
-                                                                                   3].getDie1Result() == Data.DieFace.MIRROR:
+                elif not Data.getIsOr(self.players[3].getDie1UpFace()) and not self.players[
+                                                                                   3].getDie1UpFace() == Data.DieFace.MIRROR:
                     self.players[3].gainDiceEffects(1, True)
                     self.resolveShield(3, 2)
-                    if self.players[3].getDie1Result() == Data.DieFace.SHIP:
+                    if self.players[3].getDie1UpFace() == Data.DieFace.SHIP:
                         self.shipsToResolve += 1
                     self.phase = Phase.OUST_1_3_2
                     self.makeMove(move)
             case Phase.OUST_1_3_2:
                 if move[0] == Move.CHOOSE_DIE_OR:
                     mult = 1
-                    if self.players[3].getDie1Result() == Data.DieFace.TIMES3:
+                    if self.players[3].getDie1UpFace() == Data.DieFace.TIMES3:
                         mult = 3
                     self.players[3].gainResource(move[2][0], move[2][1] * mult)
-                    self.resolveShieldOr(3, self.players[3].getDie1Result(), move[2][0])
-                    if Data.isBoarFace(self.players[3].getDie2Result()):
+                    self.resolveShieldOr(3, self.players[3].getDie1UpFace(), move[2][0])
+                    if Data.isBoarFace(self.players[3].getDie2UpFace()):
                         self.returnPhase = Phase.ACTIVE_PLAYER_PERFORM_FEAT_1
                         self.phase = Phase.BOAR_CHOICE_3_2
                     else:
                         self.phase = Phase.ACTIVE_PLAYER_PERFORM_FEAT_1
                         self.makeMove((Move.RETURN_TO_FEAT, self.activePlayer, ()))
-                elif not Data.getIsOr(self.players[3].getDie2Result()) and not self.players[
-                                                                                   3].getDie2Result() == Data.DieFace.MIRROR:
+                elif not Data.getIsOr(self.players[3].getDie2UpFace()) and not self.players[
+                                                                                   3].getDie2UpFace() == Data.DieFace.MIRROR:
                     self.players[3].gainDiceEffects(2, True)
                     self.resolveShield(3, 1)
-                    if self.players[3].getDie2Result() == Data.DieFace.SHIP:
+                    if self.players[3].getDie2UpFace() == Data.DieFace.SHIP:
                         self.shipsToResolve += 1
                     if self.shipsToResolve > 0:
                         self.returnPhase = Phase.ACTIVE_PLAYER_PERFORM_FEAT_1
@@ -884,42 +927,42 @@ class BoardState:
             case Phase.OUST_2_3_1:
                 if move[0] == Move.CHOOSE_DIE_OR:
                     mult = 1
-                    if self.players[3].getDie2Result() == Data.DieFace.TIMES3:
+                    if self.players[3].getDie2UpFace() == Data.DieFace.TIMES3:
                         mult = 3
                     self.players[3].gainResource(move[2][0], move[2][1] * mult)
-                    self.resolveShieldOr(3, self.players[3].getDie2Result(), move[2][0])
-                    if Data.isBoarFace(self.players[2].getDie1Result()):
+                    self.resolveShieldOr(3, self.players[3].getDie2UpFace(), move[2][0])
+                    if Data.isBoarFace(self.players[2].getDie1UpFace()):
                         self.returnPhase = Phase.OUST_2_3_2
                         self.phase = Phase.BOAR_CHOICE_3_1
                     else:
                         self.phase = Phase.OUST_2_3_2
                         self.makeMove((Move.PASS, 3, ()))
-                elif not Data.getIsOr(self.players[3].getDie1Result()) and not self.players[
-                                                                                   3].getDie1Result() == Data.DieFace.MIRROR:
+                elif not Data.getIsOr(self.players[3].getDie1UpFace()) and not self.players[
+                                                                                   3].getDie1UpFace() == Data.DieFace.MIRROR:
                     self.players[3].gainDiceEffects(1, True)
                     self.resolveShield(3, 2)
-                    if self.players[3].getDie1Result() == Data.DieFace.SHIP:
+                    if self.players[3].getDie1UpFace() == Data.DieFace.SHIP:
                         self.shipsToResolve += 1
                     self.phase = Phase.OUST_2_3_2
                     self.makeMove(move)
             case Phase.OUST_2_3_2:
                 if move[0] == Move.CHOOSE_DIE_OR:
                     mult = 1
-                    if self.players[3].getDie1Result() == Data.DieFace.TIMES3:
+                    if self.players[3].getDie1UpFace() == Data.DieFace.TIMES3:
                         mult = 3
                     self.players[3].gainResource(move[2][0], move[2][1] * mult)
-                    self.resolveShieldOr(3, self.players[3].getDie1Result(), move[2][0])
-                    if Data.isBoarFace(self.players[3].getDie2Result()):
+                    self.resolveShieldOr(3, self.players[3].getDie1UpFace(), move[2][0])
+                    if Data.isBoarFace(self.players[3].getDie2UpFace()):
                         self.returnPhase = Phase.ACTIVE_PLAYER_PERFORM_FEAT_2
                         self.phase = Phase.BOAR_CHOICE_3_2
                     else:
                         self.phase = Phase.ACTIVE_PLAYER_PERFORM_FEAT_2
                         self.makeMove((Move.RETURN_TO_FEAT, self.activePlayer, ()))
-                elif not Data.getIsOr(self.players[3].getDie2Result()) and not self.players[
-                                                                                   3].getDie2Result() == Data.DieFace.MIRROR:
+                elif not Data.getIsOr(self.players[3].getDie2UpFace()) and not self.players[
+                                                                                   3].getDie2UpFace() == Data.DieFace.MIRROR:
                     self.players[3].gainDiceEffects(2, True)
                     self.resolveShield(3, 1)
-                    if self.players[3].getDie2Result() == Data.DieFace.SHIP:
+                    if self.players[3].getDie2UpFace() == Data.DieFace.SHIP:
                         self.shipsToResolve += 1
                     if self.shipsToResolve > 0:
                         self.returnPhase = Phase.ACTIVE_PLAYER_PERFORM_FEAT_2
@@ -1223,59 +1266,33 @@ class BoardState:
                 ret = ((Move.USE_TWINS, self.blessingPlayer, (True,)), (Move.USE_TWINS, self.blessingPlayer, (False,)))
             case Phase.TWINS_REROLL_CHOICE:
                 ret = (
-                (Move.TWINS_CHOOSE_DIE, self.blessingPlayer, (1,)), (Move.TWINS_CHOOSE_DIE, self.blessingPlayer, (2,)))
+                    (Move.TWINS_CHOOSE_DIE, self.blessingPlayer, (1,)),
+                    (Move.TWINS_CHOOSE_DIE, self.blessingPlayer, (2,)))
             case Phase.TWINS_RESOURCE_CHOICE:
                 ret = ((Move.TWINS_CHOOSE_RESOURCE, self.blessingPlayer, ("vp",)),
                        (Move.TWINS_CHOOSE_RESOURCE, self.blessingPlayer, ("moon",)))
             case Phase.USE_CERBERUS_CHOICE:
                 ret = (
-                (Move.USE_CERBERUS, self.blessingPlayer, (True,)), (Move.USE_CERBERUS, self.blessingPlayer, (False,)))
+                    (Move.USE_CERBERUS, self.blessingPlayer, (True,)),
+                    (Move.USE_CERBERUS, self.blessingPlayer, (False,)))
             case Phase.MIRROR_1_CHOICE | Phase.MIRROR_2_CHOICE:
-                ret = self.getMirrorChoices()
+                ret = self.getMirrorChoices(self.blessingPlayer)
             case Phase.DIE_1_CHOOSE_OR:
                 ret = self.players[self.blessingPlayer].getDieOptions(True)
             case Phase.DIE_2_CHOOSE_OR:
                 ret = self.players[self.blessingPlayer].getDieOptions(False)
-            case Phase.RESOLVE_DIE_0_1:
-                if self.players[0].getDie1Result() == Data.DieFace.MIRROR:
-                    ret = self.getMirrorChoices(0)
-                else:  # or
-                    ret = self.players[0].getDieOptions(True)
-            case Phase.RESOLVE_DIE_0_2:
-                if self.players[0].getDie2Result() == Data.DieFace.MIRROR:
-                    ret = self.getMirrorChoices(0)
-                else:  # or
-                    ret = self.players[0].getDieOptions(False)
-            case Phase.RESOLVE_DIE_1_1:
-                if self.players[1].getDie1Result() == Data.DieFace.MIRROR:
-                    ret = self.getMirrorChoices(1)
-                else:  # or
-                    ret = self.players[1].getDieOptions(True)
-            case Phase.RESOLVE_DIE_1_2:
-                if self.players[1].getDie2Result() == Data.DieFace.MIRROR:
-                    ret = self.getMirrorChoices(1)
-                else:  # or
-                    ret = self.players[1].getDieOptions(False)
-            case Phase.RESOLVE_DIE_2_1:
-                if self.players[2].getDie1Result() == Data.DieFace.MIRROR:
-                    ret = self.getMirrorChoices(2)
-                else:  # or
-                    ret = self.players[2].getDieOptions(True)
-            case Phase.RESOLVE_DIE_2_2:
-                if self.players[2].getDie2Result() == Data.DieFace.MIRROR:
-                    ret = self.getMirrorChoices(2)
-                else:  # or
-                    ret = self.players[2].getDieOptions(False)
-            case Phase.RESOLVE_DIE_3_1:
-                if self.players[3].getDie1Result() == Data.DieFace.MIRROR:
-                    ret = self.getMirrorChoices(3)
-                else:  # or
-                    ret = self.players[3].getDieOptions(True)
-            case Phase.RESOLVE_DIE_3_2:
-                if self.players[3].getDie2Result() == Data.DieFace.MIRROR:
-                    ret = self.getMirrorChoices(3)
-                else:  # or
-                    ret = self.players[3].getDieOptions(False)
+            case Phase.BOAR_CHOICE_1:
+                ret = self.generateBoarChoice(self.players[self.blessingPlayer].getDie1Result())
+            case Phase.BOAR_CHOICE_2:
+                ret = self.generateBoarChoice(self.players[self.blessingPlayer].getDie2Result())
+            case Phase.MISFORTUNE_1_1:
+                ret = self.generateMisfortune1Choice()
+            case Phase.MISFORTUNE_1_2:
+            # todo
+            case Phase.MISFORTUNE_2_2:
+                ret = self.generateMisfortune2Choice()
+            case Phase.MISFORTUNE_2_1:
+                # todo
             case Phase.CHOOSE_REINF_EFFECT:
                 ret = self.players[self.activePlayer].getReinfOptions()
             case Phase.RESOLVE_ELDER_REINF:
@@ -1405,21 +1422,21 @@ class BoardState:
             case Phase.FORGE_GREEN_BOAR_3_1 | Phase.FORGE_GREEN_BOAR_3_2:
                 ret = self.generateForgeBoarFace(3, Data.DieFace.GREENBOAR)
             case Phase.BOAR_CHOICE_0_1:
-                ret = self.generateBoarChoice(self.players[0].getDie1Result())
+                ret = self.generateBoarChoice(self.players[0].getDie1UpFace())
             case Phase.BOAR_CHOICE_0_2:
-                ret = self.generateBoarChoice(self.players[0].getDie2Result())
+                ret = self.generateBoarChoice(self.players[0].getDie2UpFace())
             case Phase.BOAR_CHOICE_1_1:
-                ret = self.generateBoarChoice(self.players[1].getDie1Result())
+                ret = self.generateBoarChoice(self.players[1].getDie1UpFace())
             case Phase.BOAR_CHOICE_1_2:
-                ret = self.generateBoarChoice(self.players[1].getDie2Result())
+                ret = self.generateBoarChoice(self.players[1].getDie2UpFace())
             case Phase.BOAR_CHOICE_2_1:
-                ret = self.generateBoarChoice(self.players[2].getDie1Result())
+                ret = self.generateBoarChoice(self.players[2].getDie1UpFace())
             case Phase.BOAR_CHOICE_2_2:
-                ret = self.generateBoarChoice(self.players[2].getDie2Result())
+                ret = self.generateBoarChoice(self.players[2].getDie2UpFace())
             case Phase.BOAR_CHOICE_3_1:
-                ret = self.generateBoarChoice(self.players[3].getDie1Result())
+                ret = self.generateBoarChoice(self.players[3].getDie1UpFace())
             case Phase.BOAR_CHOICE_3_2:
-                ret = self.generateBoarChoice(self.players[3].getDie2Result())
+                ret = self.generateBoarChoice(self.players[3].getDie2UpFace())
             case Phase.OUST_ROLL_DIE_1:
                 ret = self.generateOustRollDieOptions(1)
             case Phase.OUST_ROLL_DIE_2:
@@ -1887,8 +1904,48 @@ class BoardState:
             if p.hasFeat(feat):
                 player = p.playerID
                 break
-        return (Move.BOAR_CHOICE, player, ("sun",)), (Move.BOAR_CHOICE, player, ("moon",)), (
-            Move.BOAR_CHOICE, player, ("vp",))
+        ret = [(Move.BOAR_CHOICE, player, ("vp",))]
+        if not self.players[player].hasMaxSun():
+            ret.append((Move.BOAR_CHOICE, player, ("sun",)))
+        if not self.players[player].hasMaxMoon():
+            ret.append((Move.BOAR_CHOICE, player, ("moon",)))
+        return tuple(ret)
+
+    def generateMisfortune1Choice(self): # misfortune face on die 1
+        match self.players[self.blessingPlayer].getDie1Result():
+            case Data.DieFace.REDMISFORTUNE:
+                feat = Data.HeroicFeat.MIRROR_OF_MISFORTUNE_RED
+            case Data.DieFace.BLUEMISFORTUNE:
+                feat = Data.HeroicFeat.MIRROR_OF_MISFORTUNE_BLUE
+            case Data.DieFace.YELLOWMISFORTUNE:
+                feat = Data.HeroicFeat.MIRROR_OF_MISFORTUNE_YELLOW
+            case _:
+                feat = Data.HeroicFeat.MIRROR_OF_MISFORTUNE_GREEN
+        for p in self.players:
+            if p.hasFeat(feat):
+                player = p.playerID
+                break
+        self.players[player].die1ResultBuffer = self.players[self.blessingPlayer].getDie1Result()
+        self.players[player].die2ResultBuffer = self.players[self.blessingPlayer].getDie2Result()
+        return self.players[player].getDieOptions(True)
+
+    def generateMisfortune2Choice(self): # misfortune face on die 2
+        match self.players[self.blessingPlayer].getDie2Result():
+            case Data.DieFace.REDMISFORTUNE:
+                feat = Data.HeroicFeat.MIRROR_OF_MISFORTUNE_RED
+            case Data.DieFace.BLUEMISFORTUNE:
+                feat = Data.HeroicFeat.MIRROR_OF_MISFORTUNE_BLUE
+            case Data.DieFace.YELLOWMISFORTUNE:
+                feat = Data.HeroicFeat.MIRROR_OF_MISFORTUNE_YELLOW
+            case _:
+                feat = Data.HeroicFeat.MIRROR_OF_MISFORTUNE_GREEN
+        for p in self.players:
+            if p.hasFeat(feat):
+                player = p.playerID
+                break
+        self.players[player].die1ResultBuffer = self.players[self.blessingPlayer].getDie1Result()
+        self.players[player].die2ResultBuffer = self.players[self.blessingPlayer].getDie2Result()
+        return self.players[player].getDieOptions(False)
 
     def generateChooseShield(self):
         ret = []
@@ -1898,11 +1955,11 @@ class BoardState:
 
     def resolveShield(self, player, die):
         if die == 1:
-            result = self.players[player].getDie2Result()
-            other = self.players[player].getDie1Result()
+            result = self.players[player].getDie2UpFace()
+            other = self.players[player].getDie1UpFace()
         else:
-            result = self.players[player].getDie1Result()
-            other = self.players[player].getDie2Result()
+            result = self.players[player].getDie1UpFace()
+            other = self.players[player].getDie2UpFace()
         if result == Data.DieFace.REDSHIELD:
             if other == Data.DieFace.TIMES3:
                 self.players[player].gainSun(6)
@@ -1968,31 +2025,31 @@ class BoardState:
         # ret.append((Move.EV_ROLL, player, ())) todo: expected value roll
         return tuple(ret)
 
-    def getMirrorChoices(self):
+    def getMirrorChoices(self, choicePlayer):
         ret = []
         for player in self.players:
-            if player.playerID == self.blessingPlayer:
+            if player.playerID == choicePlayer:
                 continue
-            if player.getDie1Result() == Data.DieFace.MIRROR:
-                if self.players[self.blessingPlayer].getDie1Result() != Data.DieFace.MIRROR:
+            if player.getDie1UpFace() == Data.DieFace.MIRROR:
+                if self.players[choicePlayer].getDie1UpFace() != Data.DieFace.MIRROR:
                     ret.append(
-                        (Move.MIRROR_COPY, self.blessingPlayer, (self.players[self.blessingPlayer].getDie1Result(),)))
-                if self.players[self.blessingPlayer].getDie2Result() != Data.DieFace.MIRROR:
+                        (Move.MIRROR_COPY, choicePlayer, (self.players[choicePlayer].getDie1UpFace(),)))
+                if self.players[choicePlayer].getDie2UpFace() != Data.DieFace.MIRROR:
                     ret.append(
-                        (Move.MIRROR_COPY, self.blessingPlayer, (self.players[self.blessingPlayer].getDie2Result(),)))
+                        (Move.MIRROR_COPY, choicePlayer, (self.players[choicePlayer].getDie2UpFace(),)))
             else:
-                ret.append((Move.MIRROR_COPY, self.blessingPlayer, (player.getDie1Result(),)))
-            if player.getDie2Result() == Data.DieFace.MIRROR:
-                if self.players[self.blessingPlayer].getDie1Result() != Data.DieFace.MIRROR:
+                ret.append((Move.MIRROR_COPY, choicePlayer, (player.getDie1UpFace(),)))
+            if player.getDie2UpFace() == Data.DieFace.MIRROR:
+                if self.players[choicePlayer].getDie1UpFace() != Data.DieFace.MIRROR:
                     ret.append(
-                        (Move.MIRROR_COPY, self.blessingPlayer, (self.players[self.blessingPlayer].getDie1Result(),)))
-                if self.players[self.blessingPlayer].getDie2Result() != Data.DieFace.MIRROR:
+                        (Move.MIRROR_COPY, choicePlayer, (self.players[choicePlayer].getDie1UpFace(),)))
+                if self.players[choicePlayer].getDie2UpFace() != Data.DieFace.MIRROR:
                     ret.append(
-                        (Move.MIRROR_COPY, self.blessingPlayer, (self.players[self.blessingPlayer].getDie2Result(),)))
+                        (Move.MIRROR_COPY, choicePlayer, (self.players[choicePlayer].getDie2UpFace(),)))
             else:
-                ret.append((Move.MIRROR_COPY, self.blessingPlayer, (player.getDie2Result(),)))
+                ret.append((Move.MIRROR_COPY, choicePlayer, (player.getDie2UpFace(),)))
         if not ret:  # possible in 2p if both players roll 2 mirrors
-            ret.append((Move.MIRROR_COPY, self.blessingPlayer, (Data.DieFace.MIRROR,)))  # will give no resources
+            ret.append((Move.MIRROR_COPY, choicePlayer, (Data.DieFace.MIRROR,)))  # will give no resources
         ret = set(ret)  # remove duplicates
         return tuple(ret)
 
@@ -2315,11 +2372,21 @@ class Player:
         self.maxSun += 3
         self.maxMoon += 3
 
-    def getDie1Result(self):
+    def getDie1UpFace(self):
         return self.die1.getUpFace()
 
-    def getDie2Result(self):
+    def getDie2UpFace(self):
         return self.die2.getUpFace()
+
+    def getDie1Result(self):
+        if self.die1ResultBuffer == Data.DieFace.MIRROR:
+            return self.mirrorChoice1
+        return self.die1ResultBuffer
+
+    def getDie2Result(self):
+        if self.die2ResultBuffer == Data.DieFace.MIRROR:
+            return self.mirrorChoice2
+        return self.die2ResultBuffer
 
     def gainGold(self, amount):
         self.gold = min(self.gold + amount, self.maxGold)
@@ -2333,6 +2400,9 @@ class Player:
     def gainVP(self, amount):
         self.vp += amount
 
+    def hasMaxSun(self):
+        return self.sun == self.maxSun
+
     def hasMaxMoon(self):
         return self.moon == self.maxMoon
 
@@ -2341,7 +2411,8 @@ class Player:
         # todo: advance on loyalty track
 
     def gainLoyalty(self, amount):
-        pass # todo: advance on loyalty track
+        pass  # todo: advance on loyalty track
+
     def getMaxHammer(self):
         ret = 0
         for feat in self.feats:
@@ -2351,6 +2422,26 @@ class Player:
 
     def addHammer(self, amount):
         self.hammer = min(self.hammer + amount, self.getMaxHammer())
+
+    def die1IsBoar(self):
+        if self.die1ResultBuffer == Data.DieFace.MIRROR:
+            return Data.isBoarFace(self.mirrorChoice1)
+        return Data.isBoarFace(self.die1ResultBuffer)
+
+    def die2IsBoar(self):
+        if self.die2ResultBuffer == Data.DieFace.MIRROR:
+            return Data.isBoarFace(self.mirrorChoice2)
+        return Data.isBoarFace(self.die2ResultBuffer)
+
+    def die1IsMisfortune(self):
+        if self.die1ResultBuffer == Data.DieFace.MIRROR:
+            return Data.isMisfortuneFace(self.mirrorChoice1)
+        return Data.isMisfortuneFace(self.die1ResultBuffer)
+
+    def die2IsMisfortune(self):
+        if self.die2ResultBuffer == Data.DieFace.MIRROR:
+            return Data.isMisfortuneFace(self.mirrorChoice2)
+        return Data.isMisfortuneFace(self.die2ResultBuffer)
 
     def populateTwins(self):
         self.twinsToUse = 0
@@ -2409,7 +2500,8 @@ class Player:
             self.mazeMoves += 1
         if die2 == Data.DieFace.MAZERED or die2 == Data.DieFace.MAZEBLUE:
             self.mazeMoves += 1
-        if (die1 == Data.DieFace.MAZERED and die2 == Data.DieFace.MAZEBLUE) or (die2 == Data.DieFace.MAZERED and die1 == Data.DieFace.MAZEBLUE):
+        if (die1 == Data.DieFace.MAZERED and die2 == Data.DieFace.MAZEBLUE) or (
+                die2 == Data.DieFace.MAZERED and die1 == Data.DieFace.MAZEBLUE):
             self.celestialRolls += 1
         die1gains = Data.getResourceValues(die1)
         die2gains = Data.getResourceValues(die2)
@@ -2594,13 +2686,17 @@ class Player:
         resources = Data.getResourceValues(face)
         ret = []
         if resources[0] > 0:
-            ret.append((Move.CHOOSE_DIE_OR, self.playerID, (0, )))
+            ret.append((Move.CHOOSE_DIE_OR, self.playerID, (0,)))
         if resources[1] > 0:
-            ret.append((Move.CHOOSE_DIE_OR, self.playerID, (1, )))
+            ret.append((Move.CHOOSE_DIE_OR, self.playerID, (1,)))
         if resources[2] > 0:
-            ret.append((Move.CHOOSE_DIE_OR, self.playerID, (2, )))
+            ret.append((Move.CHOOSE_DIE_OR, self.playerID, (2,)))
         if resources[3] > 0:
-            ret.append((Move.CHOOSE_DIE_OR, self.playerID, (3, )))
+            ret.append((Move.CHOOSE_DIE_OR, self.playerID, (3,)))
+        if resources[4] > 0:
+            ret.append((Move.CHOOSE_DIE_OR, self.playerID, (4,)))
+        if resources[5] > 0:
+            ret.append((Move.CHOOSE_DIE_OR, self.playerID, (5,)))
         return tuple(ret)
 
     def hasReinfEffects(self):

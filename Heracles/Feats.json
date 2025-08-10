@@ -306,5 +306,75 @@
     "points" : 2,
     "set" : 2,
     "effect" : "TWINS_AUTO"
+  },
+  {
+    "name" : "THE_MOON_GOLEM",
+    "position" : 12,
+    "points" : 2,
+    "set" : 3,
+    "effect" : "MOONGOLEM_INST"
+  },
+  {
+    "name" : "THE_GREAT_GOLEM",
+    "position" : 9,
+    "points" : 8,
+    "set" : 3,
+    "effect" : "GREATGOLEM_INST"
+  },
+  {
+    "name" : "THE_SUN_GOLEM",
+    "position" : 2,
+    "points" : 4,
+    "set" : 3,
+    "effect" : "SUNGOLEM_INST"
+  },
+  {
+    "name" : "THE_TIME_GOLEM",
+    "position" : 3,
+    "points" : 4,
+    "set" : 3,
+    "effect" : "TIMEGOLEM_INST"
+  },
+  {
+    "name" : "THE_MEMORY",
+    "position" : 13,
+    "points" : 2,
+    "set" : 4,
+    "effect" : "MEMORY_INST_AUTO"
+  },
+  {
+    "name" : "THE_ORACLE",
+    "position" : 12,
+    "points" : 0,
+    "set" : 4,
+    "effect" : "ORACLE_REINF"
+  },
+  {
+    "name" : "THE_CHAOS",
+    "position" : 9,
+    "points" : 8,
+    "set" : 4,
+    "effect" : "CHAOS_INST"
+  },
+  {
+    "name" : "THE_DOGGED",
+    "position" : 1,
+    "points" : 2,
+    "set" : 4,
+    "effect" : "DOGGED_INST"
+  },
+  {
+    "name" : "THE_GUARDIAN",
+    "position" : 2,
+    "points" : 4,
+    "set" : 4,
+    "effect" : "GUARDIAN_INST"
+  },
+  {
+    "name" : "THE_MIRROR_OF_MISFORTUNE",
+    "position" : 5,
+    "points" : 10,
+    "set" : 4,
+    "effect" : "MISFORTUNE_INST_AUTO"
   }
 ]

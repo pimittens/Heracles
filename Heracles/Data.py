@@ -52,6 +52,20 @@ class HeroicFeat(Enum):
     THE_COMPANION = 46
     THE_BLACKSMITHS_SCEPTER = 47
     THE_TWINS = 48
+    THE_MOON_GOLEM = 49
+    THE_GREAT_GOLEM = 50
+    THE_SUN_GOLEM = 51
+    THE_TIME_GOLEM = 52
+    THE_MEMORY = 53
+    THE_ORACLE = 54
+    THE_CHAOS = 55
+    THE_DOGGED = 56
+    THE_GUARDIAN = 57
+    THE_MIRROR_OF_MISFORTUNE = 58
+    MIRROR_OF_MISFORTUNE_RED = 59
+    MIRROR_OF_MISFORTUNE_BLUE = 60
+    MIRROR_OF_MISFORTUNE_YELLOW = 61
+    MIRROR_OF_MISFORTUNE_GREEN = 62
 
 
 class DieFace(Enum):
@@ -167,6 +181,15 @@ def isBoarFace(face):
 
 def isBoarFeat(feat):
     return feat == HeroicFeat.TENACIOUS_BOAR or feat == HeroicFeat.TENACIOUS_BOAR_RED or feat == HeroicFeat.TENACIOUS_BOAR_BLUE or feat == HeroicFeat.TENACIOUS_BOAR_YELLOW or feat == HeroicFeat.TENACIOUS_BOAR_GREEN
+
+
+
+def isMisfortuneFace(face):
+    return face == DieFace.REDMISFORTUNE or face == DieFace.BLUEMISFORTUNE or face == DieFace.YELLOWMISFORTUNE or face == DieFace.GREENMISFORTUNE
+
+
+def isMisfortuneFeat(feat):
+    return feat == HeroicFeat.THE_MIRROR_OF_MISFORTUNE or feat == HeroicFeat.MIRROR_OF_MISFORTUNE_RED or feat == HeroicFeat.MIRROR_OF_MISFORTUNE_BLUE or feat == HeroicFeat.MIRROR_OF_MISFORTUNE_YELLOW or feat == HeroicFeat.MIRROR_OF_MISFORTUNE_GREEN
 
 
 def getPosition(feat):
