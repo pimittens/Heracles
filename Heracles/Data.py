@@ -232,6 +232,14 @@ def getEffect(feat):
         return "BOAR_INST_AUTO_YELLOW"
     elif feat == HeroicFeat.TENACIOUS_BOAR_GREEN:
         return "BOAR_INST_AUTO_GREEN"
+    if feat == HeroicFeat.MIRROR_OF_MISFORTUNE_RED:
+        return "MISFORTUNE_INST_AUTO_RED"
+    elif feat == HeroicFeat.MIRROR_OF_MISFORTUNE_BLUE:
+        return "MISFORTUNE_INST_AUTO_BLUE"
+    elif feat == HeroicFeat.MIRROR_OF_MISFORTUNE_YELLOW:
+        return "MISFORTUNE_INST_AUTO_YELLOW"
+    elif feat == HeroicFeat.MIRROR_OF_MISFORTUNE_GREEN:
+        return "MISFORTUNE_INST_AUTO_GREEN"
     for f in featsData:
         if f.name == feat.name:
             return f.effect

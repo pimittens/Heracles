@@ -23,131 +23,76 @@ class Phase(Enum):
     APPLY_DICE_EFFECTS = 16
     RESOLVE_MAZE_MOVES = 17
     RESOLVE_SHIPS = 18
-    BOAR_CHOICE_1 = 19
-    BOAR_CHOICE_2 = 20
-    MISFORTUNE_1 = 21 # die number (blessing player), die number being resolved by misfortune player
-    MISFORTUNE_1_MIRROR = 22
-    MISFORTUNE_1_CHOOSE_OR = 23
-    MISFORTUNE_1_APPLY_EFFECTS = 24
-    MISFORTUNE_1_RESOLVE_MAZE_MOVES = 25
-    MISFORTUNE_1_RESOLVE_SHIPS = 26
-    MISFORTUNE_2 = 26 # these go in reverse order since the misfortune face is on die 2
-    MISFORTUNE_2_MIRROR = 27
-    MISFORTUNE_2_CHOOSE_OR = 28
-    MISFORTUNE_2_APPLY_EFFECTS = 29
-    MISFORTUNE_2_RESOLVE_MAZE_MOVES = 30
-    MISFORTUNE_2_RESOLVE_SHIPS = 31
-    CERBERUS_DECISION = 32 # if used cerberus token, return to mirror 1 choice
-    MINOR_CHOOSE_DIE = 33 # minor blessing states
-    MINOR_ROLL_DIE = 34
-    MINOR_TWINS_CHOICE = 35
-    MINOR_TWINS_REROLL = 36
-    MINOR_TWINS_RESOURCE = 37
-    MINOR_USE_CERBERUS = 38
-    MINOR_MIRROR_CHOICE = 39
-    MINOR_CHOOSE_OR = 40
-    MINOR_MAZE_MOVES = 41
-    MINOR_RESOLVE_SHIPS = 42
-    MINOR_BOAR_CHOICE = 43
-    MINOR_MISFORTUNE = 44
-    MINOR_MISFORTUNE_1_MIRROR = 45
-    MINOR_MISFORTUNE_1_OR = 46
-    MINOR_MISFORTUNE_2_MIRROR = 47
-    MINOR_MISFORTUNE_2_OR = 48
-    MINOR_MISFORTUNE_RESOLVE = 49
-    MINOR_MISFORTUNE_MAZE = 50
-    MINOR_MISFORTUNE_SHIPS = 51
-    MINOR_CERBERUS_DECISION = 52
-
-
-    CHOOSE_REINF_EFFECT = 10
-    RESOLVE_ELDER_REINF = 11
-    RESOLVE_OWL_REINF = 12
-    RESOLVE_HIND_REINF = 13
-    RESOLVE_TREE_REINF = 14
-    RESOLVE_MERCHANT_REINF = 15
-    RESOLVE_LIGHT_REINF = 16
-    ACTIVE_PLAYER_CHOICE_1 = 18
-    ACTIVE_PLAYER_BUY_FACES_1 = 19
-    ACTIVE_PLAYER_PERFORM_FEAT_1 = 20
-    EXTRA_TURN_DECISION = 21
-    ACTIVE_PLAYER_CHOICE_2 = 22
-    ACTIVE_PLAYER_BUY_FACES_2 = 23
-    ACTIVE_PLAYER_PERFORM_FEAT_2 = 24
-    FORGE_SHIP_FACE_1 = 25
-    FORGE_SHIP_FACE_2 = 26
-    CHOOSE_SHIELD_FACE_1 = 27
-    CHOOSE_SHIELD_FACE_2 = 28
-    FORGE_HELMET_FACE_1 = 29
-    FORGE_HELMET_FACE_2 = 30
-    FORGE_MIRROR_FACE_1 = 31
-    FORGE_MIRROR_FACE_2 = 32
-    OUST_1_0_1 = 33  # action number, player ID, die number
-    OUST_1_0_2 = 34
-    OUST_1_1_1 = 35
-    OUST_1_1_2 = 36
-    OUST_1_2_1 = 37
-    OUST_1_2_2 = 38
-    OUST_1_3_1 = 39
-    OUST_1_3_2 = 40
-    OUST_2_0_1 = 41
-    OUST_2_0_2 = 42
-    OUST_2_1_1 = 43
-    OUST_2_1_2 = 44
-    OUST_2_2_1 = 45
-    OUST_2_2_2 = 46
-    OUST_2_3_1 = 47
-    OUST_2_3_2 = 48
-    RESOLVE_SHIPS_0 = 49
-    RESOLVE_SHIPS_1 = 50
-    RESOLVE_SHIPS_2 = 51
-    RESOLVE_SHIPS_3 = 52
-    CHOOSE_BOAR_PLAYER_RED_1 = 53
-    CHOOSE_BOAR_PLAYER_BLUE_1 = 54
-    CHOOSE_BOAR_PLAYER_YELLOW_1 = 55
-    CHOOSE_BOAR_PLAYER_GREEN_1 = 56
-    CHOOSE_BOAR_PLAYER_RED_2 = 57
-    CHOOSE_BOAR_PLAYER_BLUE_2 = 58
-    CHOOSE_BOAR_PLAYER_YELLOW_2 = 59
-    CHOOSE_BOAR_PLAYER_GREEN_2 = 60
-    FORGE_RED_BOAR_0_1 = 61  # player id, action number
-    FORGE_RED_BOAR_1_1 = 62
-    FORGE_RED_BOAR_2_1 = 63
-    FORGE_RED_BOAR_3_1 = 64
-    FORGE_BLUE_BOAR_0_1 = 65
-    FORGE_BLUE_BOAR_1_1 = 66
-    FORGE_BLUE_BOAR_2_1 = 67
-    FORGE_BLUE_BOAR_3_1 = 68
-    FORGE_YELLOW_BOAR_0_1 = 69
-    FORGE_YELLOW_BOAR_1_1 = 70
-    FORGE_YELLOW_BOAR_2_1 = 71
-    FORGE_YELLOW_BOAR_3_1 = 72
-    FORGE_GREEN_BOAR_0_1 = 73
-    FORGE_GREEN_BOAR_1_1 = 74
-    FORGE_GREEN_BOAR_2_1 = 75
-    FORGE_GREEN_BOAR_3_1 = 76
-    FORGE_RED_BOAR_0_2 = 77
-    FORGE_RED_BOAR_1_2 = 78
-    FORGE_RED_BOAR_2_2 = 79
-    FORGE_RED_BOAR_3_2 = 80
-    FORGE_BLUE_BOAR_0_2 = 81
-    FORGE_BLUE_BOAR_1_2 = 82
-    FORGE_BLUE_BOAR_2_2 = 83
-    FORGE_BLUE_BOAR_3_2 = 84
-    FORGE_YELLOW_BOAR_0_2 = 85
-    FORGE_YELLOW_BOAR_1_2 = 86
-    FORGE_YELLOW_BOAR_2_2 = 87
-    FORGE_YELLOW_BOAR_3_2 = 88
-    FORGE_GREEN_BOAR_0_2 = 89
-    FORGE_GREEN_BOAR_1_2 = 90
-    FORGE_GREEN_BOAR_2_2 = 91
-    FORGE_GREEN_BOAR_3_2 = 92
-    SHIP_EFFECT_FORGE_0 = 109
-    SHIP_EFFECT_FORGE_1 = 110
-    SHIP_EFFECT_FORGE_2 = 111
-    SHIP_EFFECT_FORGE_3 = 112
-    OUST_ROLL_DIE_1 = 113
-    OUST_ROLL_DIE_2 = 114
+    RESOLVE_SHIPS_FORGE = 19
+    BOAR_CHOICE_1 = 20
+    BOAR_CHOICE_2 = 21
+    MISFORTUNE_1 = 22  # die number (blessing player), die number being resolved by misfortune player
+    MISFORTUNE_1_MIRROR = 23
+    MISFORTUNE_1_CHOOSE_OR = 24
+    MISFORTUNE_1_APPLY_EFFECTS = 25
+    MISFORTUNE_1_RESOLVE_MAZE_MOVES = 26
+    MISFORTUNE_1_RESOLVE_SHIPS = 27
+    MISFORTUNE_1_RESOLVE_SHIPS_FORGE = 28
+    MISFORTUNE_2 = 29  # these go in reverse order since the misfortune face is on die 2
+    MISFORTUNE_2_MIRROR = 30
+    MISFORTUNE_2_CHOOSE_OR = 31
+    MISFORTUNE_2_APPLY_EFFECTS = 32
+    MISFORTUNE_2_RESOLVE_MAZE_MOVES = 33
+    MISFORTUNE_2_RESOLVE_SHIPS = 34
+    MISFORTUNE_2_RESOLVE_SHIPS_FORGE = 35
+    CERBERUS_DECISION = 36  # if used cerberus token, return to mirror 1 choice
+    MINOR_CHOOSE_DIE = 37  # minor blessing states
+    MINOR_ROLL_DIE = 38
+    MINOR_TWINS_CHOICE = 39
+    MINOR_TWINS_REROLL = 40
+    MINOR_TWINS_RESOURCE = 41
+    MINOR_USE_CERBERUS = 42
+    MINOR_MIRROR_CHOICE = 43
+    MINOR_CHOOSE_OR = 44
+    MINOR_MAZE_MOVES = 45
+    MINOR_RESOLVE_SHIPS = 46
+    MINOR_RESOLVE_SHIPS_FORGE = 47
+    MINOR_BOAR_CHOICE = 48
+    MINOR_MISFORTUNE = 49
+    MINOR_MISFORTUNE_1_MIRROR = 50
+    MINOR_MISFORTUNE_1_OR = 51
+    MINOR_MISFORTUNE_2_MIRROR = 52
+    MINOR_MISFORTUNE_2_OR = 53
+    MINOR_MISFORTUNE_RESOLVE = 54
+    MINOR_MISFORTUNE_MAZE = 55
+    MINOR_MISFORTUNE_SHIPS = 56
+    MINOR_MISFORTUNE_SHIPS_FORGE = 57
+    MINOR_CERBERUS_DECISION = 58
+    CHOOSE_REINF_EFFECT = 59
+    RESOLVE_ELDER_REINF = 60
+    RESOLVE_OWL_REINF = 61
+    RESOLVE_HIND_REINF = 62
+    RESOLVE_TREE_REINF = 63
+    RESOLVE_MERCHANT_REINF = 64
+    RESOLVE_LIGHT_REINF = 65
+    RESOLVE_COMPANION_REINF = 66
+    ACTIVE_PLAYER_CHOICE_1 = 67
+    ACTIVE_PLAYER_BUY_FACES_1 = 68
+    ACTIVE_PLAYER_PERFORM_FEAT_1 = 69
+    EXTRA_TURN_DECISION = 70
+    ACTIVE_PLAYER_CHOICE_2 = 71
+    ACTIVE_PLAYER_BUY_FACES_2 = 72
+    ACTIVE_PLAYER_PERFORM_FEAT_2 = 73
+    FORGE_SHIP_FACE_1 = 74
+    FORGE_SHIP_FACE_2 = 75
+    CHOOSE_SHIELD_FACE_1 = 76
+    CHOOSE_SHIELD_FACE_2 = 77
+    FORGE_HELMET_FACE_1 = 78
+    FORGE_HELMET_FACE_2 = 79
+    FORGE_MIRROR_FACE_1 = 80
+    FORGE_MIRROR_FACE_2 = 81
+    CHOOSE_BOAR_MISFORTUNE_PLAYER_1 = 82
+    CHOOSE_BOAR_MISFORTUNE_PLAYER_2 = 83
+    FORGE_BOAR_MISFORTUNE_1 = 84
+    FORGE_BOAR_MISFORTUNE_2 = 85
+    OUST_ROLL_DIE_1 = 86
+    OUST_ROLL_DIE_2 = 87
+    ROLL_CELESTIAL_DIE = 88
 
 
 class Move(Enum):
@@ -168,12 +113,11 @@ class Move(Enum):
     ROLL = 15
     RANDOM_ROLL = 16
     MIRROR_CHOICE = 17
-    MIRROR_COPY = 18
-    USE_TWINS = 19
-    TWINS_CHOOSE_DIE = 20
-    TWINS_CHOOSE_RESOURCE = 21
-    USE_CERBERUS = 22
-    CHOOSE_DIE = 23
+    USE_TWINS = 18
+    TWINS_CHOOSE_DIE = 19
+    TWINS_CHOOSE_RESOURCE = 20
+    USE_CERBERUS = 21
+    CHOOSE_DIE = 22
 
 
 class BoardState:
@@ -195,14 +139,14 @@ class BoardState:
         self.shields = [Data.DieFace.REDSHIELD, Data.DieFace.YELLOWSHIELD, Data.DieFace.GREENSHIELD,
                         Data.DieFace.BLUESHIELD]
         self.islands = ([], [], [], [], [], [], [], [], [], [], [], [], [], [], [])
-        self.shipsToResolve = 0
         self.cerberus = False
         self.islandChoice = 0  # used to remember choice for ousting
         self.selectRandomFeats()
         self.round = 1
         self.activePlayer = 0
         self.blessingPlayer = 0  # player currently resolving a blessing
-        self.misfortunePlayer = 0 # player currently using misfortune effect
+        self.misfortunePlayer = 0  # player currently using misfortune effect
+        self.faceToForge = None  # boar or misfortune face
         self.lastPlayer = 0
         self.phase = Phase.TURN_START
         self.returnPhase = Phase.TURN_START  # phase to return to after resolving dice effects
@@ -217,13 +161,13 @@ class BoardState:
         ret.temple = copy.deepcopy(self.temple)
         ret.shields = copy.deepcopy(self.shields)
         ret.islands = copy.deepcopy(self.islands)
-        ret.shipsToResolve = self.shipsToResolve
         ret.cerberus = self.cerberus
         ret.islandChoice = self.islandChoice
         ret.round = self.round
         ret.activePlayer = self.activePlayer
         ret.blessingPlayer = self.blessingPlayer
         ret.misfortunePlayer = self.misfortunePlayer
+        ret.faceToForge = self.faceToForge
         ret.phase = self.phase
         ret.returnPhase = self.returnPhase
         ret.lastPlayer = self.lastPlayer
@@ -247,8 +191,8 @@ class BoardState:
         return self.round > 10
 
     def makeMove(self, move):
-        # print(f"Round: {self.round}, Phase: {self.phase}. Making move: {move}. Islands: {self.islands}. Island Choice: {self.islandChoice}")
-        # self.printBoardState()
+        #print(f"Round: {self.round}, Phase: {self.phase}. Making move: {move}. Islands: {self.islands}. Island Choice: {self.islandChoice}")
+        #self.printBoardState()
         self.lastPlayer = move[1]
         match self.phase:
             case Phase.TURN_START:
@@ -351,7 +295,7 @@ class BoardState:
                     self.phase = Phase.DIE_1_CHOOSE_OR
                     self.makeMove((Move.PASS, move[1], ()))
                 elif self.players[self.blessingPlayer].getDie2UpFace() != Data.DieFace.MIRROR:
-                    self.phase = Phase.MIRROR_2_CHOICE
+                    self.phase = Phase.DIE_1_CHOOSE_OR
                     self.makeMove((Move.PASS, move[1], ()))
             case Phase.DIE_1_CHOOSE_OR:
                 if move[0] == Move.CHOOSE_DIE_OR:
@@ -366,7 +310,7 @@ class BoardState:
                     self.players[self.blessingPlayer].orChoice2 = move[2][0]
                     self.phase = Phase.APPLY_DICE_EFFECTS
                     self.makeMove((Move.PASS, move[1], ()))
-                elif not Data.getIsOr(self.players[self.blessingPlayer].getDie1Result()):
+                elif not Data.getIsOr(self.players[self.blessingPlayer].getDie2Result()):
                     self.phase = Phase.APPLY_DICE_EFFECTS
                     self.makeMove((Move.PASS, move[1], ()))
             case Phase.APPLY_DICE_EFFECTS:
@@ -379,12 +323,32 @@ class BoardState:
                 self.makeMove((Move.PASS, move[1], ()))
             case Phase.RESOLVE_MAZE_MOVES:
                 # todo: make maze moves, just go to next phase until implemented
-                self.phase = Phase.RESOLVE_SHIPS
-                self.makeMove((Move.PASS, move[1], ()))
+                if self.players[self.blessingPlayer].shipsToResolve == 0:
+                    self.phase = Phase.BOAR_CHOICE_1
+                    self.makeMove((Move.PASS, move[1], ()))
+                else:
+                    self.phase = Phase.RESOLVE_SHIPS
+                    self.makeMove((Move.PASS, move[1], ()))
             case Phase.RESOLVE_SHIPS:
-                # todo: resolve ships
-                self.phase = Phase.BOAR_CHOICE_1
-                self.makeMove((Move.PASS, move[1], ()))
+                if move[0] == Move.BUY_FACES:
+                    self.players[self.blessingPlayer].shipsToResolve -= 1
+                    for face in move[2]:
+                        self.temple[Data.getPool(face)].remove(face)
+                        self.players[0].buyFaceShip(face)
+                    self.phase = Phase.RESOLVE_SHIPS_FORGE
+                elif move[0] == Move.PASS:
+                    self.players[self.blessingPlayer].shipsToResolve -= 1
+                    if self.players[self.blessingPlayer].shipsToResolve == 0:
+                        self.phase = Phase.BOAR_CHOICE_1
+                        self.makeMove((Move.PASS, move[1], ()))
+            case Phase.RESOLVE_SHIPS_FORGE:
+                if move[0] == Move.FORGE_FACE:
+                    self.players[self.blessingPlayer].forgeFace(move[2])
+                    if self.players[self.blessingPlayer].shipsToResolve > 0:
+                        self.phase = Phase.RESOLVE_SHIPS
+                    else:
+                        self.phase = Phase.BOAR_CHOICE_1
+                        self.makeMove((Move.PASS, move[1], ()))
             case Phase.BOAR_CHOICE_1:
                 if move[0] == Move.BOAR_CHOICE:
                     match move[2][0]:
@@ -419,7 +383,7 @@ class BoardState:
                     self.phase = Phase.MISFORTUNE_1_MIRROR
                     self.makeMove((Move.PASS, move[1], ()))
                 elif not self.players[self.blessingPlayer].die1IsMisfortune():
-                    self.phase = Phase.MISFORTUNE_2 # note: do 2 first since it will always be the misfortune face
+                    self.phase = Phase.MISFORTUNE_2  # note: do 2 first since it will always be the misfortune face
                     self.makeMove((Move.PASS, move[1], ()))
             case Phase.MISFORTUNE_1_MIRROR:
                 if move[0] == Move.MIRROR_CHOICE:
@@ -443,12 +407,32 @@ class BoardState:
                 self.makeMove((Move.PASS, move[1], ()))
             case Phase.MISFORTUNE_1_RESOLVE_MAZE_MOVES:
                 # todo: implement maze
-                self.phase = Phase.MISFORTUNE_1_RESOLVE_SHIPS
-                self.makeMove((Move.PASS, move[1], ()))
+                if self.players[self.misfortunePlayer].shipsToResolve == 0:
+                    self.phase = Phase.MISFORTUNE_2
+                    self.makeMove((Move.PASS, move[1], ()))
+                else:
+                    self.phase = Phase.MISFORTUNE_1_RESOLVE_SHIPS
+                    self.makeMove((Move.PASS, move[1], ()))
             case Phase.MISFORTUNE_1_RESOLVE_SHIPS:
-                # todo: implement ships
-                self.phase = Phase.MISFORTUNE_2
-                self.makeMove((Move.PASS, move[1], ()))
+                if move[0] == Move.BUY_FACES:
+                    self.players[self.misfortunePlayer].shipsToResolve -= 1
+                    for face in move[2]:
+                        self.temple[Data.getPool(face)].remove(face)
+                        self.players[0].buyFaceShip(face)
+                    self.phase = Phase.MISFORTUNE_1_RESOLVE_SHIPS_FORGE
+                elif move[0] == Move.PASS:
+                    self.players[self.misfortunePlayer].shipsToResolve -= 1
+                    if self.players[self.misfortunePlayer].shipsToResolve == 0:
+                        self.phase = Phase.MISFORTUNE_2
+                        self.makeMove((Move.PASS, move[1], ()))
+            case Phase.MISFORTUNE_1_RESOLVE_SHIPS_FORGE:
+                if move[0] == Move.FORGE_FACE:
+                    self.players[self.misfortunePlayer].forgeFace(move[2])
+                    if self.players[self.misfortunePlayer].shipsToResolve > 0:
+                        self.phase = Phase.MISFORTUNE_1_RESOLVE_SHIPS
+                    else:
+                        self.phase = Phase.MISFORTUNE_2
+                        self.makeMove((Move.PASS, move[1], ()))
             case Phase.MISFORTUNE_2:
                 if move[0] == Move.CHOOSE_DIE_OR:
                     self.players[self.misfortunePlayer].orChoice2 = move[2][0]
@@ -479,18 +463,38 @@ class BoardState:
                 self.makeMove((Move.PASS, move[1], ()))
             case Phase.MISFORTUNE_2_RESOLVE_MAZE_MOVES:
                 # todo: implement maze
-                self.phase = Phase.MISFORTUNE_2_RESOLVE_SHIPS
-                self.makeMove((Move.PASS, move[1], ()))
+                if self.players[self.misfortunePlayer].shipsToResolve == 0:
+                    self.phase = Phase.CERBERUS_DECISION
+                    self.makeMove((Move.PASS, move[1], ()))
+                else:
+                    self.phase = Phase.MISFORTUNE_2_RESOLVE_SHIPS
+                    self.makeMove((Move.PASS, move[1], ()))
             case Phase.MISFORTUNE_2_RESOLVE_SHIPS:
-                # todo: implement ships
-                self.phase = Phase.CERBERUS_DECISION
-                self.makeMove((Move.PASS, move[1], ()))
+                if move[0] == Move.BUY_FACES:
+                    self.players[self.misfortunePlayer].shipsToResolve -= 1
+                    for face in move[2]:
+                        self.temple[Data.getPool(face)].remove(face)
+                        self.players[0].buyFaceShip(face)
+                    self.phase = Phase.MISFORTUNE_2_RESOLVE_SHIPS_FORGE
+                elif move[0] == Move.PASS:
+                    self.players[self.misfortunePlayer].shipsToResolve -= 1
+                    if self.players[self.misfortunePlayer].shipsToResolve == 0:
+                        self.phase = Phase.CERBERUS_DECISION
+                        self.makeMove((Move.PASS, move[1], ()))
+            case Phase.MISFORTUNE_2_RESOLVE_SHIPS_FORGE:
+                if move[0] == Move.FORGE_FACE:
+                    self.players[self.misfortunePlayer].forgeFace(move[2])
+                    if self.players[self.misfortunePlayer].shipsToResolve > 0:
+                        self.phase = Phase.MISFORTUNE_1_RESOLVE_SHIPS
+                    else:
+                        self.phase = Phase.CERBERUS_DECISION
+                        self.makeMove((Move.PASS, move[1], ()))
             case Phase.CERBERUS_DECISION:
                 if self.cerberus:
                     self.cerberus = False
                     self.phase = Phase.MIRROR_1_CHOICE
                     self.makeMove((Move.PASS, move[1], ()))
-                elif self.returnPhase == Phase.USE_TWINS_CHOICE: # start of turn divine blessings
+                elif self.returnPhase == Phase.USE_TWINS_CHOICE:  # start of turn divine blessings
                     self.blessingPlayer = (self.blessingPlayer + 1) % len(self.players)
                     if self.blessingPlayer == self.activePlayer:
                         self.phase = Phase.CHOOSE_REINF_EFFECT
@@ -499,7 +503,9 @@ class BoardState:
                         self.players[self.blessingPlayer].populateTwins()
                         self.phase = Phase.USE_TWINS_CHOICE
                         self.makeMove((Move.PASS, move[1], ()))
-                # todo: other return phases
+                else:
+                    self.phase = self.returnPhase
+                    self.makeReturnMove(move[1])
             case Phase.MINOR_CHOOSE_DIE:
                 if move[0] == Move.CHOOSE_DIE:
                     self.players[self.blessingPlayer].dieChoice = move[2][0]
@@ -605,12 +611,32 @@ class BoardState:
                 self.makeMove((Move.PASS, move[1], ()))
             case Phase.MINOR_MAZE_MOVES:
                 # todo: implement maze
-                self.phase = Phase.MINOR_RESOLVE_SHIPS
-                self.makeMove((Move.PASS, move[1], ()))
+                if self.players[self.blessingPlayer].shipsToResolve == 0:
+                    self.phase = Phase.MINOR_BOAR_CHOICE
+                    self.makeMove((Move.PASS, move[1], ()))
+                else:
+                    self.phase = Phase.MINOR_RESOLVE_SHIPS
+                    self.makeMove((Move.PASS, move[1], ()))
             case Phase.MINOR_RESOLVE_SHIPS:
-                # todo: implement ships
-                self.phase = Phase.MINOR_BOAR_CHOICE
-                self.makeMove((Move.PASS, move[1], ()))
+                if move[0] == Move.BUY_FACES:
+                    self.players[self.blessingPlayer].shipsToResolve -= 1
+                    for face in move[2]:
+                        self.temple[Data.getPool(face)].remove(face)
+                        self.players[0].buyFaceShip(face)
+                    self.phase = Phase.MINOR_RESOLVE_SHIPS_FORGE
+                elif move[0] == Move.PASS:
+                    self.players[self.blessingPlayer].shipsToResolve -= 1
+                    if self.players[self.blessingPlayer].shipsToResolve == 0:
+                        self.phase = Phase.MINOR_BOAR_CHOICE
+                        self.makeMove((Move.PASS, move[1], ()))
+            case Phase.MINOR_RESOLVE_SHIPS_FORGE:
+                if move[0] == Move.FORGE_FACE:
+                    self.players[self.blessingPlayer].forgeFace(move[2])
+                    if self.players[self.blessingPlayer].shipsToResolve > 0:
+                        self.phase = Phase.MINOR_RESOLVE_SHIPS
+                    else:
+                        self.phase = Phase.MINOR_BOAR_CHOICE
+                        self.makeMove((Move.PASS, move[1], ()))
             case Phase.MINOR_BOAR_CHOICE:
                 if move[0] == Move.BOAR_CHOICE:
                     match move[2][0]:
@@ -622,18 +648,26 @@ class BoardState:
                             self.players[move[1]].gainVP(3)
                     self.phase = Phase.MINOR_MISFORTUNE
                     self.makeMove((Move.PASS, move[1], ()))
-                elif (self.players[self.blessingPlayer].dieChoice and not self.players[self.blessingPlayer].die1IsBoar()) or (not self.players[self.blessingPlayer].dieChoice and not self.players[self.blessingPlayer].die2IsBoar()):
+                elif (self.players[self.blessingPlayer].dieChoice and not self.players[
+                    self.blessingPlayer].die1IsBoar()) or (
+                        not self.players[self.blessingPlayer].dieChoice and not self.players[
+                    self.blessingPlayer].die2IsBoar()):
                     self.phase = Phase.MINOR_MISFORTUNE
                     self.makeMove((Move.PASS, move[1], ()))
             case Phase.MINOR_MISFORTUNE:
-                if (self.players[self.blessingPlayer].dieChoice and not self.players[self.blessingPlayer].die1IsMisfortune()) or (not self.players[self.blessingPlayer].dieChoice and not self.players[self.blessingPlayer].die2IsMisfortune()):
+                if (self.players[self.blessingPlayer].dieChoice and not self.players[
+                    self.blessingPlayer].die1IsMisfortune()) or (
+                        not self.players[self.blessingPlayer].dieChoice and not self.players[
+                    self.blessingPlayer].die2IsMisfortune()):
                     self.phase = Phase.MINOR_CERBERUS_DECISION
                     self.makeMove((Move.PASS, move[1], ()))
                 else:
                     if self.players[self.blessingPlayer].dieChoice:
-                        self.misfortunePlayer = self.decideMisfortunePlayer(self.players[self.blessingPlayer].getDie1Result())
+                        self.misfortunePlayer = self.decideMisfortunePlayer(
+                            self.players[self.blessingPlayer].getDie1Result())
                     else:
-                        self.misfortunePlayer = self.decideMisfortunePlayer(self.players[self.blessingPlayer].getDie2Result())
+                        self.misfortunePlayer = self.decideMisfortunePlayer(
+                            self.players[self.blessingPlayer].getDie2Result())
                     self.phase = Phase.MINOR_MISFORTUNE_1_MIRROR
                     self.makeMove((Move.PASS, move[1], ()))
             case Phase.MINOR_MISFORTUNE_1_MIRROR:
@@ -674,12 +708,32 @@ class BoardState:
                 self.makeMove((Move.PASS, move[1], ()))
             case Phase.MINOR_MISFORTUNE_MAZE:
                 # todo: implement maze
-                self.phase = Phase.MINOR_MISFORTUNE_MAZE
-                self.makeMove((Move.PASS, move[1], ()))
+                if self.players[self.misfortunePlayer].shipsToResolve == 0:
+                    self.phase = Phase.MINOR_CERBERUS_DECISION
+                    self.makeMove((Move.PASS, move[1], ()))
+                else:
+                    self.phase = Phase.MINOR_MISFORTUNE_SHIPS
+                    self.makeMove((Move.PASS, move[1], ()))
             case Phase.MINOR_MISFORTUNE_SHIPS:
-                # todo: implement ships
-                self.phase = Phase.MINOR_CERBERUS_DECISION
-                self.makeMove((Move.PASS, move[1], ()))
+                if move[0] == Move.BUY_FACES:
+                    self.players[self.misfortunePlayer].shipsToResolve -= 1
+                    for face in move[2]:
+                        self.temple[Data.getPool(face)].remove(face)
+                        self.players[0].buyFaceShip(face)
+                    self.phase = Phase.MINOR_MISFORTUNE_SHIPS_FORGE
+                elif move[0] == Move.PASS:
+                    self.players[self.misfortunePlayer].shipsToResolve -= 1
+                    if self.players[self.misfortunePlayer].shipsToResolve == 0:
+                        self.phase = Phase.MINOR_CERBERUS_DECISION
+                        self.makeMove((Move.PASS, move[1], ()))
+            case Phase.MINOR_MISFORTUNE_SHIPS_FORGE:
+                if move[0] == Move.FORGE_FACE:
+                    self.players[self.misfortunePlayer].forgeFace(move[2])
+                    if self.players[self.misfortunePlayer].shipsToResolve > 0:
+                        self.phase = Phase.MINOR_MISFORTUNE_SHIPS
+                    else:
+                        self.phase = Phase.MINOR_CERBERUS_DECISION
+                        self.makeMove((Move.PASS, move[1], ()))
             case Phase.MINOR_CERBERUS_DECISION:
                 if self.cerberus:
                     self.cerberus = False
@@ -747,6 +801,9 @@ class BoardState:
                     else:
                         self.phase = Phase.TURN_START
                         self.advanceActivePlayer()
+                elif self.players[self.activePlayer].sun < 2:
+                    self.phase = Phase.TURN_START
+                    self.advanceActivePlayer()
             case Phase.ACTIVE_PLAYER_BUY_FACES_1:
                 if move[0] == Move.BUY_FACES:
                     for face in move[2]:
@@ -755,17 +812,11 @@ class BoardState:
                 elif move[0] == Move.FORGE_FACE:
                     self.players[self.activePlayer].forgeFace(move[2])
                     if not self.players[self.activePlayer].unforgedFaces:
-                        if self.players[self.activePlayer].sun >= 2:
-                            self.phase = Phase.EXTRA_TURN_DECISION
-                        else:
-                            self.phase = Phase.TURN_START
-                            self.advanceActivePlayer()
-                elif move[0] == Move.PASS:
-                    if self.players[self.activePlayer].sun >= 2:
                         self.phase = Phase.EXTRA_TURN_DECISION
-                    else:
-                        self.phase = Phase.TURN_START
-                        self.advanceActivePlayer()
+                        self.makeMove((Move.PASS, move[1], ()))
+                elif move[0] == Move.PASS:
+                    self.phase = Phase.EXTRA_TURN_DECISION
+                    self.makeMove((Move.PASS, move[1], ()))
             case Phase.ACTIVE_PLAYER_BUY_FACES_2:
                 if move[0] == Move.BUY_FACES:
                     for face in move[2]:
@@ -791,7 +842,6 @@ class BoardState:
                     self.players[self.activePlayer].location = island
                     if ousted:
                         self.islandChoice = Data.getPosition(move[2][0])
-                        self.phase = Phase.OUST_ROLL_DIE_1
                     else:
                         self.islands[Data.getPosition(move[2][0])].remove(move[2][0])
                         self.players[self.activePlayer].performFeat(move[2][0])
@@ -810,11 +860,8 @@ class BoardState:
                     else:
                         self.makeMove((Move.PASS, move[1], ()))
                 elif move[0] == Move.PASS:
-                    if self.players[self.activePlayer].sun >= 2:
-                        self.phase = Phase.EXTRA_TURN_DECISION
-                    else:
-                        self.phase = Phase.TURN_START
-                        self.advanceActivePlayer()
+                    self.phase = Phase.EXTRA_TURN_DECISION
+                    self.makeMove((Move.PASS, move[1], ()))
             case Phase.ACTIVE_PLAYER_PERFORM_FEAT_2:
                 if move[0] == Move.PERFORM_FEAT:
                     island = Data.getIsland(move[2][0])
@@ -826,7 +873,6 @@ class BoardState:
                             break
                     if ousted:
                         self.islandChoice = Data.getPosition(move[2][0])
-                        self.phase = Phase.OUST_ROLL_DIE_1
                     else:
                         self.islands[Data.getPosition(move[2][0])].remove(move[2][0])
                         self.players[self.activePlayer].performFeat(move[2][0])
@@ -850,11 +896,8 @@ class BoardState:
             case Phase.FORGE_SHIP_FACE_1:
                 if move[0] == Move.FORGE_FACE:
                     self.players[self.activePlayer].forgeFace(move[2])
-                    if self.players[self.activePlayer].sun >= 2:
-                        self.phase = Phase.EXTRA_TURN_DECISION
-                    else:
-                        self.phase = Phase.TURN_START
-                        self.advanceActivePlayer()
+                    self.phase = Phase.EXTRA_TURN_DECISION
+                    self.makeMove((Move.PASS, move[1], ()))
             case Phase.FORGE_SHIP_FACE_2:
                 if move[0] == Move.FORGE_FACE:
                     self.players[self.activePlayer].forgeFace(move[2])
@@ -865,11 +908,8 @@ class BoardState:
                     self.players[self.activePlayer].unforgedFaces.append(move[2][0])
                 elif move[0] == Move.FORGE_FACE:
                     self.players[self.activePlayer].forgeFace(move[2])
-                    if self.players[self.activePlayer].sun >= 2:
-                        self.phase = Phase.EXTRA_TURN_DECISION
-                    else:
-                        self.phase = Phase.TURN_START
-                        self.advanceActivePlayer()
+                    self.phase = Phase.EXTRA_TURN_DECISION
+                    self.makeMove((Move.PASS, move[1], ()))
             case Phase.CHOOSE_SHIELD_FACE_2:
                 if move[0] == Move.BUY_FACES:
                     self.players[self.activePlayer].unforgedFaces.append(move[2][0])
@@ -880,11 +920,8 @@ class BoardState:
             case Phase.FORGE_MIRROR_FACE_1:
                 if move[0] == Move.FORGE_FACE:
                     self.players[self.activePlayer].forgeFace(move[2])
-                    if self.players[self.activePlayer].sun >= 2:
-                        self.phase = Phase.EXTRA_TURN_DECISION
-                    else:
-                        self.phase = Phase.TURN_START
-                        self.advanceActivePlayer()
+                    self.phase = Phase.EXTRA_TURN_DECISION
+                    self.makeMove((Move.PASS, move[1], ()))
             case Phase.FORGE_MIRROR_FACE_2:
                 if move[0] == Move.FORGE_FACE:
                     self.players[self.activePlayer].forgeFace(move[2])
@@ -893,664 +930,49 @@ class BoardState:
             case Phase.FORGE_HELMET_FACE_1:
                 if move[0] == Move.FORGE_FACE:
                     self.players[self.activePlayer].forgeFace(move[2])
-                    if self.players[self.activePlayer].sun >= 2:
-                        self.phase = Phase.EXTRA_TURN_DECISION
-                    else:
-                        self.phase = Phase.TURN_START
-                        self.advanceActivePlayer()
+                    self.phase = Phase.EXTRA_TURN_DECISION
+                    self.makeMove((Move.PASS, move[1], ()))
             case Phase.FORGE_HELMET_FACE_2:
                 if move[0] == Move.FORGE_FACE:
                     self.players[self.activePlayer].forgeFace(move[2])
                     self.phase = Phase.TURN_START
                     self.advanceActivePlayer()
-            case Phase.OUST_1_0_1:
-                if move[0] == Move.CHOOSE_DIE_OR:
-                    mult = 1
-                    if self.players[0].getDie2UpFace() == Data.DieFace.TIMES3:
-                        mult = 3
-                    self.players[0].gainResource(move[2][0], move[2][1] * mult)
-                    self.resolveShieldOr(0, self.players[0].getDie2UpFace(), move[2][0])
-                    if Data.isBoarFace(self.players[0].getDie1UpFace()):
-                        self.returnPhase = Phase.OUST_1_0_2
-                        self.phase = Phase.BOAR_CHOICE_0_1
-                    else:
-                        self.phase = Phase.OUST_1_0_2
-                        self.makeMove((Move.PASS, 0, ()))
-                elif not Data.getIsOr(self.players[0].getDie1UpFace()) and not self.players[
-                                                                                   0].getDie1UpFace() == Data.DieFace.MIRROR:
-                    self.players[0].gainDiceEffects(1, True)
-                    self.resolveShield(0, 2)
-                    if self.players[0].getDie1UpFace() == Data.DieFace.SHIP:
-                        self.shipsToResolve += 1
-                    self.phase = Phase.OUST_1_0_2
-                    self.makeMove(move)
-            case Phase.OUST_1_0_2:
-                if move[0] == Move.CHOOSE_DIE_OR:
-                    mult = 1
-                    if self.players[0].getDie1UpFace() == Data.DieFace.TIMES3:
-                        mult = 3
-                    self.players[0].gainResource(move[2][0], move[2][1] * mult)
-                    self.resolveShieldOr(0, self.players[0].getDie1UpFace(), move[2][0])
-                    if Data.isBoarFace(self.players[0].getDie2UpFace()):
-                        self.returnPhase = Phase.ACTIVE_PLAYER_PERFORM_FEAT_1
-                        self.phase = Phase.BOAR_CHOICE_0_2
-                    else:
-                        self.phase = Phase.ACTIVE_PLAYER_PERFORM_FEAT_1
-                        self.makeMove((Move.RETURN_TO_FEAT, self.activePlayer, ()))
-                elif not Data.getIsOr(self.players[0].getDie2UpFace()) and not self.players[
-                                                                                   0].getDie2UpFace() == Data.DieFace.MIRROR:
-                    self.players[0].gainDiceEffects(2, True)
-                    self.resolveShield(0, 1)
-                    if self.players[0].getDie2UpFace() == Data.DieFace.SHIP:
-                        self.shipsToResolve += 1
-                    if self.shipsToResolve > 0:
-                        self.returnPhase = Phase.ACTIVE_PLAYER_PERFORM_FEAT_1
-                        self.phase = Phase.RESOLVE_SHIPS_0
-                    else:
-                        self.phase = Phase.ACTIVE_PLAYER_PERFORM_FEAT_1
-                        self.makeMove((Move.RETURN_TO_FEAT, self.activePlayer, ()))
-            case Phase.OUST_2_0_1:
-                if move[0] == Move.CHOOSE_DIE_OR:
-                    mult = 1
-                    if self.players[0].getDie2UpFace() == Data.DieFace.TIMES3:
-                        mult = 3
-                    self.players[0].gainResource(move[2][0], move[2][1] * mult)
-                    self.resolveShieldOr(0, self.players[0].getDie2UpFace(), move[2][0])
-                    if Data.isBoarFace(self.players[0].getDie1UpFace()):
-                        self.returnPhase = Phase.OUST_2_0_2
-                        self.phase = Phase.BOAR_CHOICE_0_1
-                    else:
-                        self.phase = Phase.OUST_2_0_2
-                        self.makeMove((Move.PASS, 0, ()))
-                elif not Data.getIsOr(self.players[0].getDie1UpFace()) and not self.players[
-                                                                                   0].getDie1UpFace() == Data.DieFace.MIRROR:
-                    self.players[0].gainDiceEffects(1, True)
-                    self.resolveShield(0, 2)
-                    if self.players[0].getDie1UpFace() == Data.DieFace.SHIP:
-                        self.shipsToResolve += 1
-                    self.phase = Phase.OUST_2_0_2
-                    self.makeMove(move)
-            case Phase.OUST_2_0_2:
-                if move[0] == Move.CHOOSE_DIE_OR:
-                    mult = 1
-                    if self.players[0].getDie1UpFace() == Data.DieFace.TIMES3:
-                        mult = 3
-                    self.players[0].gainResource(move[2][0], move[2][1] * mult)
-                    self.resolveShieldOr(0, self.players[0].getDie1UpFace(), move[2][0])
-                    if Data.isBoarFace(self.players[0].getDie2UpFace()):
-                        self.returnPhase = Phase.ACTIVE_PLAYER_PERFORM_FEAT_2
-                        self.phase = Phase.BOAR_CHOICE_0_2
-                    else:
-                        self.phase = Phase.ACTIVE_PLAYER_PERFORM_FEAT_2
-                        self.makeMove((Move.RETURN_TO_FEAT, self.activePlayer, ()))
-                elif not Data.getIsOr(self.players[0].getDie2UpFace()) and not self.players[
-                                                                                   0].getDie2UpFace() == Data.DieFace.MIRROR:
-                    self.players[0].gainDiceEffects(2, True)
-                    self.resolveShield(0, 1)
-                    if self.players[0].getDie2UpFace() == Data.DieFace.SHIP:
-                        self.shipsToResolve += 1
-                    if self.shipsToResolve > 0:
-                        self.returnPhase = Phase.ACTIVE_PLAYER_PERFORM_FEAT_2
-                        self.phase = Phase.RESOLVE_SHIPS_0
-                    else:
-                        self.phase = Phase.ACTIVE_PLAYER_PERFORM_FEAT_2
-                        self.makeMove((Move.RETURN_TO_FEAT, self.activePlayer, ()))
-            case Phase.OUST_1_1_1:
-                if move[0] == Move.CHOOSE_DIE_OR:
-                    mult = 1
-                    if self.players[1].getDie2UpFace() == Data.DieFace.TIMES3:
-                        mult = 3
-                    self.players[1].gainResource(move[2][0], move[2][1] * mult)
-                    self.resolveShieldOr(1, self.players[1].getDie2UpFace(), move[2][0])
-                    if Data.isBoarFace(self.players[1].getDie1UpFace()):
-                        self.returnPhase = Phase.OUST_1_1_2
-                        self.phase = Phase.BOAR_CHOICE_1_1
-                    else:
-                        self.phase = Phase.OUST_1_1_2
-                        self.makeMove((Move.PASS, 1, ()))
-                elif not Data.getIsOr(self.players[1].getDie1UpFace()) and not self.players[
-                                                                                   1].getDie1UpFace() == Data.DieFace.MIRROR:
-                    self.players[1].gainDiceEffects(1, True)
-                    self.resolveShield(1, 2)
-                    if self.players[1].getDie1UpFace() == Data.DieFace.SHIP:
-                        self.shipsToResolve += 1
-                    self.phase = Phase.OUST_1_1_2
-                    self.makeMove(move)
-            case Phase.OUST_1_1_2:
-                if move[0] == Move.CHOOSE_DIE_OR:
-                    mult = 1
-                    if self.players[1].getDie1UpFace() == Data.DieFace.TIMES3:
-                        mult = 3
-                    self.players[1].gainResource(move[2][0], move[2][1] * mult)
-                    self.resolveShieldOr(1, self.players[1].getDie1UpFace(), move[2][0])
-                    if Data.isBoarFace(self.players[1].getDie2UpFace()):
-                        self.returnPhase = Phase.ACTIVE_PLAYER_PERFORM_FEAT_1
-                        self.phase = Phase.BOAR_CHOICE_1_2
-                    else:
-                        self.phase = Phase.ACTIVE_PLAYER_PERFORM_FEAT_1
-                        self.makeMove((Move.RETURN_TO_FEAT, self.activePlayer, ()))
-                elif not Data.getIsOr(self.players[1].getDie2UpFace()) and not self.players[
-                                                                                   1].getDie2UpFace() == Data.DieFace.MIRROR:
-                    self.players[1].gainDiceEffects(2, True)
-                    self.resolveShield(1, 1)
-                    if self.players[1].getDie2UpFace() == Data.DieFace.SHIP:
-                        self.shipsToResolve += 1
-                    if self.shipsToResolve > 0:
-                        self.returnPhase = Phase.ACTIVE_PLAYER_PERFORM_FEAT_1
-                        self.phase = Phase.RESOLVE_SHIPS_1
-                    else:
-                        self.phase = Phase.ACTIVE_PLAYER_PERFORM_FEAT_1
-                        self.makeMove((Move.RETURN_TO_FEAT, self.activePlayer, ()))
-            case Phase.OUST_2_1_1:
-                if move[0] == Move.CHOOSE_DIE_OR:
-                    mult = 1
-                    if self.players[1].getDie2UpFace() == Data.DieFace.TIMES3:
-                        mult = 3
-                    self.players[1].gainResource(move[2][0], move[2][1] * mult)
-                    self.resolveShieldOr(1, self.players[1].getDie2UpFace(), move[2][0])
-                    if Data.isBoarFace(self.players[1].getDie1UpFace()):
-                        self.returnPhase = Phase.OUST_2_1_2
-                        self.phase = Phase.BOAR_CHOICE_1_1
-                    else:
-                        self.phase = Phase.OUST_2_1_2
-                        self.makeMove((Move.PASS, 1, ()))
-                elif not Data.getIsOr(self.players[1].getDie1UpFace()) and not self.players[
-                                                                                   1].getDie1UpFace() == Data.DieFace.MIRROR:
-                    self.players[1].gainDiceEffects(1, True)
-                    self.resolveShield(1, 2)
-                    if self.players[1].getDie1UpFace() == Data.DieFace.SHIP:
-                        self.shipsToResolve += 1
-                    self.phase = Phase.OUST_2_1_2
-                    self.makeMove(move)
-            case Phase.OUST_2_1_2:
-                if move[0] == Move.CHOOSE_DIE_OR:
-                    mult = 1
-                    if self.players[1].getDie1UpFace() == Data.DieFace.TIMES3:
-                        mult = 3
-                    self.players[1].gainResource(move[2][0], move[2][1] * mult)
-                    self.resolveShieldOr(1, self.players[1].getDie1UpFace(), move[2][0])
-                    if Data.isBoarFace(self.players[1].getDie2UpFace()):
-                        self.returnPhase = Phase.ACTIVE_PLAYER_PERFORM_FEAT_2
-                        self.phase = Phase.BOAR_CHOICE_1_2
-                    else:
-                        self.phase = Phase.ACTIVE_PLAYER_PERFORM_FEAT_2
-                        self.makeMove((Move.RETURN_TO_FEAT, self.activePlayer, ()))
-                elif not Data.getIsOr(self.players[1].getDie2UpFace()) and not self.players[
-                                                                                   1].getDie2UpFace() == Data.DieFace.MIRROR:
-                    self.players[1].gainDiceEffects(2, True)
-                    self.resolveShield(1, 1)
-                    if self.players[1].getDie2UpFace() == Data.DieFace.SHIP:
-                        self.shipsToResolve += 1
-                    if self.shipsToResolve > 0:
-                        self.returnPhase = Phase.ACTIVE_PLAYER_PERFORM_FEAT_2
-                        self.phase = Phase.RESOLVE_SHIPS_1
-                    else:
-                        self.phase = Phase.ACTIVE_PLAYER_PERFORM_FEAT_2
-                        self.makeMove((Move.RETURN_TO_FEAT, self.activePlayer, ()))
-            case Phase.OUST_1_2_1:
-                if move[0] == Move.CHOOSE_DIE_OR:
-                    mult = 1
-                    if self.players[2].getDie2UpFace() == Data.DieFace.TIMES3:
-                        mult = 3
-                    self.players[2].gainResource(move[2][0], move[2][1] * mult)
-                    self.resolveShieldOr(2, self.players[2].getDie2UpFace(), move[2][0])
-                    if Data.isBoarFace(self.players[2].getDie1UpFace()):
-                        self.returnPhase = Phase.OUST_1_2_2
-                        self.phase = Phase.BOAR_CHOICE_2_1
-                    else:
-                        self.phase = Phase.OUST_1_2_2
-                        self.makeMove((Move.PASS, 2, ()))
-                elif not Data.getIsOr(self.players[2].getDie1UpFace()) and not self.players[
-                                                                                   2].getDie1UpFace() == Data.DieFace.MIRROR:
-                    self.players[2].gainDiceEffects(1, True)
-                    self.resolveShield(2, 2)
-                    if self.players[2].getDie1UpFace() == Data.DieFace.SHIP:
-                        self.shipsToResolve += 1
-                    self.phase = Phase.OUST_1_2_2
-                    self.makeMove(move)
-            case Phase.OUST_1_2_2:
-                if move[0] == Move.CHOOSE_DIE_OR:
-                    mult = 1
-                    if self.players[2].getDie1UpFace() == Data.DieFace.TIMES3:
-                        mult = 3
-                    self.players[2].gainResource(move[2][0], move[2][1] * mult)
-                    self.resolveShieldOr(2, self.players[2].getDie1UpFace(), move[2][0])
-                    if Data.isBoarFace(self.players[2].getDie2UpFace()):
-                        self.returnPhase = Phase.ACTIVE_PLAYER_PERFORM_FEAT_1
-                        self.phase = Phase.BOAR_CHOICE_2_2
-                    else:
-                        self.phase = Phase.ACTIVE_PLAYER_PERFORM_FEAT_1
-                        self.makeMove((Move.RETURN_TO_FEAT, self.activePlayer, ()))
-                elif not Data.getIsOr(self.players[2].getDie2UpFace()) and not self.players[
-                                                                                   2].getDie2UpFace() == Data.DieFace.MIRROR:
-                    self.players[2].gainDiceEffects(2, True)
-                    self.resolveShield(2, 1)
-                    if self.players[2].getDie2UpFace() == Data.DieFace.SHIP:
-                        self.shipsToResolve += 1
-                    if self.shipsToResolve > 0:
-                        self.returnPhase = Phase.ACTIVE_PLAYER_PERFORM_FEAT_1
-                        self.phase = Phase.RESOLVE_SHIPS_2
-                    else:
-                        self.phase = Phase.ACTIVE_PLAYER_PERFORM_FEAT_1
-                        self.makeMove((Move.RETURN_TO_FEAT, self.activePlayer, ()))
-            case Phase.OUST_2_2_1:
-                if move[0] == Move.CHOOSE_DIE_OR:
-                    mult = 1
-                    if self.players[2].getDie2UpFace() == Data.DieFace.TIMES3:
-                        mult = 3
-                    self.players[2].gainResource(move[2][0], move[2][1] * mult)
-                    self.resolveShieldOr(2, self.players[2].getDie2UpFace(), move[2][0])
-                    if Data.isBoarFace(self.players[2].getDie1UpFace()):
-                        self.returnPhase = Phase.OUST_2_2_2
-                        self.phase = Phase.BOAR_CHOICE_2_1
-                    else:
-                        self.phase = Phase.OUST_2_2_2
-                        self.makeMove((Move.PASS, 2, ()))
-                elif not Data.getIsOr(self.players[2].getDie1UpFace()) and not self.players[
-                                                                                   2].getDie1UpFace() == Data.DieFace.MIRROR:
-                    self.players[2].gainDiceEffects(1, True)
-                    self.resolveShield(2, 2)
-                    if self.players[2].getDie1UpFace() == Data.DieFace.SHIP:
-                        self.shipsToResolve += 1
-                    self.phase = Phase.OUST_2_2_2
-                    self.makeMove(move)
-            case Phase.OUST_2_2_2:
-                if move[0] == Move.CHOOSE_DIE_OR:
-                    mult = 1
-                    if self.players[2].getDie1UpFace() == Data.DieFace.TIMES3:
-                        mult = 3
-                    self.players[2].gainResource(move[2][0], move[2][1] * mult)
-                    self.resolveShieldOr(2, self.players[2].getDie1UpFace(), move[2][0])
-                    if Data.isBoarFace(self.players[2].getDie2UpFace()):
-                        self.returnPhase = Phase.ACTIVE_PLAYER_PERFORM_FEAT_2
-                        self.phase = Phase.BOAR_CHOICE_2_2
-                    else:
-                        self.phase = Phase.ACTIVE_PLAYER_PERFORM_FEAT_2
-                        self.makeMove((Move.RETURN_TO_FEAT, self.activePlayer, ()))
-                elif not Data.getIsOr(self.players[2].getDie2UpFace()) and not self.players[
-                                                                                   2].getDie2UpFace() == Data.DieFace.MIRROR:
-                    self.players[2].gainDiceEffects(2, True)
-                    self.resolveShield(2, 1)
-                    if self.players[2].getDie2UpFace() == Data.DieFace.SHIP:
-                        self.shipsToResolve += 1
-                    if self.shipsToResolve > 0:
-                        self.returnPhase = Phase.ACTIVE_PLAYER_PERFORM_FEAT_2
-                        self.phase = Phase.RESOLVE_SHIPS_2
-                    else:
-                        self.phase = Phase.ACTIVE_PLAYER_PERFORM_FEAT_2
-                        self.makeMove((Move.RETURN_TO_FEAT, self.activePlayer, ()))
-            case Phase.OUST_1_3_1:
-                if move[0] == Move.CHOOSE_DIE_OR:
-                    mult = 1
-                    if self.players[3].getDie2UpFace() == Data.DieFace.TIMES3:
-                        mult = 3
-                    self.players[3].gainResource(move[2][0], move[2][1] * mult)
-                    self.resolveShieldOr(3, self.players[3].getDie2UpFace(), move[2][0])
-                    if Data.isBoarFace(self.players[3].getDie1UpFace()):
-                        self.returnPhase = Phase.OUST_1_3_2
-                        self.phase = Phase.BOAR_CHOICE_3_1
-                    else:
-                        self.phase = Phase.OUST_1_3_2
-                        self.makeMove((Move.PASS, 3, ()))
-                elif not Data.getIsOr(self.players[3].getDie1UpFace()) and not self.players[
-                                                                                   3].getDie1UpFace() == Data.DieFace.MIRROR:
-                    self.players[3].gainDiceEffects(1, True)
-                    self.resolveShield(3, 2)
-                    if self.players[3].getDie1UpFace() == Data.DieFace.SHIP:
-                        self.shipsToResolve += 1
-                    self.phase = Phase.OUST_1_3_2
-                    self.makeMove(move)
-            case Phase.OUST_1_3_2:
-                if move[0] == Move.CHOOSE_DIE_OR:
-                    mult = 1
-                    if self.players[3].getDie1UpFace() == Data.DieFace.TIMES3:
-                        mult = 3
-                    self.players[3].gainResource(move[2][0], move[2][1] * mult)
-                    self.resolveShieldOr(3, self.players[3].getDie1UpFace(), move[2][0])
-                    if Data.isBoarFace(self.players[3].getDie2UpFace()):
-                        self.returnPhase = Phase.ACTIVE_PLAYER_PERFORM_FEAT_1
-                        self.phase = Phase.BOAR_CHOICE_3_2
-                    else:
-                        self.phase = Phase.ACTIVE_PLAYER_PERFORM_FEAT_1
-                        self.makeMove((Move.RETURN_TO_FEAT, self.activePlayer, ()))
-                elif not Data.getIsOr(self.players[3].getDie2UpFace()) and not self.players[
-                                                                                   3].getDie2UpFace() == Data.DieFace.MIRROR:
-                    self.players[3].gainDiceEffects(2, True)
-                    self.resolveShield(3, 1)
-                    if self.players[3].getDie2UpFace() == Data.DieFace.SHIP:
-                        self.shipsToResolve += 1
-                    if self.shipsToResolve > 0:
-                        self.returnPhase = Phase.ACTIVE_PLAYER_PERFORM_FEAT_1
-                        self.phase = Phase.RESOLVE_SHIPS_3
-                    else:
-                        self.phase = Phase.ACTIVE_PLAYER_PERFORM_FEAT_1
-                        self.makeMove((Move.RETURN_TO_FEAT, self.activePlayer, ()))
-            case Phase.OUST_2_3_1:
-                if move[0] == Move.CHOOSE_DIE_OR:
-                    mult = 1
-                    if self.players[3].getDie2UpFace() == Data.DieFace.TIMES3:
-                        mult = 3
-                    self.players[3].gainResource(move[2][0], move[2][1] * mult)
-                    self.resolveShieldOr(3, self.players[3].getDie2UpFace(), move[2][0])
-                    if Data.isBoarFace(self.players[2].getDie1UpFace()):
-                        self.returnPhase = Phase.OUST_2_3_2
-                        self.phase = Phase.BOAR_CHOICE_3_1
-                    else:
-                        self.phase = Phase.OUST_2_3_2
-                        self.makeMove((Move.PASS, 3, ()))
-                elif not Data.getIsOr(self.players[3].getDie1UpFace()) and not self.players[
-                                                                                   3].getDie1UpFace() == Data.DieFace.MIRROR:
-                    self.players[3].gainDiceEffects(1, True)
-                    self.resolveShield(3, 2)
-                    if self.players[3].getDie1UpFace() == Data.DieFace.SHIP:
-                        self.shipsToResolve += 1
-                    self.phase = Phase.OUST_2_3_2
-                    self.makeMove(move)
-            case Phase.OUST_2_3_2:
-                if move[0] == Move.CHOOSE_DIE_OR:
-                    mult = 1
-                    if self.players[3].getDie1UpFace() == Data.DieFace.TIMES3:
-                        mult = 3
-                    self.players[3].gainResource(move[2][0], move[2][1] * mult)
-                    self.resolveShieldOr(3, self.players[3].getDie1UpFace(), move[2][0])
-                    if Data.isBoarFace(self.players[3].getDie2UpFace()):
-                        self.returnPhase = Phase.ACTIVE_PLAYER_PERFORM_FEAT_2
-                        self.phase = Phase.BOAR_CHOICE_3_2
-                    else:
-                        self.phase = Phase.ACTIVE_PLAYER_PERFORM_FEAT_2
-                        self.makeMove((Move.RETURN_TO_FEAT, self.activePlayer, ()))
-                elif not Data.getIsOr(self.players[3].getDie2UpFace()) and not self.players[
-                                                                                   3].getDie2UpFace() == Data.DieFace.MIRROR:
-                    self.players[3].gainDiceEffects(2, True)
-                    self.resolveShield(3, 1)
-                    if self.players[3].getDie2UpFace() == Data.DieFace.SHIP:
-                        self.shipsToResolve += 1
-                    if self.shipsToResolve > 0:
-                        self.returnPhase = Phase.ACTIVE_PLAYER_PERFORM_FEAT_2
-                        self.phase = Phase.RESOLVE_SHIPS_3
-                    else:
-                        self.phase = Phase.ACTIVE_PLAYER_PERFORM_FEAT_2
-                        self.makeMove((Move.RETURN_TO_FEAT, self.activePlayer, ()))
-            case Phase.CHOOSE_BOAR_PLAYER_RED_1:
+            case Phase.CHOOSE_BOAR_MISFORTUNE_PLAYER_1:
                 if move[0] == Move.CHOOSE_BOAR_PLAYER:
-                    match move[2][0]:
-                        case 0:
-                            self.phase = Phase.FORGE_RED_BOAR_0_1
-                        case 1:
-                            self.phase = Phase.FORGE_RED_BOAR_1_1
-                        case 2:
-                            self.phase = Phase.FORGE_RED_BOAR_2_1
-                        case 3:
-                            self.phase = Phase.FORGE_RED_BOAR_3_1
-            case Phase.CHOOSE_BOAR_PLAYER_BLUE_1:
-                if move[0] == Move.CHOOSE_BOAR_PLAYER:
-                    match move[2][0]:
-                        case 0:
-                            self.phase = Phase.FORGE_BLUE_BOAR_0_1
-                        case 1:
-                            self.phase = Phase.FORGE_BLUE_BOAR_1_1
-                        case 2:
-                            self.phase = Phase.FORGE_BLUE_BOAR_2_1
-                        case 3:
-                            self.phase = Phase.FORGE_BLUE_BOAR_3_1
-            case Phase.CHOOSE_BOAR_PLAYER_YELLOW_1:
-                if move[0] == Move.CHOOSE_BOAR_PLAYER:
-                    match move[2][0]:
-                        case 0:
-                            self.phase = Phase.FORGE_YELLOW_BOAR_0_1
-                        case 1:
-                            self.phase = Phase.FORGE_YELLOW_BOAR_1_1
-                        case 2:
-                            self.phase = Phase.FORGE_YELLOW_BOAR_2_1
-                        case 3:
-                            self.phase = Phase.FORGE_YELLOW_BOAR_3_1
-            case Phase.CHOOSE_BOAR_PLAYER_GREEN_1:
-                if move[0] == Move.CHOOSE_BOAR_PLAYER:
-                    match move[2][0]:
-                        case 0:
-                            self.phase = Phase.FORGE_GREEN_BOAR_0_1
-                        case 1:
-                            self.phase = Phase.FORGE_GREEN_BOAR_1_1
-                        case 2:
-                            self.phase = Phase.FORGE_GREEN_BOAR_2_1
-                        case 3:
-                            self.phase = Phase.FORGE_GREEN_BOAR_3_1
-            case Phase.FORGE_RED_BOAR_0_1 | Phase.FORGE_BLUE_BOAR_0_1 | Phase.FORGE_YELLOW_BOAR_0_1 | Phase.FORGE_GREEN_BOAR_0_1:
+                    self.blessingPlayer = move[2][0]  # use blessing player variable for boar face player
+                    self.phase = Phase.FORGE_BOAR_MISFORTUNE_1
+            case Phase.FORGE_BOAR_MISFORTUNE_1:
                 if move[0] == Move.FORGE_FACE:
-                    self.players[0].forgeBoarFace(move[2])
-                    if self.players[self.activePlayer].sun >= 2:
-                        self.phase = Phase.EXTRA_TURN_DECISION
-                    else:
-                        self.phase = Phase.TURN_START
-                        self.advanceActivePlayer()
-            case Phase.FORGE_RED_BOAR_1_1 | Phase.FORGE_BLUE_BOAR_1_1 | Phase.FORGE_YELLOW_BOAR_1_1 | Phase.FORGE_GREEN_BOAR_1_1:
-                if move[0] == Move.FORGE_FACE:
-                    self.players[1].forgeBoarFace(move[2])
-                    if self.players[self.activePlayer].sun >= 2:
-                        self.phase = Phase.EXTRA_TURN_DECISION
-                    else:
-                        self.phase = Phase.TURN_START
-                        self.advanceActivePlayer()
-            case Phase.FORGE_RED_BOAR_2_1 | Phase.FORGE_BLUE_BOAR_2_1 | Phase.FORGE_YELLOW_BOAR_2_1 | Phase.FORGE_GREEN_BOAR_2_1:
-                if move[0] == Move.FORGE_FACE:
-                    self.players[2].forgeBoarFace(move[2])
-                    if self.players[self.activePlayer].sun >= 2:
-                        self.phase = Phase.EXTRA_TURN_DECISION
-                    else:
-                        self.phase = Phase.TURN_START
-                        self.advanceActivePlayer()
-            case Phase.FORGE_RED_BOAR_3_1 | Phase.FORGE_BLUE_BOAR_3_1 | Phase.FORGE_YELLOW_BOAR_3_1 | Phase.FORGE_GREEN_BOAR_3_1:
-                if move[0] == Move.FORGE_FACE:
-                    self.players[3].forgeBoarFace(move[2])
-                    if self.players[self.activePlayer].sun >= 2:
-                        self.phase = Phase.EXTRA_TURN_DECISION
-                    else:
-                        self.phase = Phase.TURN_START
-                        self.advanceActivePlayer()
-            case Phase.CHOOSE_BOAR_PLAYER_RED_2:
+                    self.players[self.blessingPlayer].forgeBoarMisfortuneFace(move[2])
+                    self.phase = Phase.EXTRA_TURN_DECISION
+                    self.makeMove((Move.PASS, move[1], ()))
+            case Phase.CHOOSE_BOAR_MISFORTUNE_PLAYER_1:
                 if move[0] == Move.CHOOSE_BOAR_PLAYER:
-                    match move[2][0]:
-                        case 0:
-                            self.phase = Phase.FORGE_RED_BOAR_0_2
-                        case 1:
-                            self.phase = Phase.FORGE_RED_BOAR_1_2
-                        case 2:
-                            self.phase = Phase.FORGE_RED_BOAR_2_2
-                        case 3:
-                            self.phase = Phase.FORGE_RED_BOAR_3_2
-            case Phase.CHOOSE_BOAR_PLAYER_BLUE_2:
-                if move[0] == Move.CHOOSE_BOAR_PLAYER:
-                    match move[2][0]:
-                        case 0:
-                            self.phase = Phase.FORGE_BLUE_BOAR_0_2
-                        case 1:
-                            self.phase = Phase.FORGE_BLUE_BOAR_1_2
-                        case 2:
-                            self.phase = Phase.FORGE_BLUE_BOAR_2_2
-                        case 3:
-                            self.phase = Phase.FORGE_BLUE_BOAR_3_2
-            case Phase.CHOOSE_BOAR_PLAYER_YELLOW_2:
-                if move[0] == Move.CHOOSE_BOAR_PLAYER:
-                    match move[2][0]:
-                        case 0:
-                            self.phase = Phase.FORGE_YELLOW_BOAR_0_2
-                        case 1:
-                            self.phase = Phase.FORGE_YELLOW_BOAR_1_2
-                        case 2:
-                            self.phase = Phase.FORGE_YELLOW_BOAR_2_2
-                        case 3:
-                            self.phase = Phase.FORGE_YELLOW_BOAR_3_2
-            case Phase.CHOOSE_BOAR_PLAYER_GREEN_2:
-                if move[0] == Move.CHOOSE_BOAR_PLAYER:
-                    match move[2][0]:
-                        case 0:
-                            self.phase = Phase.FORGE_GREEN_BOAR_0_2
-                        case 1:
-                            self.phase = Phase.FORGE_GREEN_BOAR_1_2
-                        case 2:
-                            self.phase = Phase.FORGE_GREEN_BOAR_2_2
-                        case 3:
-                            self.phase = Phase.FORGE_GREEN_BOAR_3_2
-            case Phase.FORGE_RED_BOAR_0_2 | Phase.FORGE_BLUE_BOAR_0_2 | Phase.FORGE_YELLOW_BOAR_0_2 | Phase.FORGE_GREEN_BOAR_0_2:
+                    self.blessingPlayer = move[2][0]  # use blessing player variable for boar face player
+                    self.phase = Phase.FORGE_BOAR_MISFORTUNE_2
+            case Phase.FORGE_BOAR_MISFORTUNE_2:
                 if move[0] == Move.FORGE_FACE:
-                    self.players[0].forgeBoarFace(move[2])
+                    self.players[self.blessingPlayer].forgeBoarMisfortuneFace(move[2])
                     self.phase = Phase.TURN_START
                     self.advanceActivePlayer()
-            case Phase.FORGE_RED_BOAR_1_2 | Phase.FORGE_BLUE_BOAR_1_2 | Phase.FORGE_YELLOW_BOAR_1_2 | Phase.FORGE_GREEN_BOAR_1_2:
-                if move[0] == Move.FORGE_FACE:
-                    self.players[1].forgeBoarFace(move[2])
-                    self.phase = Phase.TURN_START
-                    self.advanceActivePlayer()
-            case Phase.FORGE_RED_BOAR_2_2 | Phase.FORGE_BLUE_BOAR_2_2 | Phase.FORGE_YELLOW_BOAR_2_2 | Phase.FORGE_GREEN_BOAR_2_2:
-                if move[0] == Move.FORGE_FACE:
-                    self.players[2].forgeBoarFace(move[2])
-                    self.phase = Phase.TURN_START
-                    self.advanceActivePlayer()
-            case Phase.FORGE_RED_BOAR_3_2 | Phase.FORGE_BLUE_BOAR_3_2 | Phase.FORGE_YELLOW_BOAR_3_2 | Phase.FORGE_GREEN_BOAR_3_2:
-                if move[0] == Move.FORGE_FACE:
-                    self.players[3].forgeBoarFace(move[2])
-                    self.phase = Phase.TURN_START
-                    self.advanceActivePlayer()
-            case Phase.BOAR_CHOICE_0_1 | Phase.BOAR_CHOICE_0_2:
-                if move[0] == Move.BOAR_CHOICE:
-                    match move[2][0]:
-                        case "sun":
-                            self.players[move[1]].gainSun(1)
-                        case "moon":
-                            self.players[move[1]].gainMoon(1)
-                        case "vp":
-                            self.players[move[1]].gainVP(3)
-                    self.phase = self.returnPhase
-                    self.makeReturnMove(0)
-            case Phase.BOAR_CHOICE_1_1 | Phase.BOAR_CHOICE_1_2:
-                if move[0] == Move.BOAR_CHOICE:
-                    match move[2][0]:
-                        case "sun":
-                            self.players[move[1]].gainSun(1)
-                        case "moon":
-                            self.players[move[1]].gainMoon(1)
-                        case "vp":
-                            self.players[move[1]].gainVP(3)
-                    self.phase = self.returnPhase
-                    self.makeReturnMove(1)
-            case Phase.BOAR_CHOICE_2_1 | Phase.BOAR_CHOICE_2_2:
-                if move[0] == Move.BOAR_CHOICE:
-                    match move[2][0]:
-                        case "sun":
-                            self.players[move[1]].gainSun(1)
-                        case "moon":
-                            self.players[move[1]].gainMoon(1)
-                        case "vp":
-                            self.players[move[1]].gainVP(3)
-                    self.phase = self.returnPhase
-                    self.makeReturnMove(2)
-            case Phase.BOAR_CHOICE_3_1 | Phase.BOAR_CHOICE_3_2:
-                if move[0] == Move.BOAR_CHOICE:
-                    match move[2][0]:
-                        case "sun":
-                            self.players[move[1]].gainSun(1)
-                        case "moon":
-                            self.players[move[1]].gainMoon(1)
-                        case "vp":
-                            self.players[move[1]].gainVP(3)
-                    self.phase = self.returnPhase
-                    self.makeReturnMove(3)
-            case Phase.RESOLVE_SHIPS_0:
-                if move[0] == Move.BUY_FACES:
-                    self.shipsToResolve -= 1
-                    for face in move[2]:
-                        self.temple[Data.getPool(face)].remove(face)
-                        self.players[0].buyFaceShip(face)
-                    self.phase = Phase.SHIP_EFFECT_FORGE_0
-                elif move[0] == Move.PASS:
-                    self.shipsToResolve -= 1
-                    if self.shipsToResolve == 0:
-                        self.phase = self.returnPhase
-                        self.makeReturnMove(0)
-            case Phase.RESOLVE_SHIPS_1:
-                if move[0] == Move.BUY_FACES:
-                    self.shipsToResolve -= 1
-                    for face in move[2]:
-                        self.temple[Data.getPool(face)].remove(face)
-                        self.players[1].buyFaceShip(face)
-                    self.phase = Phase.SHIP_EFFECT_FORGE_1
-                elif move[0] == Move.PASS:
-                    self.shipsToResolve -= 1
-                    if self.shipsToResolve == 0:
-                        self.phase = self.returnPhase
-                        self.makeReturnMove(1)
-            case Phase.RESOLVE_SHIPS_2:
-                if move[0] == Move.BUY_FACES:
-                    self.shipsToResolve -= 1
-                    for face in move[2]:
-                        self.temple[Data.getPool(face)].remove(face)
-                        self.players[2].buyFaceShip(face)
-                    self.phase = Phase.SHIP_EFFECT_FORGE_2
-                elif move[0] == Move.PASS:
-                    self.shipsToResolve -= 1
-                    if self.shipsToResolve == 0:
-                        self.phase = self.returnPhase
-                        self.makeReturnMove(2)
-            case Phase.RESOLVE_SHIPS_3:
-                if move[0] == Move.BUY_FACES:
-                    self.shipsToResolve -= 1
-                    for face in move[2]:
-                        self.temple[Data.getPool(face)].remove(face)
-                        self.players[3].buyFaceShip(face)
-                    self.phase = Phase.SHIP_EFFECT_FORGE_3
-                elif move[0] == Move.PASS:
-                    self.shipsToResolve -= 1
-                    if self.shipsToResolve == 0:
-                        self.phase = self.returnPhase
-                        self.makeReturnMove(3)
-            case Phase.SHIP_EFFECT_FORGE_0:
-                if move[0] == Move.FORGE_FACE:
-                    self.players[0].forgeFace(move[2])
-                    if self.shipsToResolve > 0:
-                        self.phase = Phase.RESOLVE_SHIPS_0
-                    else:
-                        self.phase = self.returnPhase
-                        self.makeReturnMove(0)
-            case Phase.SHIP_EFFECT_FORGE_1:
-                if move[0] == Move.FORGE_FACE:
-                    self.players[1].forgeFace(move[2])
-                    if self.shipsToResolve > 0:
-                        self.phase = Phase.RESOLVE_SHIPS_1
-                    else:
-                        self.phase = self.returnPhase
-                        self.makeReturnMove(1)
-            case Phase.SHIP_EFFECT_FORGE_2:
-                if move[0] == Move.FORGE_FACE:
-                    self.players[2].forgeFace(move[2])
-                    if self.shipsToResolve > 0:
-                        self.phase = Phase.RESOLVE_SHIPS_2
-                    else:
-                        self.phase = self.returnPhase
-                        self.makeReturnMove(2)
-            case Phase.SHIP_EFFECT_FORGE_3:
-                if move[0] == Move.FORGE_FACE:
-                    self.players[3].forgeFace(move[2])
-                    if self.shipsToResolve > 0:
-                        self.phase = Phase.RESOLVE_SHIPS_3
-                    else:
-                        self.phase = self.returnPhase
-                        self.makeReturnMove(3)
             case Phase.OUST_ROLL_DIE_1:
                 if move[0] == Move.ROLL:
-                    self.players[move[2][1]].die1.setToFace(move[2][0])
+                    self.players[self.blessingPlayer].die1.setToFace(move[2][0])
                     self.phase = Phase.OUST_ROLL_DIE_2
                 elif move[0] == Move.RANDOM_ROLL:
-                    self.players[move[2][1]].die1.roll()
+                    self.players[self.blessingPlayer].die1.roll()
                     self.phase = Phase.OUST_ROLL_DIE_2
             case Phase.OUST_ROLL_DIE_2:
                 if move[0] == Move.ROLL:
-                    self.players[move[2][1]].die1.setToFace(move[2][0])
-                    self.phase = self.returnPhase
-                    self.makeReturnMove(move[2][1])
+                    self.players[self.blessingPlayer].die2.setToFace(move[2][0])
+                    self.players[self.blessingPlayer].populateTwins()
+                    self.phase = Phase.USE_TWINS_CHOICE
+                    self.makeMove((Move.PASS, move[1], ()))
                 elif move[0] == Move.RANDOM_ROLL:
-                    self.players[move[2][1]].die1.roll()
-                    self.phase = self.returnPhase
-                    self.makeReturnMove(move[2][1])
+                    self.players[self.blessingPlayer].die2.roll()
+                    self.players[self.blessingPlayer].populateTwins()
+                    self.phase = Phase.USE_TWINS_CHOICE
+                    self.makeMove((Move.PASS, move[1], ()))
 
         # todo: finish
 
@@ -1559,9 +981,9 @@ class BoardState:
         # self.printBoardState()
         ret = ((Move.PASS, self.activePlayer, ()),)
         match self.phase:
-            case Phase.ROLL_DIE_1 | Phase.TWINS_REROLL_1:
+            case Phase.ROLL_DIE_1 | Phase.TWINS_REROLL_1 | Phase.OUST_ROLL_DIE_1:
                 ret = self.generateRollDieOptions(self.blessingPlayer, self.players[self.blessingPlayer].die1)
-            case Phase.ROLL_DIE_2 | Phase.TWINS_REROLL_2:
+            case Phase.ROLL_DIE_2 | Phase.TWINS_REROLL_2 | Phase.OUST_ROLL_DIE_2:
                 ret = self.generateRollDieOptions(self.blessingPlayer, self.players[self.blessingPlayer].die2)
             case Phase.USE_TWINS_CHOICE | Phase.MINOR_TWINS_CHOICE:
                 ret = ((Move.USE_TWINS, self.blessingPlayer, (True,)), (Move.USE_TWINS, self.blessingPlayer, (False,)))
@@ -1595,7 +1017,8 @@ class BoardState:
             case Phase.MISFORTUNE_2_CHOOSE_OR | Phase.MINOR_MISFORTUNE_2_OR:
                 ret = self.players[self.misfortunePlayer].getDieOptions(True)
             case Phase.MISFORTUNE_1_MIRROR | Phase.MISFORTUNE_2_MIRROR | Phase.MINOR_MISFORTUNE_1_MIRROR | Phase.MINOR_MISFORTUNE_2_MIRROR:
-                ret = self.getMirrorChoices(self.blessingPlayer) # use blessing player since we are copying their effect, todo: do we even need to pass a player?
+                ret = self.getMirrorChoices(
+                    self.blessingPlayer)  # use blessing player since we are copying their effect, todo: do we even need to pass a player?
             case Phase.MINOR_CHOOSE_DIE:
                 ret = (Move.CHOOSE_DIE, self.blessingPlayer, (True,)), (Move.CHOOSE_DIE, self.blessingPlayer, (False,))
             case Phase.MINOR_ROLL_DIE:
@@ -1659,112 +1082,22 @@ class BoardState:
                 ret = self.generateForgeFace(self.activePlayer)
             case Phase.FORGE_HELMET_FACE_1 | Phase.FORGE_HELMET_FACE_2:
                 ret = self.generateForgeFace(self.activePlayer)
-            case Phase.RESOLVE_SHIPS_0:
-                ret = self.generateShipBuyFace(0)
-            case Phase.RESOLVE_SHIPS_1:
-                ret = self.generateShipBuyFace(1)
-            case Phase.RESOLVE_SHIPS_2:
-                ret = self.generateShipBuyFace(2)
-            case Phase.RESOLVE_SHIPS_3:
-                ret = self.generateShipBuyFace(3)
-            case Phase.SHIP_EFFECT_FORGE_0:
-                ret = self.generateForgeFace(0)
-            case Phase.SHIP_EFFECT_FORGE_1:
-                ret = self.generateForgeFace(1)
-            case Phase.SHIP_EFFECT_FORGE_2:
-                ret = self.generateForgeFace(2)
-            case Phase.SHIP_EFFECT_FORGE_3:
-                ret = self.generateForgeFace(3)
-            case Phase.OUST_1_0_1:
-                ret = self.players[0].getDieOptions(True)
-            case Phase.OUST_1_0_2:
-                ret = self.players[0].getDieOptions(False)
-            case Phase.OUST_1_1_1:
-                ret = self.players[1].getDieOptions(True)
-            case Phase.OUST_1_1_2:
-                ret = self.players[1].getDieOptions(False)
-            case Phase.OUST_1_2_1:
-                ret = self.players[2].getDieOptions(True)
-            case Phase.OUST_1_2_2:
-                ret = self.players[2].getDieOptions(False)
-            case Phase.OUST_1_3_1:
-                ret = self.players[3].getDieOptions(True)
-            case Phase.OUST_1_3_2:
-                ret = self.players[3].getDieOptions(False)
-            case Phase.OUST_2_0_1:
-                ret = self.players[0].getDieOptions(True)
-            case Phase.OUST_2_0_2:
-                ret = self.players[0].getDieOptions(False)
-            case Phase.OUST_2_1_1:
-                ret = self.players[1].getDieOptions(True)
-            case Phase.OUST_2_1_2:
-                ret = self.players[1].getDieOptions(False)
-            case Phase.OUST_2_2_1:
-                ret = self.players[2].getDieOptions(True)
-            case Phase.OUST_2_2_2:
-                ret = self.players[2].getDieOptions(False)
-            case Phase.OUST_2_3_1:
-                ret = self.players[3].getDieOptions(True)
-            case Phase.OUST_2_3_2:
-                ret = self.players[3].getDieOptions(False)
-            case Phase.CHOOSE_BOAR_PLAYER_RED_1 | Phase.CHOOSE_BOAR_PLAYER_BLUE_1 | Phase.CHOOSE_BOAR_PLAYER_YELLOW_1 | Phase.CHOOSE_BOAR_PLAYER_GREEN_1 | Phase.CHOOSE_BOAR_PLAYER_RED_2 | Phase.CHOOSE_BOAR_PLAYER_BLUE_2 | Phase.CHOOSE_BOAR_PLAYER_YELLOW_2 | Phase.CHOOSE_BOAR_PLAYER_GREEN_2:
+            case Phase.RESOLVE_SHIPS | Phase.MINOR_RESOLVE_SHIPS:
+                ret = self.generateShipBuyFace(self.blessingPlayer)
+            case Phase.RESOLVE_SHIPS_FORGE | Phase.MINOR_RESOLVE_SHIPS_FORGE:
+                ret = self.generateForgeFace(self.blessingPlayer)
+            case Phase.MISFORTUNE_1_RESOLVE_SHIPS | Phase.MISFORTUNE_2_RESOLVE_SHIPS | Phase.MINOR_MISFORTUNE_SHIPS:
+                ret = self.generateShipBuyFace(self.misfortunePlayer)
+            case Phase.MISFORTUNE_1_RESOLVE_SHIPS_FORGE | Phase.MISFORTUNE_2_RESOLVE_SHIPS_FORGE | Phase.MINOR_MISFORTUNE_SHIPS_FORGE:
+                ret = self.generateForgeFace(self.misfortunePlayer)
+            case Phase.CHOOSE_BOAR_MISFORTUNE_PLAYER_1 | Phase.CHOOSE_BOAR_MISFORTUNE_PLAYER_2:
                 ret = []
                 for player in self.players:
                     if player.playerID != self.activePlayer:
                         ret.append((Move.CHOOSE_BOAR_PLAYER, self.activePlayer, (player.playerID,)))
                 ret = tuple(ret)
-            case Phase.FORGE_RED_BOAR_0_1 | Phase.FORGE_RED_BOAR_0_2:
-                ret = self.generateForgeBoarFace(0, Data.DieFace.REDBOAR)
-            case Phase.FORGE_RED_BOAR_1_1 | Phase.FORGE_RED_BOAR_1_2:
-                ret = self.generateForgeBoarFace(1, Data.DieFace.REDBOAR)
-            case Phase.FORGE_RED_BOAR_2_1 | Phase.FORGE_RED_BOAR_2_2:
-                ret = self.generateForgeBoarFace(2, Data.DieFace.REDBOAR)
-            case Phase.FORGE_RED_BOAR_3_1 | Phase.FORGE_RED_BOAR_3_2:
-                ret = self.generateForgeBoarFace(3, Data.DieFace.REDBOAR)
-            case Phase.FORGE_BLUE_BOAR_0_1 | Phase.FORGE_BLUE_BOAR_0_2:
-                ret = self.generateForgeBoarFace(0, Data.DieFace.BLUEBOAR)
-            case Phase.FORGE_BLUE_BOAR_1_1 | Phase.FORGE_BLUE_BOAR_1_2:
-                ret = self.generateForgeBoarFace(1, Data.DieFace.BLUEBOAR)
-            case Phase.FORGE_BLUE_BOAR_2_1 | Phase.FORGE_BLUE_BOAR_2_2:
-                ret = self.generateForgeBoarFace(2, Data.DieFace.BLUEBOAR)
-            case Phase.FORGE_BLUE_BOAR_3_1 | Phase.FORGE_BLUE_BOAR_3_2:
-                ret = self.generateForgeBoarFace(3, Data.DieFace.BLUEBOAR)
-            case Phase.FORGE_YELLOW_BOAR_0_1 | Phase.FORGE_YELLOW_BOAR_0_2:
-                ret = self.generateForgeBoarFace(0, Data.DieFace.YELLOWBOAR)
-            case Phase.FORGE_YELLOW_BOAR_1_1 | Phase.FORGE_YELLOW_BOAR_1_2:
-                ret = self.generateForgeBoarFace(1, Data.DieFace.YELLOWBOAR)
-            case Phase.FORGE_YELLOW_BOAR_2_1 | Phase.FORGE_YELLOW_BOAR_2_2:
-                ret = self.generateForgeBoarFace(2, Data.DieFace.YELLOWBOAR)
-            case Phase.FORGE_YELLOW_BOAR_3_1 | Phase.FORGE_YELLOW_BOAR_3_2:
-                ret = self.generateForgeBoarFace(3, Data.DieFace.YELLOWBOAR)
-            case Phase.FORGE_GREEN_BOAR_0_1 | Phase.FORGE_GREEN_BOAR_0_2:
-                ret = self.generateForgeBoarFace(0, Data.DieFace.GREENBOAR)
-            case Phase.FORGE_GREEN_BOAR_1_1 | Phase.FORGE_GREEN_BOAR_1_2:
-                ret = self.generateForgeBoarFace(1, Data.DieFace.GREENBOAR)
-            case Phase.FORGE_GREEN_BOAR_2_1 | Phase.FORGE_GREEN_BOAR_2_2:
-                ret = self.generateForgeBoarFace(2, Data.DieFace.GREENBOAR)
-            case Phase.FORGE_GREEN_BOAR_3_1 | Phase.FORGE_GREEN_BOAR_3_2:
-                ret = self.generateForgeBoarFace(3, Data.DieFace.GREENBOAR)
-            case Phase.BOAR_CHOICE_0_1:
-                ret = self.generateBoarChoice(self.players[0].getDie1UpFace())
-            case Phase.BOAR_CHOICE_0_2:
-                ret = self.generateBoarChoice(self.players[0].getDie2UpFace())
-            case Phase.BOAR_CHOICE_1_1:
-                ret = self.generateBoarChoice(self.players[1].getDie1UpFace())
-            case Phase.BOAR_CHOICE_1_2:
-                ret = self.generateBoarChoice(self.players[1].getDie2UpFace())
-            case Phase.BOAR_CHOICE_2_1:
-                ret = self.generateBoarChoice(self.players[2].getDie1UpFace())
-            case Phase.BOAR_CHOICE_2_2:
-                ret = self.generateBoarChoice(self.players[2].getDie2UpFace())
-            case Phase.BOAR_CHOICE_3_1:
-                ret = self.generateBoarChoice(self.players[3].getDie1UpFace())
-            case Phase.BOAR_CHOICE_3_2:
-                ret = self.generateBoarChoice(self.players[3].getDie2UpFace())
-            case Phase.OUST_ROLL_DIE_1:
-                ret = self.generateOustRollDieOptions(1)
-            case Phase.OUST_ROLL_DIE_2:
-                ret = self.generateOustRollDieOptions(2)
+            case Phase.FORGE_BOAR_MISFORTUNE_1 | Phase.FORGE_BOAR_MISFORTUNE_2:
+                ret = self.generateForgeBoarFace()
             # todo: other actions
         return ret
 
@@ -2203,14 +1536,14 @@ class BoardState:
         ret = set(ret)  # remove duplicates
         return tuple(ret)
 
-    def generateForgeBoarFace(self, player, face):
+    def generateForgeBoarFace(self):
         ret = []
-        for existingFace in self.players[player].die1.faces:
+        for existingFace in self.players[self.blessingPlayer].die1.faces:
             if not Data.isBoarFace(existingFace):
-                ret.append((Move.FORGE_FACE, player, (1, face, existingFace)))
-        for existingFace in self.players[player].die2.faces:
+                ret.append((Move.FORGE_FACE, self.blessingPlayer, (1, self.faceToForge, existingFace)))
+        for existingFace in self.players[self.blessingPlayer].die2.faces:
             if not Data.isBoarFace(existingFace):
-                ret.append((Move.FORGE_FACE, player, (2, face, existingFace)))
+                ret.append((Move.FORGE_FACE, self.blessingPlayer, (2, self.faceToForge, existingFace)))
         ret = set(ret)  # remove duplicates
         return tuple(ret)
 
@@ -2249,13 +1582,13 @@ class BoardState:
             if p.hasFeat(feat):
                 return p.playerID
 
-    def generateMisfortune1Choice(self): # misfortune face on die 1
+    def generateMisfortune1Choice(self):  # misfortune face on die 1
         self.misfortunePlayer = self.decideMisfortunePlayer(self.players[self.blessingPlayer].getDie1Result())
         self.players[self.misfortunePlayer].die1ResultBuffer = self.players[self.blessingPlayer].getDie1Result()
         self.players[self.misfortunePlayer].die2ResultBuffer = self.players[self.blessingPlayer].getDie2Result()
         return self.players[self.misfortunePlayer].getDieOptions(True)
 
-    def generateMisfortune2Choice(self): # misfortune face on die 2
+    def generateMisfortune2Choice(self):  # misfortune face on die 2
         self.misfortunePlayer = self.decideMisfortunePlayer(self.players[self.blessingPlayer].getDie2Result())
         self.players[self.misfortunePlayer].die1ResultBuffer = self.players[self.blessingPlayer].getDie1Result()
         self.players[self.misfortunePlayer].die2ResultBuffer = self.players[self.blessingPlayer].getDie2Result()
@@ -2347,41 +1680,25 @@ class BoardState:
             if player.getDie1UpFace() == Data.DieFace.MIRROR:
                 if self.players[choicePlayer].getDie1UpFace() != Data.DieFace.MIRROR:
                     ret.append(
-                        (Move.MIRROR_COPY, choicePlayer, (self.players[choicePlayer].getDie1UpFace(),)))
+                        (Move.MIRROR_CHOICE, choicePlayer, (self.players[choicePlayer].getDie1UpFace(),)))
                 if self.players[choicePlayer].getDie2UpFace() != Data.DieFace.MIRROR:
                     ret.append(
-                        (Move.MIRROR_COPY, choicePlayer, (self.players[choicePlayer].getDie2UpFace(),)))
+                        (Move.MIRROR_CHOICE, choicePlayer, (self.players[choicePlayer].getDie2UpFace(),)))
             else:
-                ret.append((Move.MIRROR_COPY, choicePlayer, (player.getDie1UpFace(),)))
+                ret.append((Move.MIRROR_CHOICE, choicePlayer, (player.getDie1UpFace(),)))
             if player.getDie2UpFace() == Data.DieFace.MIRROR:
                 if self.players[choicePlayer].getDie1UpFace() != Data.DieFace.MIRROR:
                     ret.append(
-                        (Move.MIRROR_COPY, choicePlayer, (self.players[choicePlayer].getDie1UpFace(),)))
+                        (Move.MIRROR_CHOICE, choicePlayer, (self.players[choicePlayer].getDie1UpFace(),)))
                 if self.players[choicePlayer].getDie2UpFace() != Data.DieFace.MIRROR:
                     ret.append(
-                        (Move.MIRROR_COPY, choicePlayer, (self.players[choicePlayer].getDie2UpFace(),)))
+                        (Move.MIRROR_CHOICE, choicePlayer, (self.players[choicePlayer].getDie2UpFace(),)))
             else:
-                ret.append((Move.MIRROR_COPY, choicePlayer, (player.getDie2UpFace(),)))
+                ret.append((Move.MIRROR_CHOICE, choicePlayer, (player.getDie2UpFace(),)))
         if not ret:  # possible in 2p if both players roll 2 mirrors
-            ret.append((Move.MIRROR_COPY, choicePlayer, (Data.DieFace.MIRROR,)))  # will give no resources
+            ret.append((Move.MIRROR_CHOICE, choicePlayer, (Data.DieFace.MIRROR,)))  # will give no resources
         ret = set(ret)  # remove duplicates
         return tuple(ret)
-
-    def generateOustRollDieOptions(self, dieNum):
-        match self.returnPhase:
-            case Phase.OUST_1_0_1 | Phase.OUST_2_0_1:
-                player = 0
-            case Phase.OUST_1_1_1 | Phase.OUST_2_1_1:
-                player = 1
-            case Phase.OUST_1_2_1 | Phase.OUST_2_2_1:
-                player = 2
-            case _:
-                player = 3
-        if dieNum == 1:
-            die = self.players[player].die1
-        else:
-            die = self.players[player].die2
-        return self.generateRollDieOptions(player, die)
 
     def makeReturnMove(self, player):
         match self.returnPhase:
@@ -2456,25 +1773,29 @@ class BoardState:
                 self.players[self.activePlayer].cerberusTokens += 1
                 self.makeMove((Move.PASS, self.activePlayer, ()))
             case "BOAR_INST_AUTO_RED":
+                self.faceToForge = Data.DieFace.REDBOAR
                 if self.phase == Phase.ACTIVE_PLAYER_PERFORM_FEAT_1:
-                    self.phase = Phase.CHOOSE_BOAR_PLAYER_RED_1
+                    self.phase = Phase.CHOOSE_BOAR_MISFORTUNE_PLAYER_1
                 else:
-                    self.phase = Phase.CHOOSE_BOAR_PLAYER_RED_2
+                    self.phase = Phase.CHOOSE_BOAR_MISFORTUNE_PLAYER_2
             case "BOAR_INST_AUTO_BLUE":
+                self.faceToForge = Data.DieFace.BLUEBOAR
                 if self.phase == Phase.ACTIVE_PLAYER_PERFORM_FEAT_1:
-                    self.phase = Phase.CHOOSE_BOAR_PLAYER_BLUE_1
+                    self.phase = Phase.CHOOSE_BOAR_MISFORTUNE_PLAYER_1
                 else:
-                    self.phase = Phase.CHOOSE_BOAR_PLAYER_BLUE_2
+                    self.phase = Phase.CHOOSE_BOAR_MISFORTUNE_PLAYER_2
             case "BOAR_INST_AUTO_YELLOW":
+                self.faceToForge = Data.DieFace.YELLOWBOAR
                 if self.phase == Phase.ACTIVE_PLAYER_PERFORM_FEAT_1:
-                    self.phase = Phase.CHOOSE_BOAR_PLAYER_YELLOW_1
+                    self.phase = Phase.CHOOSE_BOAR_MISFORTUNE_PLAYER_1
                 else:
-                    self.phase = Phase.CHOOSE_BOAR_PLAYER_YELLOW_2
+                    self.phase = Phase.CHOOSE_BOAR_MISFORTUNE_PLAYER_2
             case "BOAR_INST_AUTO_GREEN":
+                self.faceToForge = Data.DieFace.GREENBOAR
                 if self.phase == Phase.ACTIVE_PLAYER_PERFORM_FEAT_1:
-                    self.phase = Phase.CHOOSE_BOAR_PLAYER_GREEN_1
+                    self.phase = Phase.CHOOSE_BOAR_MISFORTUNE_PLAYER_1
                 else:
-                    self.phase = Phase.CHOOSE_BOAR_PLAYER_GREEN_2  # todo: will need more cases here
+                    self.phase = Phase.CHOOSE_BOAR_MISFORTUNE_PLAYER_2
             case "SATYRS_INST":
                 self.makeMove((Move.PASS, self.activePlayer, ()))  # todo
             case "CHEST_INST":
@@ -2528,32 +1849,40 @@ class BoardState:
                 self.makeMove((Move.PASS, self.activePlayer, ()))  # todo
             case "DOGGED_INST":
                 self.makeMove((Move.PASS, self.activePlayer, ()))  # todo
-            case "MISFORTUNE_INST_AUTO":
-                self.makeMove((Move.PASS, self.activePlayer, ()))  # todo
+            case "MISFORTUNE_INST_AUTO_RED":
+                self.faceToForge = Data.DieFace.REDMISFORTUNE
+                if self.phase == Phase.ACTIVE_PLAYER_PERFORM_FEAT_1:
+                    self.phase = Phase.CHOOSE_BOAR_MISFORTUNE_PLAYER_1
+                else:
+                    self.phase = Phase.CHOOSE_BOAR_MISFORTUNE_PLAYER_2
+            case "MISFORTUNE_INST_AUTO_BLUE":
+                self.faceToForge = Data.DieFace.BLUEMISFORTUNE
+                if self.phase == Phase.ACTIVE_PLAYER_PERFORM_FEAT_1:
+                    self.phase = Phase.CHOOSE_BOAR_MISFORTUNE_PLAYER_1
+                else:
+                    self.phase = Phase.CHOOSE_BOAR_MISFORTUNE_PLAYER_2
+            case "MISFORTUNE_INST_AUTO_YELLOW":
+                self.faceToForge = Data.DieFace.YELLOWMISFORTUNE
+                if self.phase == Phase.ACTIVE_PLAYER_PERFORM_FEAT_1:
+                    self.phase = Phase.CHOOSE_BOAR_MISFORTUNE_PLAYER_1
+                else:
+                    self.phase = Phase.CHOOSE_BOAR_MISFORTUNE_PLAYER_2
+            case "MISFORTUNE_INST_AUTO_GREEN":
+                self.faceToForge = Data.DieFace.GREENMISFORTUNE
+                if self.phase == Phase.ACTIVE_PLAYER_PERFORM_FEAT_1:
+                    self.phase = Phase.CHOOSE_BOAR_MISFORTUNE_PLAYER_1
+                else:
+                    self.phase = Phase.CHOOSE_BOAR_MISFORTUNE_PLAYER_2
 
     def oust(self, player, actionNum):
         player.location = 0
+        self.phase = Phase.OUST_ROLL_DIE_1
+        self.blessingPlayer = player.playerID
         if actionNum == 1:
-            match player.playerID:
-                case 0:
-                    self.returnPhase = Phase.OUST_1_0_1
-                case 1:
-                    self.returnPhase = Phase.OUST_1_1_1
-                case 2:
-                    self.returnPhase = Phase.OUST_1_2_1
-                case 3:
-                    self.returnPhase = Phase.OUST_1_3_1
+            self.returnPhase = Phase.ACTIVE_PLAYER_PERFORM_FEAT_1
         else:
-            match player.playerID:
-                case 0:
-                    self.returnPhase = Phase.OUST_2_0_1
-                case 1:
-                    self.returnPhase = Phase.OUST_2_1_1
-                case 2:
-                    self.returnPhase = Phase.OUST_2_2_1
-                case 3:
-                    self.returnPhase = Phase.OUST_2_3_1
-        self.players[player].checkBears()
+            self.returnPhase = Phase.ACTIVE_PLAYER_PERFORM_FEAT_2
+        player.checkBears()
         self.players[self.activePlayer].checkBears()
 
     def advanceActivePlayer(self):
@@ -2567,9 +1896,7 @@ class BoardState:
 
     def getWinners(self):
         ret = []
-        scores = []
-        for player in self.players:
-            scores.append(player.vp)
+        scores = self.getScores()
         bestScore = max(scores)
         for player in self.players:
             if player.vp == bestScore:
@@ -2577,6 +1904,12 @@ class BoardState:
             else:
                 ret.append(0)
         return tuple(ret)
+
+    def getScores(self):
+        scores = []
+        for player in self.players:
+            scores.append(player.vp)
+        return tuple(scores)
 
     def printBoardState(self):
         print(f"Round: {self.round}")
@@ -3019,7 +2352,7 @@ class Player:
         self.unforgedFaces.remove(forgeInfo[1])
         self.numForged += 1
 
-    def forgeBoarFace(self, forgeInfo):
+    def forgeBoarMisfortuneFace(self, forgeInfo):
         if forgeInfo[0] == 1:
             die = self.die1
         else:
