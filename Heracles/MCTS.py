@@ -1,5 +1,6 @@
 import random
 import math
+from Game import Move
 
 class Node:
     def __init__(self, state, parent=None, move=None):
@@ -14,9 +15,18 @@ class Node:
         return self.state.isOver()
 
     def isFullyExpanded(self):
+        if self.children and self.children[0].move[0] == Move.ROLL:
+            return True
         return len(self.children) == len(self.state.getOptions())
 
     def bestChild(self, explorationWeight=1.41):
+        if self.children[0].move[0] == Move.ROLL:
+            roll = random.choice(range(0, 6))
+            i = 0
+            for child in self.children:
+                i += child.move[2][1]
+                if roll < i:
+                    return child
         choicesWeights = [
             (child.points / child.visits) + explorationWeight * math.sqrt(
                 math.log(self.visits) / child.visits
@@ -32,6 +42,14 @@ class Node:
     def expand(self):
         tried = [child.move for child in self.children]
         options = self.state.getOptions()
+        if options[0][0] == Move.ROLL:
+            for move in options:
+                if move[0] == Move.ROLL:
+                    nextState = self.state.copyState()
+                    nextState.makeMove(move)
+                    childNode = Node(nextState, self, move)
+                    self.children.append(childNode)
+            return self.bestChild()
         for move in options:
             if move not in tried:
                 nextState = self.state.copyState()
@@ -39,7 +57,7 @@ class Node:
                 childNode = Node(nextState, self, move)
                 self.children.append(childNode)
                 return childNode
-        print(options)
+        print(options) # shouldn't ever get here unless something is wrong
         self.state.printBoardState()
 
     def backpropagate(self, result):
@@ -114,7 +132,7 @@ class TicTacToeState:
 """
 
 
-def mcts(rootState, numSims): # todo: currently dice roll decisions are treated as regular decisions instead of chance nodes
+def mcts(rootState, numSims):
     root = Node(rootState.copyState())
     if len(root.state.getOptions()) == 1:
         return root.state.getOptions()[0]

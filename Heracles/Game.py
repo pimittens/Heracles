@@ -946,7 +946,7 @@ class BoardState:
                     self.players[self.blessingPlayer].forgeBoarMisfortuneFace(move[2])
                     self.phase = Phase.EXTRA_TURN_DECISION
                     self.makeMove((Move.PASS, move[1], ()))
-            case Phase.CHOOSE_BOAR_MISFORTUNE_PLAYER_1:
+            case Phase.CHOOSE_BOAR_MISFORTUNE_PLAYER_2:
                 if move[0] == Move.CHOOSE_BOAR_PLAYER:
                     self.blessingPlayer = move[2][0]  # use blessing player variable for boar face player
                     self.phase = Phase.FORGE_BOAR_MISFORTUNE_2
