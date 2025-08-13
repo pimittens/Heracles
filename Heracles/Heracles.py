@@ -32,7 +32,7 @@ while not theBoard.isOver():
         if options[0][0] == Game.Move.ROLL:
             theBoard.makeMove(options[len(options) - 1]) # always do random roll
         else:
-            theBoard.makeMove(MCTS.mcts(theBoard.copyState(), 100))
+            theBoard.makeMove(MCTS.mcts(theBoard.copyState(), 1000))
     else:
         theBoard.makeMove(options[0])
     """

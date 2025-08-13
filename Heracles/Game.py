@@ -334,7 +334,7 @@ class BoardState:
                     self.players[self.blessingPlayer].shipsToResolve -= 1
                     for face in move[2]:
                         self.temple[Data.getPool(face)].remove(face)
-                        self.players[0].buyFaceShip(face)
+                        self.players[self.blessingPlayer].buyFaceShip(face)
                     self.phase = Phase.RESOLVE_SHIPS_FORGE
                 elif move[0] == Move.PASS:
                     self.players[self.blessingPlayer].shipsToResolve -= 1
@@ -418,7 +418,7 @@ class BoardState:
                     self.players[self.misfortunePlayer].shipsToResolve -= 1
                     for face in move[2]:
                         self.temple[Data.getPool(face)].remove(face)
-                        self.players[0].buyFaceShip(face)
+                        self.players[self.blessingPlayer].buyFaceShip(face)
                     self.phase = Phase.MISFORTUNE_1_RESOLVE_SHIPS_FORGE
                 elif move[0] == Move.PASS:
                     self.players[self.misfortunePlayer].shipsToResolve -= 1
@@ -474,7 +474,7 @@ class BoardState:
                     self.players[self.misfortunePlayer].shipsToResolve -= 1
                     for face in move[2]:
                         self.temple[Data.getPool(face)].remove(face)
-                        self.players[0].buyFaceShip(face)
+                        self.players[self.blessingPlayer].buyFaceShip(face)
                     self.phase = Phase.MISFORTUNE_2_RESOLVE_SHIPS_FORGE
                 elif move[0] == Move.PASS:
                     self.players[self.misfortunePlayer].shipsToResolve -= 1
@@ -622,7 +622,7 @@ class BoardState:
                     self.players[self.blessingPlayer].shipsToResolve -= 1
                     for face in move[2]:
                         self.temple[Data.getPool(face)].remove(face)
-                        self.players[0].buyFaceShip(face)
+                        self.players[self.blessingPlayer].buyFaceShip(face)
                     self.phase = Phase.MINOR_RESOLVE_SHIPS_FORGE
                 elif move[0] == Move.PASS:
                     self.players[self.blessingPlayer].shipsToResolve -= 1
@@ -719,7 +719,7 @@ class BoardState:
                     self.players[self.misfortunePlayer].shipsToResolve -= 1
                     for face in move[2]:
                         self.temple[Data.getPool(face)].remove(face)
-                        self.players[0].buyFaceShip(face)
+                        self.players[self.blessingPlayer].buyFaceShip(face)
                     self.phase = Phase.MINOR_MISFORTUNE_SHIPS_FORGE
                 elif move[0] == Move.PASS:
                     self.players[self.misfortunePlayer].shipsToResolve -= 1
