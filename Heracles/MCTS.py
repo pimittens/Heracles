@@ -1,6 +1,7 @@
 import random
 import math
 from Game import Move
+import time
 
 class Node:
     def __init__(self, state, parent=None, move=None):
@@ -133,6 +134,7 @@ class TicTacToeState:
 
 
 def mcts(rootState, numSims):
+    startTime = time.time()
     root = Node(rootState.copyState())
     if len(root.state.getOptions()) == 1:
         return root.state.getOptions()[0]
@@ -151,6 +153,7 @@ def mcts(rootState, numSims):
     print("mcts results")
     for node in root.children:
         print(f"Move: {node.move}, visits:{node.visits} , win percentage: {node.points/node.visits}")
+    print(f"time elapsed: {(time.time() - startTime) / 60} minutes")
     return root.mostVisitedChild().move
 
 

@@ -28,11 +28,11 @@ while not theBoard.isOver():
     for option in options:
         print(f"{i}: {option}")
         i += 1
-    if theBoard.players[options[0][1]].ai:
+    if theBoard.players[options[0][1]].ai and options[0][1] == 1:
         if options[0][0] == Game.Move.ROLL:
             theBoard.makeMove(options[len(options) - 1]) # always do random roll
         else:
-            theBoard.makeMove(MCTS.mcts(theBoard.copyState(), 1000))
+            theBoard.makeMove(MCTS.mcts(theBoard.copyState(), 50000))
     else:
         theBoard.makeMove(options[0])
     """

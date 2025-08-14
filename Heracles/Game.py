@@ -90,9 +90,14 @@ class Phase(Enum):
     CHOOSE_BOAR_MISFORTUNE_PLAYER_2 = 83
     FORGE_BOAR_MISFORTUNE_1 = 84
     FORGE_BOAR_MISFORTUNE_2 = 85
-    OUST_ROLL_DIE_1 = 86
-    OUST_ROLL_DIE_2 = 87
     ROLL_CELESTIAL_DIE = 88
+    BLESSING_ROLL_DIE_1 = 89
+    BLESSING_ROLL_DIE_2 = 90
+    END_TURN = 91
+    DIE_1_CHOOSE_SENTINEL = 92
+    DIE_2_CHOOSE_SENTINEL = 93
+    CHOOSE_CYCLOPS = 94
+
 
 
 class Move(Enum):
@@ -118,6 +123,8 @@ class Move(Enum):
     TWINS_CHOOSE_RESOURCE = 20
     USE_CERBERUS = 21
     CHOOSE_DIE = 22
+    CHOOSE_USE_SENTINEL = 23
+    CHOOSE_USE_CYCLOPS = 24
 
 
 class BoardState:
@@ -147,7 +154,10 @@ class BoardState:
         self.blessingPlayer = 0  # player currently resolving a blessing
         self.misfortunePlayer = 0  # player currently using misfortune effect
         self.faceToForge = None  # boar or misfortune face
-        self.lastPlayer = 0
+        self.cyclops = False
+        self.sentinel = False
+        self.extraRolls = 0
+        self.lastPlayer = 0 # player who last made a move
         self.phase = Phase.TURN_START
         self.returnPhase = Phase.TURN_START  # phase to return to after resolving dice effects
         if initialState:
@@ -170,6 +180,9 @@ class BoardState:
         ret.faceToForge = self.faceToForge
         ret.phase = self.phase
         ret.returnPhase = self.returnPhase
+        ret.sentinel = self.sentinel
+        ret.cyclops = self.cyclops
+        ret.extraRolls = self.extraRolls
         ret.lastPlayer = self.lastPlayer
         return ret
 
@@ -225,6 +238,24 @@ class BoardState:
                         self.makeMove((Move.PASS, move[1], ()))
                     else:
                         self.phase = Phase.ROLL_DIE_1
+            case Phase.BLESSING_ROLL_DIE_1:
+                if move[0] == Move.ROLL:
+                    self.players[self.blessingPlayer].die1.setToFace(move[2][0])
+                    self.phase = Phase.BLESSING_ROLL_DIE_2
+                elif move[0] == Move.RANDOM_ROLL:
+                    self.players[self.blessingPlayer].die1.roll()
+                    self.phase = Phase.BLESSING_ROLL_DIE_2
+            case Phase.BLESSING_ROLL_DIE_2:
+                if move[0] == Move.ROLL:
+                    self.players[self.blessingPlayer].die2.setToFace(move[2][0])
+                    self.players[self.blessingPlayer].populateTwins()
+                    self.phase = Phase.USE_TWINS_CHOICE
+                    self.makeMove((Move.PASS, move[1], ()))
+                elif move[0] == Move.RANDOM_ROLL:
+                    self.players[self.blessingPlayer].die2.roll()
+                    self.players[self.blessingPlayer].populateTwins()
+                    self.phase = Phase.USE_TWINS_CHOICE
+                    self.makeMove((Move.PASS, move[1], ()))
             case Phase.USE_TWINS_CHOICE:  # call populateTwins() before entering this state for the first time
                 if move[0] == Move.USE_TWINS:
                     if move[2][0]:
@@ -308,9 +339,31 @@ class BoardState:
             case Phase.DIE_2_CHOOSE_OR:
                 if move[0] == Move.CHOOSE_DIE_OR:
                     self.players[self.blessingPlayer].orChoice2 = move[2][0]
-                    self.phase = Phase.APPLY_DICE_EFFECTS
+                    if self.sentinel:
+                        self.phase = Phase.DIE_1_CHOOSE_SENTINEL
+                    else:
+                        self.phase = Phase.APPLY_DICE_EFFECTS
                     self.makeMove((Move.PASS, move[1], ()))
                 elif not Data.getIsOr(self.players[self.blessingPlayer].getDie2Result()):
+                    if self.sentinel:
+                        self.phase = Phase.DIE_1_CHOOSE_SENTINEL
+                    else:
+                        self.phase = Phase.APPLY_DICE_EFFECTS
+                    self.makeMove((Move.PASS, move[1], ()))
+            case Phase.DIE_1_CHOOSE_SENTINEL:
+                if move[0] == Move.CHOOSE_USE_SENTINEL:
+                    self.players[self.blessingPlayer].sentinel1Choice = move[2][0]
+                    self.phase = Phase.DIE_2_CHOOSE_SENTINEL
+                    self.makeMove((Move.PASS, move[1], ())) # todo: canUseSentinel function
+                elif not Data.canUseSentinel(self.players[self.blessingPlayer].getDie1Result(), self.players[self.blessingPlayer].getDie2Result()):
+                    self.phase = Phase.DIE_2_CHOOSE_SENTINEL
+                    self.makeMove((Move.PASS, move[1], ()))
+            case Phase.DIE_2_CHOOSE_SENTINEL:
+                if move[0] == Move.CHOOSE_USE_SENTINEL:
+                    self.players[self.blessingPlayer].sentinel2Choice = move[2][0]
+                    self.phase = Phase.APPLY_DICE_EFFECTS
+                    self.makeMove((Move.PASS, move[1], ()))
+                elif not Data.canUseSentinel(self.players[self.blessingPlayer].getDie2Result(), self.players[self.blessingPlayer].getDie1Result()):
                     self.phase = Phase.APPLY_DICE_EFFECTS
                     self.makeMove((Move.PASS, move[1], ()))
             case Phase.APPLY_DICE_EFFECTS:
@@ -503,6 +556,9 @@ class BoardState:
                         self.players[self.blessingPlayer].populateTwins()
                         self.phase = Phase.USE_TWINS_CHOICE
                         self.makeMove((Move.PASS, move[1], ()))
+                elif self.extraRolls > 0:
+                    self.extraRolls -= 1
+                    self.phase = Phase.BLESSING_ROLL_DIE_1
                 else:
                     self.phase = self.returnPhase
                     self.makeReturnMove(move[1])
@@ -955,24 +1011,9 @@ class BoardState:
                     self.players[self.blessingPlayer].forgeBoarMisfortuneFace(move[2])
                     self.phase = Phase.TURN_START
                     self.advanceActivePlayer()
-            case Phase.OUST_ROLL_DIE_1:
-                if move[0] == Move.ROLL:
-                    self.players[self.blessingPlayer].die1.setToFace(move[2][0])
-                    self.phase = Phase.OUST_ROLL_DIE_2
-                elif move[0] == Move.RANDOM_ROLL:
-                    self.players[self.blessingPlayer].die1.roll()
-                    self.phase = Phase.OUST_ROLL_DIE_2
-            case Phase.OUST_ROLL_DIE_2:
-                if move[0] == Move.ROLL:
-                    self.players[self.blessingPlayer].die2.setToFace(move[2][0])
-                    self.players[self.blessingPlayer].populateTwins()
-                    self.phase = Phase.USE_TWINS_CHOICE
-                    self.makeMove((Move.PASS, move[1], ()))
-                elif move[0] == Move.RANDOM_ROLL:
-                    self.players[self.blessingPlayer].die2.roll()
-                    self.players[self.blessingPlayer].populateTwins()
-                    self.phase = Phase.USE_TWINS_CHOICE
-                    self.makeMove((Move.PASS, move[1], ()))
+            case Phase.END_TURN:
+                self.phase = Phase.TURN_START
+                self.advanceActivePlayer()
 
         # todo: finish
 
@@ -981,9 +1022,9 @@ class BoardState:
         # self.printBoardState()
         ret = ((Move.PASS, self.activePlayer, ()),)
         match self.phase:
-            case Phase.ROLL_DIE_1 | Phase.TWINS_REROLL_1 | Phase.OUST_ROLL_DIE_1:
+            case Phase.ROLL_DIE_1 | Phase.BLESSING_ROLL_DIE_1 | Phase.TWINS_REROLL_1:
                 ret = self.generateRollDieOptions(self.blessingPlayer, self.players[self.blessingPlayer].die1)
-            case Phase.ROLL_DIE_2 | Phase.TWINS_REROLL_2 | Phase.OUST_ROLL_DIE_2:
+            case Phase.ROLL_DIE_2 | Phase.BLESSING_ROLL_DIE_2 | Phase.TWINS_REROLL_2:
                 ret = self.generateRollDieOptions(self.blessingPlayer, self.players[self.blessingPlayer].die2)
             case Phase.USE_TWINS_CHOICE | Phase.MINOR_TWINS_CHOICE:
                 ret = ((Move.USE_TWINS, self.blessingPlayer, (True,)), (Move.USE_TWINS, self.blessingPlayer, (False,)))
@@ -1701,8 +1742,10 @@ class BoardState:
         return tuple(ret)
 
     def makeReturnMove(self, player):
+        self.sentinel = False
+        self.cyclops = False
         match self.returnPhase:
-            case Phase.ACTIVE_PLAYER_PERFORM_FEAT_1:
+            case Phase.ACTIVE_PLAYER_PERFORM_FEAT_1 | Phase.ACTIVE_PLAYER_PERFORM_FEAT_2:
                 self.makeMove((Move.RETURN_TO_FEAT, player, ()))
             case _:
                 self.makeMove((Move.PASS, player, ()))
@@ -1753,16 +1796,38 @@ class BoardState:
                 else:
                     self.phase = Phase.FORGE_MIRROR_FACE_2
             case "CYCLOPS_INST":
-                self.makeMove((Move.PASS, self.activePlayer, ()))  # todo
+                self.extraRolls = 3
+                self.cyclops = True
+                if self.phase == Phase.ACTIVE_PLAYER_PERFORM_FEAT_1:
+                    self.returnPhase = Phase.EXTRA_TURN_DECISION
+                else:
+                    self.returnPhase = Phase.END_TURN
+                self.phase = Phase.MINOR_CHOOSE_DIE
             case "SPHINX_INST":
-                self.makeMove((Move.PASS, self.activePlayer, ()))  # todo
+                self.extraRolls = 3
+                if self.phase == Phase.ACTIVE_PLAYER_PERFORM_FEAT_1:
+                    self.returnPhase = Phase.EXTRA_TURN_DECISION
+                else:
+                    self.returnPhase = Phase.END_TURN
+                self.phase = Phase.MINOR_CHOOSE_DIE
             case "TYPHON_INST":
                 self.players[self.activePlayer].gainVP(self.players[self.activePlayer].numForged)
                 self.makeMove((Move.PASS, self.activePlayer, ()))
             case "SENTINEL_INST":
-                self.makeMove((Move.PASS, self.activePlayer, ()))  # todo
+                self.extraRolls = 1
+                self.sentinel = True
+                if self.phase == Phase.ACTIVE_PLAYER_PERFORM_FEAT_1:
+                    self.returnPhase = Phase.EXTRA_TURN_DECISION
+                else:
+                    self.returnPhase = Phase.END_TURN
+                self.phase = Phase.BLESSING_ROLL_DIE_1
             case "CANCER_INST":
-                self.makeMove((Move.PASS, self.activePlayer, ()))  # todo
+                self.extraRolls = 1
+                if self.phase == Phase.ACTIVE_PLAYER_PERFORM_FEAT_1:
+                    self.returnPhase = Phase.EXTRA_TURN_DECISION
+                else:
+                    self.returnPhase = Phase.END_TURN
+                self.phase = Phase.BLESSING_ROLL_DIE_1
             case "HELMET_INST":
                 self.players[self.activePlayer].unforgedFaces.append(Data.DieFace.TIMES3)
                 if self.phase == Phase.ACTIVE_PLAYER_PERFORM_FEAT_1:
@@ -1876,7 +1941,7 @@ class BoardState:
 
     def oust(self, player, actionNum):
         player.location = 0
-        self.phase = Phase.OUST_ROLL_DIE_1
+        self.phase = Phase.BLESSING_ROLL_DIE_1
         self.blessingPlayer = player.playerID
         if actionNum == 1:
             self.returnPhase = Phase.ACTIVE_PLAYER_PERFORM_FEAT_1
@@ -2179,7 +2244,7 @@ class Player:
             case Data.DieFace.YELLOWCHAOS:
                 self.gainLoyalty(2)
 
-    def gainDiceEffects(self):
+    def gainDiceEffects(self): # todo: sentinel and cyclops
         if self.die1ResultBuffer == Data.DieFace.MIRROR:
             die1 = self.mirrorChoice1
         else:
