@@ -367,7 +367,7 @@ class BoardState:
                     self.phase = Phase.APPLY_DICE_EFFECTS
                     self.makeMove((Move.PASS, move[1], ()))
             case Phase.APPLY_DICE_EFFECTS:
-                self.players[self.blessingPlayer].gainDiceEffects()
+                self.players[self.blessingPlayer].gainDiceEffects(self.sentinel)
                 self.phase = Phase.RESOLVE_MAZE_MOVES
                 self.makeMove((Move.PASS, move[1], ()))
             case Phase.ROLL_CELESTIAL_DIE:
@@ -455,7 +455,7 @@ class BoardState:
                     self.phase = Phase.MISFORTUNE_1_APPLY_EFFECTS
                     self.makeMove((Move.PASS, move[1], ()))
             case Phase.MISFORTUNE_1_APPLY_EFFECTS:
-                self.players[self.misfortunePlayer].gainDiceEffects()
+                self.players[self.misfortunePlayer].gainDiceEffects(False)
                 self.phase = Phase.MISFORTUNE_1_RESOLVE_MAZE_MOVES
                 self.makeMove((Move.PASS, move[1], ()))
             case Phase.MISFORTUNE_1_RESOLVE_MAZE_MOVES:
@@ -511,7 +511,7 @@ class BoardState:
                     self.phase = Phase.MISFORTUNE_2_APPLY_EFFECTS
                     self.makeMove((Move.PASS, move[1], ()))
             case Phase.MISFORTUNE_2_APPLY_EFFECTS:
-                self.players[self.misfortunePlayer].gainDiceEffects()
+                self.players[self.misfortunePlayer].gainDiceEffects(False)
                 self.phase = Phase.MISFORTUNE_2_RESOLVE_MAZE_MOVES
                 self.makeMove((Move.PASS, move[1], ()))
             case Phase.MISFORTUNE_2_RESOLVE_MAZE_MOVES:
@@ -759,7 +759,7 @@ class BoardState:
                     self.phase = Phase.MINOR_MISFORTUNE_RESOLVE
                     self.makeMove((Move.PASS, move[1], ()))
             case Phase.MINOR_MISFORTUNE_RESOLVE:
-                self.players[self.misfortunePlayer].gainDiceEffects()
+                self.players[self.misfortunePlayer].gainDiceEffects(False)
                 self.phase = Phase.MINOR_MISFORTUNE_MAZE
                 self.makeMove((Move.PASS, move[1], ()))
             case Phase.MINOR_MISFORTUNE_MAZE:
@@ -2201,15 +2201,11 @@ class Player:
             case "vp":
                 self.gainVP(amt)
 
-    def gainMinorBlessingEffect(self):
+    def gainMinorBlessingEffect(self): # todo: cyclops
         if self.dieChoice:
-            face = self.die1ResultBuffer
-            if face == Data.DieFace.MIRROR:
-                face = self.mirrorChoice1
+            face = self.getDie1Result()
         else:
-            face = self.die2ResultBuffer
-            if face == Data.DieFace.MIRROR:
-                face = self.mirrorChoice2
+            face = self.getDie2Result()
         gains = Data.getResourceValues(face)
         if Data.getIsOr(face):
             match self.orChoice1:
@@ -2250,15 +2246,9 @@ class Player:
             case Data.DieFace.YELLOWCHAOS:
                 self.gainLoyalty(2)
 
-    def gainDiceEffects(self): # todo: sentinel and cyclops
-        if self.die1ResultBuffer == Data.DieFace.MIRROR:
-            die1 = self.mirrorChoice1
-        else:
-            die1 = self.die1ResultBuffer
-        if self.die2ResultBuffer == Data.DieFace.MIRROR:
-            die2 = self.mirrorChoice2
-        else:
-            die2 = self.die2ResultBuffer
+    def gainDiceEffects(self, sentinel):
+        die1 = self.getDie1Result()
+        die2 = self.getDie2Result()
         mult = 1
         if die1 == Data.DieFace.TIMES3 or die2 == Data.DieFace.TIMES3:
             mult = 3
@@ -2280,64 +2270,88 @@ class Player:
         if Data.getIsOr(die1):
             match self.orChoice1:
                 case 0:
-                    self.gainGold(die1gains[0])
+                    self.gainGold(die1gains[0] * mult)
                     gains1 = (die1gains[0], 0, 0, 0)
                 case 1:
-                    self.gainSun(die1gains[1])
+                    if sentinel and self.sentinel1Choice:
+                        self.gainVP(die1gains[1] * mult * 2)
+                    else:
+                        self.gainSun(die1gains[1] * mult)
                     gains1 = (0, die1gains[1], 0, 0)
                 case 2:
-                    self.gainMoon(die1gains[2])
+                    if sentinel and self.sentinel1Choice:
+                        self.gainVP(die1gains[2] * mult * 2)
+                    else:
+                        self.gainMoon(die1gains[2] * mult)
                     gains1 = (0, 0, die1gains[2], 0)
                 case 3:
                     self.gainVP(die1gains[3])
-                    gains1 = (0, 0, 0, die1gains[3])
+                    gains1 = (0, 0, 0, die1gains[3] * mult)
                 case 4:
-                    self.gainAncientShards(die1gains[4])
+                    self.gainAncientShards(die1gains[4] * mult)
                 case 5:
-                    self.gainLoyalty(die1gains[5])
+                    self.gainLoyalty(die1gains[5] * mult)
         else:
             gains1 = die1gains
             self.gainGold(die1gains[0] * mult)
-            self.gainSun(die1gains[1] * mult)
-            self.gainMoon(die1gains[2] * mult)
+            if sentinel and self.sentinel1Choice:
+                self.gainVP(die1gains[1] * mult * 2 + die1gains[2] * mult * 2)
+            else:
+                self.gainSun(die1gains[1] * mult)
+                self.gainMoon(die1gains[2] * mult)
             self.gainVP(die1gains[3] * mult)
             self.gainAncientShards(die1gains[4] * mult)
             self.gainLoyalty(die1gains[5] * mult)
         if Data.getIsOr(die2):
             match self.orChoice2:
                 case 0:
-                    self.gainGold(die2gains[0])
+                    self.gainGold(die2gains[0] * mult)
                     gains2 = (die2gains[0], 0, 0, 0)
                 case 1:
-                    self.gainSun(die2gains[1])
+                    if sentinel and self.sentinel2Choice:
+                        self.gainVP(die2gains[1] * mult * 2)
+                    else:
+                        self.gainSun(die2gains[1] * mult)
                     gains2 = (0, die2gains[1], 0, 0)
                 case 2:
-                    self.gainMoon(die2gains[2])
+                    if sentinel and self.sentinel2Choice:
+                        self.gainVP(die2gains[2] * mult * 2)
+                    else:
+                        self.gainMoon(die2gains[2] * mult)
                     gains2 = (0, 0, die2gains[2], 0)
                 case 3:
-                    self.gainVP(die2gains[3])
+                    self.gainVP(die2gains[3] * mult)
                     gains2 = (0, 0, 0, die2gains[3])
                 case 4:
-                    self.gainAncientShards(die2gains[4])
+                    self.gainAncientShards(die2gains[4] * mult)
                 case 5:
-                    self.gainLoyalty(die2gains[5])
+                    self.gainLoyalty(die2gains[5] * mult)
         else:
             gains2 = die2gains
             self.gainGold(die2gains[0] * mult)
-            self.gainSun(die2gains[1] * mult)
-            self.gainMoon(die2gains[2] * mult)
+            if sentinel and self.sentinel2Choice:
+                self.gainVP(die2gains[1] * mult * 2 + die2gains[2] * mult * 2)
+            else:
+                self.gainSun(die2gains[1] * mult)
+                self.gainMoon(die2gains[2] * mult)
             self.gainVP(die2gains[3] * mult)
             self.gainAncientShards(die2gains[4] * mult)
             self.gainLoyalty(die2gains[5] * mult)
         match die1:
             case Data.DieFace.REDSHIELD:
                 if gains2[1] == 0:
-                    self.gainSun(2 * mult)
+                    if sentinel and self.sentinel1Choice:
+                        self.gainVP(4 * mult)
+                    else:
+                        self.gainSun(2 * mult)
                 else:
                     self.gainVP(5)
             case Data.DieFace.BLUESHIELD:
                 if gains2[2] == 0:
-                    self.gainMoon(2 * mult)
+                    if sentinel and self.sentinel1Choice:
+                        self.gainVP(4 * mult)
+                    else:
+                        self.gainMoon(2 * mult)
                 else:
                     self.gainVP(5)
             case Data.DieFace.GREENSHIELD:
@@ -2369,12 +2383,18 @@ class Player:
         match die2:
             case Data.DieFace.REDSHIELD:
                 if gains1[1] == 0:
-                    self.gainSun(2 * mult)
+                    if sentinel and self.sentinel2Choice:
+                        self.gainVP(4 * mult)
+                    else:
+                        self.gainSun(2 * mult)
                 else:
                     self.gainVP(5)
             case Data.DieFace.BLUESHIELD:
                 if gains1[2] == 0:
-                    self.gainMoon(2 * mult)
+                    if sentinel and self.sentinel2Choice:
+                        self.gainVP(4 * mult)
+                    else:
+                        self.gainMoon(2 * mult)
                 else:
                     self.gainVP(5)
             case Data.DieFace.GREENSHIELD:
