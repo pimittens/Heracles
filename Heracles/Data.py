@@ -183,7 +183,6 @@ def isBoarFeat(feat):
     return feat == HeroicFeat.TENACIOUS_BOAR or feat == HeroicFeat.TENACIOUS_BOAR_RED or feat == HeroicFeat.TENACIOUS_BOAR_BLUE or feat == HeroicFeat.TENACIOUS_BOAR_YELLOW or feat == HeroicFeat.TENACIOUS_BOAR_GREEN
 
 
-
 def isMisfortuneFace(face):
     return face == DieFace.REDMISFORTUNE or face == DieFace.BLUEMISFORTUNE or face == DieFace.YELLOWMISFORTUNE or face == DieFace.GREENMISFORTUNE
 

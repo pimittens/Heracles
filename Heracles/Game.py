@@ -354,8 +354,8 @@ class BoardState:
                 if move[0] == Move.CHOOSE_USE_SENTINEL:
                     self.players[self.blessingPlayer].sentinel1Choice = move[2][0]
                     self.phase = Phase.DIE_2_CHOOSE_SENTINEL
-                    self.makeMove((Move.PASS, move[1], ())) # todo: canUseSentinel function
-                elif not Data.canUseSentinel(self.players[self.blessingPlayer].getDie1Result(), self.players[self.blessingPlayer].getDie2Result()):
+                    self.makeMove((Move.PASS, move[1], ()))
+                elif not self.players[self.blessingPlayer].canUseSentinel(True):
                     self.phase = Phase.DIE_2_CHOOSE_SENTINEL
                     self.makeMove((Move.PASS, move[1], ()))
             case Phase.DIE_2_CHOOSE_SENTINEL:
@@ -363,7 +363,7 @@ class BoardState:
                     self.players[self.blessingPlayer].sentinel2Choice = move[2][0]
                     self.phase = Phase.APPLY_DICE_EFFECTS
                     self.makeMove((Move.PASS, move[1], ()))
-                elif not Data.canUseSentinel(self.players[self.blessingPlayer].getDie2Result(), self.players[self.blessingPlayer].getDie1Result()):
+                elif not self.players[self.blessingPlayer].canUseSentinel(False):
                     self.phase = Phase.APPLY_DICE_EFFECTS
                     self.makeMove((Move.PASS, move[1], ()))
             case Phase.APPLY_DICE_EFFECTS:
@@ -1060,6 +1060,8 @@ class BoardState:
             case Phase.MISFORTUNE_1_MIRROR | Phase.MISFORTUNE_2_MIRROR | Phase.MINOR_MISFORTUNE_1_MIRROR | Phase.MINOR_MISFORTUNE_2_MIRROR:
                 ret = self.getMirrorChoices(
                     self.blessingPlayer)  # use blessing player since we are copying their effect, todo: do we even need to pass a player?
+            case Phase.DIE_1_CHOOSE_SENTINEL | Phase.DIE_2_CHOOSE_SENTINEL:
+                ret = (Move.CHOOSE_USE_SENTINEL, self.blessingPlayer, (True, )), (Move.CHOOSE_USE_SENTINEL, self.blessingPlayer, (False, ))
             case Phase.MINOR_CHOOSE_DIE:
                 ret = (Move.CHOOSE_DIE, self.blessingPlayer, (True,)), (Move.CHOOSE_DIE, self.blessingPlayer, (False,))
             case Phase.MINOR_ROLL_DIE:
@@ -2045,6 +2047,8 @@ class Player:
         self.orChoice1 = 0
         self.orChoice2 = 0
         self.dieChoice = True
+        self.sentinel1Choice = False
+        self.sentinel2Choice = False
         self.feats = []
         self.unforgedFaces = []
         self.unusedReinfEffects = []
@@ -2081,6 +2085,8 @@ class Player:
         ret.orChoice1 = self.orChoice1
         ret.orChoice2 = self.orChoice2
         ret.dieChoice = self.dieChoice
+        ret.sentinel1Choice = self.sentinel2Choice
+        ret.sentinel2Choice = self.sentinel2Choice
         ret.feats = copy.deepcopy(self.feats)
         ret.die1 = self.die1.copyDie()
         ret.die2 = self.die2.copyDie()
@@ -2466,6 +2472,37 @@ class Player:
         if resources[5] > 0:
             ret.append((Move.CHOOSE_DIE_OR, self.playerID, (5,)))
         return tuple(ret)
+
+    def canUseSentinel(self, die1):
+        if die1:
+            activeDie = self.getDie1Result()
+            inactiveDie = self.getDie2Result()
+            activeOrChoice = self.orChoice1
+            inactiveOrChoice = self.orChoice2
+        else:
+            activeDie = self.getDie2Result()
+            inactiveDie = self.getDie1Result()
+            activeOrChoice = self.orChoice2
+            inactiveOrChoice = self.orChoice1
+        resources = Data.getResourceValues(activeDie)
+        if Data.getIsOr(activeDie):
+            if (activeOrChoice == 1 and resources[1] > 0) or (activeOrChoice == 2 and resources[2] > 0):
+                return True
+            return False
+        if resources[1] > 0 or resources[2] > 0:
+            return True
+        match activeDie:
+            case Data.DieFace.REDSHIELD:
+                if Data.getIsOr(inactiveDie):
+                    return not (inactiveOrChoice == 1 and Data.getResourceValues(inactiveDie)[1] > 0)
+                else:
+                    return Data.getResourceValues(inactiveDie)[1] == 0
+            case Data.DieFace.BLUESHIELD:
+                if Data.getIsOr(inactiveDie):
+                    return not (inactiveOrChoice == 2 and Data.getResourceValues(inactiveDie)[2] > 0)
+                else:
+                    return Data.getResourceValues(inactiveDie)[2] == 0
+        return False
 
     def hasReinfEffects(self):
         for feat in self.feats:
