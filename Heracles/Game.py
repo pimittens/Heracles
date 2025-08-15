@@ -49,54 +49,55 @@ class Phase(Enum):
     MINOR_USE_CERBERUS = 42
     MINOR_MIRROR_CHOICE = 43
     MINOR_CHOOSE_OR = 44
-    MINOR_MAZE_MOVES = 45
-    MINOR_RESOLVE_SHIPS = 46
-    MINOR_RESOLVE_SHIPS_FORGE = 47
-    MINOR_BOAR_CHOICE = 48
-    MINOR_MISFORTUNE = 49
-    MINOR_MISFORTUNE_1_MIRROR = 50
-    MINOR_MISFORTUNE_1_OR = 51
-    MINOR_MISFORTUNE_2_MIRROR = 52
-    MINOR_MISFORTUNE_2_OR = 53
-    MINOR_MISFORTUNE_RESOLVE = 54
-    MINOR_MISFORTUNE_MAZE = 55
-    MINOR_MISFORTUNE_SHIPS = 56
-    MINOR_MISFORTUNE_SHIPS_FORGE = 57
-    MINOR_CERBERUS_DECISION = 58
-    CHOOSE_REINF_EFFECT = 59
-    RESOLVE_ELDER_REINF = 60
-    RESOLVE_OWL_REINF = 61
-    RESOLVE_HIND_REINF = 62
-    RESOLVE_TREE_REINF = 63
-    RESOLVE_MERCHANT_REINF = 64
-    RESOLVE_LIGHT_REINF = 65
-    RESOLVE_COMPANION_REINF = 66
-    ACTIVE_PLAYER_CHOICE_1 = 67
-    ACTIVE_PLAYER_BUY_FACES_1 = 68
-    ACTIVE_PLAYER_PERFORM_FEAT_1 = 69
-    EXTRA_TURN_DECISION = 70
-    ACTIVE_PLAYER_CHOICE_2 = 71
-    ACTIVE_PLAYER_BUY_FACES_2 = 72
-    ACTIVE_PLAYER_PERFORM_FEAT_2 = 73
-    FORGE_SHIP_FACE_1 = 74
-    FORGE_SHIP_FACE_2 = 75
-    CHOOSE_SHIELD_FACE_1 = 76
-    CHOOSE_SHIELD_FACE_2 = 77
-    FORGE_HELMET_FACE_1 = 78
-    FORGE_HELMET_FACE_2 = 79
-    FORGE_MIRROR_FACE_1 = 80
-    FORGE_MIRROR_FACE_2 = 81
-    CHOOSE_BOAR_MISFORTUNE_PLAYER_1 = 82
-    CHOOSE_BOAR_MISFORTUNE_PLAYER_2 = 83
-    FORGE_BOAR_MISFORTUNE_1 = 84
-    FORGE_BOAR_MISFORTUNE_2 = 85
-    ROLL_CELESTIAL_DIE = 88
-    BLESSING_ROLL_DIE_1 = 89
-    BLESSING_ROLL_DIE_2 = 90
-    END_TURN = 91
-    DIE_1_CHOOSE_SENTINEL = 92
-    DIE_2_CHOOSE_SENTINEL = 93
-    CHOOSE_CYCLOPS = 94
+    MINOR_RESOLVE_EFFECTS = 45
+    MINOR_MAZE_MOVES = 46
+    MINOR_RESOLVE_SHIPS = 47
+    MINOR_RESOLVE_SHIPS_FORGE = 48
+    MINOR_BOAR_CHOICE = 49
+    MINOR_MISFORTUNE = 50
+    MINOR_MISFORTUNE_1_MIRROR = 51
+    MINOR_MISFORTUNE_1_OR = 52
+    MINOR_MISFORTUNE_2_MIRROR = 53
+    MINOR_MISFORTUNE_2_OR = 54
+    MINOR_MISFORTUNE_RESOLVE = 55
+    MINOR_MISFORTUNE_MAZE = 56
+    MINOR_MISFORTUNE_SHIPS = 57
+    MINOR_MISFORTUNE_SHIPS_FORGE = 58
+    MINOR_CERBERUS_DECISION = 59
+    CHOOSE_REINF_EFFECT = 60
+    RESOLVE_ELDER_REINF = 61
+    RESOLVE_OWL_REINF = 62
+    RESOLVE_HIND_REINF = 63
+    RESOLVE_TREE_REINF = 64
+    RESOLVE_MERCHANT_REINF = 65
+    RESOLVE_LIGHT_REINF = 66
+    RESOLVE_COMPANION_REINF = 67
+    ACTIVE_PLAYER_CHOICE_1 = 68
+    ACTIVE_PLAYER_BUY_FACES_1 = 69
+    ACTIVE_PLAYER_PERFORM_FEAT_1 = 70
+    EXTRA_TURN_DECISION = 71
+    ACTIVE_PLAYER_CHOICE_2 = 72
+    ACTIVE_PLAYER_BUY_FACES_2 = 73
+    ACTIVE_PLAYER_PERFORM_FEAT_2 = 74
+    FORGE_SHIP_FACE_1 = 75
+    FORGE_SHIP_FACE_2 = 76
+    CHOOSE_SHIELD_FACE_1 = 77
+    CHOOSE_SHIELD_FACE_2 = 78
+    FORGE_HELMET_FACE_1 = 79
+    FORGE_HELMET_FACE_2 = 80
+    FORGE_MIRROR_FACE_1 = 81
+    FORGE_MIRROR_FACE_2 = 82
+    CHOOSE_BOAR_MISFORTUNE_PLAYER_1 = 83
+    CHOOSE_BOAR_MISFORTUNE_PLAYER_2 = 84
+    FORGE_BOAR_MISFORTUNE_1 = 85
+    FORGE_BOAR_MISFORTUNE_2 = 86
+    ROLL_CELESTIAL_DIE = 87
+    BLESSING_ROLL_DIE_1 = 88
+    BLESSING_ROLL_DIE_2 = 89
+    END_TURN = 90
+    DIE_1_CHOOSE_SENTINEL = 91
+    DIE_2_CHOOSE_SENTINEL = 92
+    CHOOSE_CYCLOPS = 93
 
 
 
@@ -648,21 +649,41 @@ class BoardState:
                 if self.players[self.blessingPlayer].dieChoice:
                     if move[0] == Move.CHOOSE_DIE_OR:
                         self.players[self.blessingPlayer].orChoice1 = move[2][0]
-                        self.phase = Phase.APPLY_DICE_EFFECTS
+                        if self.cyclops:
+                            self.phase = Phase.CHOOSE_CYCLOPS
+                        else:
+                            self.phase = Phase.MINOR_RESOLVE_EFFECTS
                         self.makeMove((Move.PASS, move[1], ()))
                     elif not Data.getIsOr(self.players[self.blessingPlayer].getDie1Result()):
-                        self.phase = Phase.APPLY_DICE_EFFECTS
+                        if self.cyclops:
+                            self.phase = Phase.CHOOSE_CYCLOPS
+                        else:
+                            self.phase = Phase.MINOR_RESOLVE_EFFECTS
                         self.makeMove((Move.PASS, move[1], ()))
                 else:
                     if move[0] == Move.CHOOSE_DIE_OR:
                         self.players[self.blessingPlayer].orChoice2 = move[2][0]
-                        self.phase = Phase.APPLY_DICE_EFFECTS
+                        if self.cyclops:
+                            self.phase = Phase.CHOOSE_CYCLOPS
+                        else:
+                            self.phase = Phase.MINOR_RESOLVE_EFFECTS
                         self.makeMove((Move.PASS, move[1], ()))
                     elif not Data.getIsOr(self.players[self.blessingPlayer].getDie2Result()):
-                        self.phase = Phase.APPLY_DICE_EFFECTS
+                        if self.cyclops:
+                            self.phase = Phase.CHOOSE_CYCLOPS
+                        else:
+                            self.phase = Phase.MINOR_RESOLVE_EFFECTS
                         self.makeMove((Move.PASS, move[1], ()))
-            case Phase.APPLY_DICE_EFFECTS:
-                self.players[self.blessingPlayer].gainMinorBlessingEffect()
+            case Phase.CHOOSE_CYCLOPS:
+                if move[0] == Move.CHOOSE_USE_CYCLOPS:
+                    self.players[self.blessingPlayer].sentinel1Choice = move[2][0] # reuse sentinel1Choice
+                    self.phase = Phase.MINOR_RESOLVE_EFFECTS
+                    self.makeMove((Move.PASS, move[1], ()))
+                elif not self.players[self.blessingPlayer].canUseCyclops():
+                    self.phase = Phase.MINOR_RESOLVE_EFFECTS
+                    self.makeMove((Move.PASS, move[1], ()))
+            case Phase.MINOR_RESOLVE_EFFECTS:
+                self.players[self.blessingPlayer].gainMinorBlessingEffect(self.cyclops)
                 self.phase = Phase.MINOR_MAZE_MOVES
                 self.makeMove((Move.PASS, move[1], ()))
             case Phase.MINOR_MAZE_MOVES:
@@ -1079,6 +1100,8 @@ class BoardState:
                     ret = self.players[self.blessingPlayer].getDieOptions(True)
                 else:
                     ret = self.players[self.blessingPlayer].getDieOptions(False)
+            case Phase.CHOOSE_CYCLOPS:
+                ret = (Move.CHOOSE_USE_CYCLOPS, self.blessingPlayer, (True, )), (Move.CHOOSE_USE_CYCLOPS, self.blessingPlayer, (False, ))
             case Phase.MINOR_BOAR_CHOICE:
                 if self.players[self.blessingPlayer].dieChoice:
                     ret = self.generateBoarChoice(self.players[self.blessingPlayer].getDie1Result())
@@ -2201,7 +2224,7 @@ class Player:
             case "vp":
                 self.gainVP(amt)
 
-    def gainMinorBlessingEffect(self): # todo: cyclops
+    def gainMinorBlessingEffect(self, cyclops): # todo: cyclops
         if self.dieChoice:
             face = self.getDie1Result()
         else:
@@ -2210,7 +2233,10 @@ class Player:
         if Data.getIsOr(face):
             match self.orChoice1:
                 case 0:
-                    self.gainGold(gains[0])
+                    if cyclops and self.sentinel1Choice:
+                        self.gainVP(gains[0])
+                    else:
+                        self.gainGold(gains[0])
                 case 1:
                     self.gainSun(gains[1])
                 case 2:
@@ -2222,7 +2248,10 @@ class Player:
                 case 5:
                     self.gainLoyalty(gains[5])
         else:
-            self.gainGold(gains[0])
+            if cyclops and self.sentinel1Choice:
+                self.gainVP(gains[0])
+            else:
+                self.gainGold(gains[0])
             self.gainSun(gains[1])
             self.gainMoon(gains[2])
             self.gainVP(gains[3])
@@ -2236,7 +2265,10 @@ class Player:
             case Data.DieFace.GREENSHIELD:
                 self.gainVP(3)
             case Data.DieFace.YELLOWSHIELD:
-                self.gainGold(3)
+                if cyclops and self.sentinel1Choice:
+                    self.gainVP(3)
+                else:
+                    self.gainGold(3)
             case Data.DieFace.REDCHAOS:
                 self.gainAncientShards(2)
             case Data.DieFace.BLUECHAOS:
@@ -2523,6 +2555,20 @@ class Player:
                 else:
                     return Data.getResourceValues(inactiveDie)[2] == 0
         return False
+
+    def canUseCyclops(self):
+        if self.dieChoice:
+            die = self.getDie1Result()
+            orChoice = self.orChoice1
+        else:
+            die = self.getDie2Result()
+            orChoice = self.orChoice2
+        resources = Data.getResourceValues(die)
+        if Data.getIsOr(die):
+            if orChoice == 0 and resources[0] > 0:
+                return True
+            return False
+        return resources[0] > 0 or die == Data.DieFace.YELLOWSHIELD
 
     def hasReinfEffects(self):
         for feat in self.feats:
