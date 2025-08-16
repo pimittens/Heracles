@@ -149,7 +149,6 @@ class BoardState:
         self.islands = ([], [], [], [], [], [], [], [], [], [], [], [], [], [], [])
         self.cerberus = False
         self.islandChoice = 0  # used to remember choice for ousting
-        self.selectRandomFeats()
         self.round = 1
         self.activePlayer = 0
         self.blessingPlayer = 0  # player currently resolving a blessing
@@ -162,6 +161,7 @@ class BoardState:
         self.phase = Phase.TURN_START
         self.returnPhase = Phase.TURN_START  # phase to return to after resolving dice effects
         if initialState:
+            self.setup()
             self.makeMove((Move.PASS, 0, ()))
 
     def copyState(self):
@@ -202,7 +202,9 @@ class BoardState:
         return ret"""
 
     def isOver(self):
-        return self.round > 10
+        if len(self.players) == 3:
+            return self.round > 10
+        return self.round > 9
 
     def makeMove(self, move):
         #print(f"Round: {self.round}, Phase: {self.phase}. Making move: {move}. Islands: {self.islands}. Island Choice: {self.islandChoice}")
@@ -213,6 +215,8 @@ class BoardState:
                 self.blessingPlayer = self.activePlayer
                 self.phase = Phase.ROLL_DIE_1
                 self.returnPhase = Phase.USE_TWINS_CHOICE
+                if len(self.players == 2):
+                    self.extraRolls = 1
             case Phase.ROLL_DIE_1:
                 if move[0] == Move.ROLL:
                     self.players[self.blessingPlayer].die1.setToFace(move[2][0])
@@ -551,8 +555,13 @@ class BoardState:
                 elif self.returnPhase == Phase.USE_TWINS_CHOICE:  # start of turn divine blessings
                     self.blessingPlayer = (self.blessingPlayer + 1) % len(self.players)
                     if self.blessingPlayer == self.activePlayer:
-                        self.phase = Phase.CHOOSE_REINF_EFFECT
-                        self.makeMove((Move.PASS, move[1], ()))
+                        if self.extraRolls > 0:
+                            self.extraRolls -= 1
+                            self.phase = Phase.ROLL_DIE_1
+                        else:
+                            self.players[self.activePlayer].populateReinfEffects()
+                            self.phase = Phase.CHOOSE_REINF_EFFECT
+                            self.makeMove((Move.PASS, move[1], ()))
                     else:
                         self.players[self.blessingPlayer].populateTwins()
                         self.phase = Phase.USE_TWINS_CHOICE
@@ -1594,10 +1603,10 @@ class BoardState:
         ret = []
         face = self.players[player].unforgedFaces[0]
         for existingFace in self.players[player].die1.faces:
-            if not Data.isBoarFace(existingFace):
+            if not Data.isBoarFace(existingFace) and not Data.isMisfortuneFace(existingFace):
                 ret.append((Move.FORGE_FACE, player, (1, face, existingFace)))
         for existingFace in self.players[player].die2.faces:
-            if not Data.isBoarFace(existingFace):
+            if not Data.isBoarFace(existingFace) and not Data.isMisfortuneFace(existingFace):
                 ret.append((Move.FORGE_FACE, player, (2, face, existingFace)))
         ret = set(ret)  # remove duplicates
         return tuple(ret)
@@ -2029,6 +2038,20 @@ class BoardState:
         for player in self.players:
             print(f"Player {player.playerID}: {player.vp}")
 
+    def setup(self):
+        self.selectRandomFeats()
+        self.players[0].gainGold(3)
+        self.players[1].gainGold(2)
+        if len(self.players) > 2:
+            self.players[2].gainGold(1)
+        if len(self.players == 2):
+            for pool in self.temple:
+                if Data.DieFace.GOLD6 in pool:
+                    pool.remove(Data.DieFace.GOLD6)
+                else:
+                    pool.remove(random.choice(pool))
+                pool.remove(random.choice(pool))
+
     def selectRandomFeats(self):
         i = 0
         while i < 15:
@@ -2040,8 +2063,17 @@ class BoardState:
         if feat == Data.HeroicFeat.TENACIOUS_BOAR:
             self.islands[island].append(Data.HeroicFeat.TENACIOUS_BOAR_RED)
             self.islands[island].append(Data.HeroicFeat.TENACIOUS_BOAR_BLUE)
-            self.islands[island].append(Data.HeroicFeat.TENACIOUS_BOAR_GREEN)
-            self.islands[island].append(Data.HeroicFeat.TENACIOUS_BOAR_YELLOW)
+            if len(self.players) > 2:
+                self.islands[island].append(Data.HeroicFeat.TENACIOUS_BOAR_GREEN)
+                if len(self.players) > 2:
+                    self.islands[island].append(Data.HeroicFeat.TENACIOUS_BOAR_YELLOW)
+        elif feat == Data.HeroicFeat.THE_MIRROR_OF_MISFORTUNE:
+            self.islands[island].append(Data.HeroicFeat.MIRROR_OF_MISFORTUNE_RED)
+            self.islands[island].append(Data.HeroicFeat.MIRROR_OF_MISFORTUNE_BLUE)
+            if len(self.players) > 2:
+                self.islands[island].append(Data.HeroicFeat.MIRROR_OF_MISFORTUNE_GREEN)
+                if len(self.players) > 2:
+                    self.islands[island].append(Data.HeroicFeat.MIRROR_OF_MISFORTUNE_YELLOW)
         else:
             j = 0
             while j < len(self.players):

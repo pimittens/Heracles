@@ -1,8 +1,9 @@
 import Game
 import MCTS
 
-players = [Game.Player(0, True), Game.Player(1, True), Game.Player(2, True), Game.Player(3, True)]
+players = [Game.Player(0, False), Game.Player(1, False), Game.Player(2, False), Game.Player(3, False)]
 theBoard = Game.BoardState(players, True)
+undoState = theBoard.copyState()
 theBoard.printBoardState()
 
 """
@@ -32,21 +33,34 @@ while not theBoard.isOver():
         if options[0][0] == Game.Move.ROLL:
             theBoard.makeMove(options[len(options) - 1]) # always do random roll
         else:
-            theBoard.makeMove(MCTS.mcts(theBoard.copyState(), 50000))
+            theBoard.makeMove(MCTS.mcts(theBoard.copyState(), 5000))
     else:
-        theBoard.makeMove(options[0])
-    """
-    while True:
-        choice = input("select from the above options:")
-        if choice == "print":
-            theBoard.printBoardState()
-            continue
-        choice = int(choice)
-        if choice in list(range(1,len(options) + 1)):
-            break
-        print("invalid choice")
-    theBoard.makeMove(options[choice - 1])
-    """
+        #theBoard.makeMove(options[0])
+        while True:
+            choice = input("select from the above options: ")
+            if choice == "print":
+                theBoard.printBoardState()
+                for option in options:
+                    print(f"{i}: {option}")
+                i += 1
+                continue
+            if choice == "undo":
+                theBoard = undoState
+                options = theBoard.getOptions()
+                for option in options:
+                    print(f"{i}: {option}")
+                i += 1
+                continue
+            choice = int(choice)
+            if choice in list(range(1,len(options) + 1)):
+                break
+            print("invalid choice")
+            for option in options:
+                print(f"{i}: {option}")
+                i += 1
+        undoState = theBoard.copyState()
+        theBoard.makeMove(options[choice - 1])
+
 
 
 theBoard.printBoardState()

@@ -29,7 +29,7 @@ class Node:
                 if roll < i:
                     return child
         choicesWeights = [
-            (child.points / child.visits) + explorationWeight * math.sqrt(
+            (child.points / (child.visits * 200)) + explorationWeight * math.sqrt(
                 math.log(self.visits) / child.visits
             )
             for child in self.children
@@ -152,7 +152,7 @@ def mcts(rootState, numSims):
         node.backpropagate(result)
     print("mcts results")
     for node in root.children:
-        print(f"Move: {node.move}, visits:{node.visits} , win percentage: {node.points/node.visits}")
+        print(f"Move: {node.move}, visits:{node.visits} , average points: {node.points/node.visits}")
     print(f"time elapsed: {(time.time() - startTime) / 60} minutes")
     return root.mostVisitedChild().move
 
@@ -163,4 +163,4 @@ def rollout(state):
         possibleMoves = currentState.getOptions()
         move = random.choice(possibleMoves)
         currentState.makeMove(move)
-    return currentState.getWinners()
+    return currentState.getScores()
