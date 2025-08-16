@@ -100,7 +100,6 @@ class Phase(Enum):
     CHOOSE_CYCLOPS = 93
 
 
-
 class Move(Enum):
     PASS = 1
     TAKE_EXTRA_TURN = 2
@@ -126,6 +125,7 @@ class Move(Enum):
     CHOOSE_DIE = 22
     CHOOSE_USE_SENTINEL = 23
     CHOOSE_USE_CYCLOPS = 24
+    CHOOSE_ADD_HAMMER = 25
 
 
 class BoardState:
@@ -157,7 +157,7 @@ class BoardState:
         self.cyclops = False
         self.sentinel = False
         self.extraRolls = 0
-        self.lastPlayer = 0 # player who last made a move
+        self.lastPlayer = 0  # player who last made a move
         self.phase = Phase.TURN_START
         self.returnPhase = Phase.TURN_START  # phase to return to after resolving dice effects
         if initialState:
@@ -207,15 +207,15 @@ class BoardState:
         return self.round > 9
 
     def makeMove(self, move):
-        #print(f"Round: {self.round}, Phase: {self.phase}. Making move: {move}. Islands: {self.islands}. Island Choice: {self.islandChoice}")
-        #self.printBoardState()
+        # print(f"Round: {self.round}, Phase: {self.phase}. Making move: {move}. Islands: {self.islands}. Island Choice: {self.islandChoice}")
+        # self.printBoardState()
         self.lastPlayer = move[1]
         match self.phase:
             case Phase.TURN_START:
                 self.blessingPlayer = self.activePlayer
                 self.phase = Phase.ROLL_DIE_1
                 self.returnPhase = Phase.USE_TWINS_CHOICE
-                if len(self.players == 2):
+                if len(self.players) == 2:
                     self.extraRolls = 1
             case Phase.ROLL_DIE_1:
                 if move[0] == Move.ROLL:
@@ -372,15 +372,21 @@ class BoardState:
                     self.phase = Phase.APPLY_DICE_EFFECTS
                     self.makeMove((Move.PASS, move[1], ()))
             case Phase.APPLY_DICE_EFFECTS:
-                self.players[self.blessingPlayer].gainDiceEffects(self.sentinel)
-                self.phase = Phase.RESOLVE_MAZE_MOVES
-                self.makeMove((Move.PASS, move[1], ()))
+                if move[0] == Move.CHOOSE_ADD_HAMMER:
+                    self.players[self.blessingPlayer].useHammer(move[2][0])
+                    self.phase = Phase.RESOLVE_MAZE_MOVES
+                    self.makeMove((Move.PASS, move[1], ()))
+                else:
+                    self.players[self.blessingPlayer].gainDiceEffects(self.sentinel)
+                    if self.players[self.blessingPlayer].goldToGain == 0:
+                        self.phase = Phase.RESOLVE_MAZE_MOVES
+                        self.makeMove((Move.PASS, move[1], ()))
             case Phase.ROLL_CELESTIAL_DIE:
-                # todo: roll celestial die
+                # todo: roll celestial die, hammer option
                 self.phase = Phase.RESOLVE_MAZE_MOVES
                 self.makeMove((Move.PASS, move[1], ()))
             case Phase.RESOLVE_MAZE_MOVES:
-                # todo: make maze moves, just go to next phase until implemented
+                # todo: make maze moves, hammer option, just go to next phase until implemented
                 if self.players[self.blessingPlayer].shipsToResolve == 0:
                     self.phase = Phase.BOAR_CHOICE_1
                     self.makeMove((Move.PASS, move[1], ()))
@@ -516,9 +522,15 @@ class BoardState:
                     self.phase = Phase.MISFORTUNE_2_APPLY_EFFECTS
                     self.makeMove((Move.PASS, move[1], ()))
             case Phase.MISFORTUNE_2_APPLY_EFFECTS:
-                self.players[self.misfortunePlayer].gainDiceEffects(False)
-                self.phase = Phase.MISFORTUNE_2_RESOLVE_MAZE_MOVES
-                self.makeMove((Move.PASS, move[1], ()))
+                if move[0] == Move.CHOOSE_ADD_HAMMER:
+                    self.players[self.misfortunePlayer].useHammer(move[2][0])
+                    self.phase = Phase.MISFORTUNE_2_RESOLVE_MAZE_MOVES
+                    self.makeMove((Move.PASS, move[1], ()))
+                else:
+                    self.players[self.misfortunePlayer].gainDiceEffects(False)
+                    if self.players[self.misfortunePlayer].goldToGain == 0:
+                        self.phase = Phase.MISFORTUNE_2_RESOLVE_MAZE_MOVES
+                        self.makeMove((Move.PASS, move[1], ()))
             case Phase.MISFORTUNE_2_RESOLVE_MAZE_MOVES:
                 # todo: implement maze
                 if self.players[self.misfortunePlayer].shipsToResolve == 0:
@@ -685,16 +697,22 @@ class BoardState:
                         self.makeMove((Move.PASS, move[1], ()))
             case Phase.CHOOSE_CYCLOPS:
                 if move[0] == Move.CHOOSE_USE_CYCLOPS:
-                    self.players[self.blessingPlayer].sentinel1Choice = move[2][0] # reuse sentinel1Choice
+                    self.players[self.blessingPlayer].sentinel1Choice = move[2][0]  # reuse sentinel1Choice
                     self.phase = Phase.MINOR_RESOLVE_EFFECTS
                     self.makeMove((Move.PASS, move[1], ()))
                 elif not self.players[self.blessingPlayer].canUseCyclops():
                     self.phase = Phase.MINOR_RESOLVE_EFFECTS
                     self.makeMove((Move.PASS, move[1], ()))
             case Phase.MINOR_RESOLVE_EFFECTS:
-                self.players[self.blessingPlayer].gainMinorBlessingEffect(self.cyclops)
-                self.phase = Phase.MINOR_MAZE_MOVES
-                self.makeMove((Move.PASS, move[1], ()))
+                if move[0] == Move.CHOOSE_ADD_HAMMER:
+                    self.players[self.blessingPlayer].useHammer(move[2][0])
+                    self.phase = Phase.MINOR_MAZE_MOVES
+                    self.makeMove((Move.PASS, move[1], ()))
+                else:
+                    self.players[self.blessingPlayer].gainMinorBlessingEffect(self.cyclops)
+                    if self.players[self.blessingPlayer].goldToGain == 0:
+                        self.phase = Phase.MINOR_MAZE_MOVES
+                        self.makeMove((Move.PASS, move[1], ()))
             case Phase.MINOR_MAZE_MOVES:
                 # todo: implement maze
                 if self.players[self.blessingPlayer].shipsToResolve == 0:
@@ -789,9 +807,15 @@ class BoardState:
                     self.phase = Phase.MINOR_MISFORTUNE_RESOLVE
                     self.makeMove((Move.PASS, move[1], ()))
             case Phase.MINOR_MISFORTUNE_RESOLVE:
-                self.players[self.misfortunePlayer].gainDiceEffects(False)
-                self.phase = Phase.MINOR_MISFORTUNE_MAZE
-                self.makeMove((Move.PASS, move[1], ()))
+                if move[0] == Move.CHOOSE_ADD_HAMMER:
+                    self.players[self.misfortunePlayer].useHammer(move[2][0])
+                    self.phase = Phase.MINOR_MISFORTUNE_MAZE
+                    self.makeMove((Move.PASS, move[1], ()))
+                else:
+                    self.players[self.misfortunePlayer].gainDiceEffects(False)
+                    if self.players[self.misfortunePlayer].goldToGain == 0:
+                        self.phase = Phase.MINOR_MISFORTUNE_MAZE
+                        self.makeMove((Move.PASS, move[1], ()))
             case Phase.MINOR_MISFORTUNE_MAZE:
                 # todo: implement maze
                 if self.players[self.misfortunePlayer].shipsToResolve == 0:
@@ -851,8 +875,13 @@ class BoardState:
                             self.players[self.activePlayer].gainSun(1)
                         case "moon":
                             self.players[self.activePlayer].gainMoon(1)
+                    if self.players[self.activePlayer].goldToGain == 0:
+                        self.phase = Phase.CHOOSE_REINF_EFFECT
+                        self.makeMove((Move.PASS, move[1], ()))
+                elif move[0] == Move.CHOOSE_ADD_HAMMER:
+                    self.players[self.activePlayer].useHammer(move[2][0])
                     self.phase = Phase.CHOOSE_REINF_EFFECT
-                    self.makeMove(move)
+                    self.makeMove((Move.PASS, move[1], ()))
             case Phase.RESOLVE_HIND_REINF:
                 self.phase = Phase.MINOR_CHOOSE_DIE
                 self.blessingPlayer = self.activePlayer
@@ -945,6 +974,10 @@ class BoardState:
                         self.resolveInstEffect(effect)
                     else:
                         self.makeMove((Move.PASS, move[1], ()))
+                elif move[0] == Move.CHOOSE_ADD_HAMMER:
+                    self.players[self.activePlayer].useHammer(move[2][0])
+                    self.phase = Phase.EXTRA_TURN_DECISION
+                    self.makeMove((Move.PASS, move[1], ()))
                 elif move[0] == Move.PASS:
                     self.phase = Phase.EXTRA_TURN_DECISION
                     self.makeMove((Move.PASS, move[1], ()))
@@ -976,6 +1009,10 @@ class BoardState:
                         self.resolveInstEffect(effect)
                     else:
                         self.makeMove((Move.PASS, move[1], ()))
+                elif move[0] == Move.CHOOSE_ADD_HAMMER:
+                    self.players[self.activePlayer].useHammer(move[2][0])
+                    self.phase = Phase.TURN_START
+                    self.advanceActivePlayer()
                 elif move[0] == Move.PASS:
                     self.phase = Phase.TURN_START
                     self.advanceActivePlayer()
@@ -1075,6 +1112,8 @@ class BoardState:
                 ret = self.players[self.blessingPlayer].getDieOptions(True)
             case Phase.DIE_2_CHOOSE_OR:
                 ret = self.players[self.blessingPlayer].getDieOptions(False)
+            case Phase.APPLY_DICE_EFFECTS:
+                ret = self.getHammerChoices(self.blessingPlayer)
             case Phase.BOAR_CHOICE_1:
                 ret = self.generateBoarChoice(self.players[self.blessingPlayer].getDie1Result())
             case Phase.BOAR_CHOICE_2:
@@ -1090,8 +1129,11 @@ class BoardState:
             case Phase.MISFORTUNE_1_MIRROR | Phase.MISFORTUNE_2_MIRROR | Phase.MINOR_MISFORTUNE_1_MIRROR | Phase.MINOR_MISFORTUNE_2_MIRROR:
                 ret = self.getMirrorChoices(
                     self.blessingPlayer)  # use blessing player since we are copying their effect, todo: do we even need to pass a player?
+            case Phase.MISFORTUNE_2_APPLY_EFFECTS:
+                ret = self.getHammerChoices(self.misfortunePlayer)
             case Phase.DIE_1_CHOOSE_SENTINEL | Phase.DIE_2_CHOOSE_SENTINEL:
-                ret = (Move.CHOOSE_USE_SENTINEL, self.blessingPlayer, (True, )), (Move.CHOOSE_USE_SENTINEL, self.blessingPlayer, (False, ))
+                ret = (Move.CHOOSE_USE_SENTINEL, self.blessingPlayer, (True,)), (
+                    Move.CHOOSE_USE_SENTINEL, self.blessingPlayer, (False,))
             case Phase.MINOR_CHOOSE_DIE:
                 ret = (Move.CHOOSE_DIE, self.blessingPlayer, (True,)), (Move.CHOOSE_DIE, self.blessingPlayer, (False,))
             case Phase.MINOR_ROLL_DIE:
@@ -1110,21 +1152,27 @@ class BoardState:
                 else:
                     ret = self.players[self.blessingPlayer].getDieOptions(False)
             case Phase.CHOOSE_CYCLOPS:
-                ret = (Move.CHOOSE_USE_CYCLOPS, self.blessingPlayer, (True, )), (Move.CHOOSE_USE_CYCLOPS, self.blessingPlayer, (False, ))
+                ret = (Move.CHOOSE_USE_CYCLOPS, self.blessingPlayer, (True,)), (
+                    Move.CHOOSE_USE_CYCLOPS, self.blessingPlayer, (False,))
+            case Phase.MINOR_RESOLVE_EFFECTS:
+                ret = self.getHammerChoices(self.blessingPlayer)
             case Phase.MINOR_BOAR_CHOICE:
                 if self.players[self.blessingPlayer].dieChoice:
                     ret = self.generateBoarChoice(self.players[self.blessingPlayer].getDie1Result())
                 else:
                     ret = self.generateBoarChoice(self.players[self.blessingPlayer].getDie2Result())
+            case Phase.MINOR_MISFORTUNE_RESOLVE:
+                ret = self.getHammerChoices(self.misfortunePlayer)
             case Phase.CHOOSE_REINF_EFFECT:
                 ret = self.players[self.activePlayer].getReinfOptions()
             case Phase.RESOLVE_ELDER_REINF:
                 ret = (Move.USE_ELDER, self.activePlayer, (True,)), (Move.USE_ELDER, self.activePlayer, (False,))
             case Phase.RESOLVE_OWL_REINF:
-                ret = ((Move.OWL_CHOICE, self.activePlayer, ("gold",)), (Move.OWL_CHOICE, self.activePlayer, ("sun",)),
+                if self.players[self.activePlayer].goldToGain == 0:
+                    ret = ((Move.OWL_CHOICE, self.activePlayer, ("gold",)), (Move.OWL_CHOICE, self.activePlayer, ("sun",)),
                        (Move.OWL_CHOICE, self.activePlayer, ("moon",)))
-            case Phase.RESOLVE_HIND_REINF:
-                pass  # todo
+                else:
+                    ret = self.getHammerChoices(self.activePlayer)
             case Phase.RESOLVE_TREE_REINF:
                 pass  # todo
             case Phase.RESOLVE_MERCHANT_REINF:
@@ -1141,7 +1189,10 @@ class BoardState:
                 else:
                     ret = self.generateBuyFaces(self.players[self.activePlayer].gold)
             case Phase.ACTIVE_PLAYER_PERFORM_FEAT_1 | Phase.ACTIVE_PLAYER_PERFORM_FEAT_2:
-                ret = self.generatePerformFeats()
+                if self.players[self.activePlayer].goldToGain == 0:
+                    ret = self.generatePerformFeats()
+                else:
+                    ret = self.getHammerChoices(self.activePlayer)
             case Phase.EXTRA_TURN_DECISION:
                 ret = (
                     (Move.TAKE_EXTRA_TURN, self.activePlayer, (True,)),
@@ -1775,6 +1826,18 @@ class BoardState:
         ret = set(ret)  # remove duplicates
         return tuple(ret)
 
+    def getHammerChoices(self, player):
+        maxHammer = self.players[player].getMaxHammer()
+        curHammer = self.players[player].hammerTrack
+        goldToSpend = self.players[player].goldToGain
+        ret = []
+        i = goldToSpend - (self.players[player].maxGold - self.players[player].gold)
+        while i <= maxHammer - curHammer and i <= goldToSpend:
+            ret.append((Move.CHOOSE_ADD_HAMMER, player, (i, ))) # spend i gold on hammer, remainder is gained
+            i += 1
+        if not ret:
+            ret.append((Move.CHOOSE_ADD_HAMMER, player, (i,)))  # this will happen if both can be maxed out
+        return tuple(ret)
     def makeReturnMove(self, player):
         self.sentinel = False
         self.cyclops = False
@@ -1803,10 +1866,11 @@ class BoardState:
 
     def resolveInstEffect(self, effect):
         match effect:
-            case "SPRITS_INST":
+            case "SPIRITS_INST":
                 self.players[self.activePlayer].gainGold(3)
                 self.players[self.activePlayer].gainMoon(3)
-                self.makeMove((Move.PASS, self.activePlayer, ()))
+                if self.players[self.activePlayer].goldToGain == 0:
+                    self.makeMove((Move.PASS, self.activePlayer, ()))
             case "SHIP_INST":
                 self.players[self.activePlayer].unforgedFaces.append(Data.DieFace.SHIP)
                 if self.phase == Phase.ACTIVE_PLAYER_PERFORM_FEAT_1:
@@ -1901,7 +1965,7 @@ class BoardState:
                 self.players[self.activePlayer].chestEffect()
                 self.makeMove((Move.PASS, self.activePlayer, ()))
             case "HAMMER_INST":
-                self.makeMove((Move.PASS, self.activePlayer, ()))  # todo
+                self.makeMove((Move.PASS, self.activePlayer, ()))  # handled elsewhere
             case "NYMPH_INST":
                 self.makeMove((Move.PASS, self.activePlayer, ()))  # todo
             case "OMNISCIENT_INST":
@@ -2044,7 +2108,7 @@ class BoardState:
         self.players[1].gainGold(2)
         if len(self.players) > 2:
             self.players[2].gainGold(1)
-        if len(self.players == 2):
+        if len(self.players) == 2:
             for pool in self.temple:
                 if Data.DieFace.GOLD6 in pool:
                     pool.remove(Data.DieFace.GOLD6)
@@ -2118,6 +2182,8 @@ class Player:
         self.mazeMoves = 0
         self.shipsToResolve = 0
         self.celestialRolls = 0
+        self.hammerTrack = 0
+        self.goldToGain = 0  # can choose to spend on hammers
         self.ai = ai
 
     def copyPlayer(self):
@@ -2156,6 +2222,7 @@ class Player:
         ret.mazeMoves = self.mazeMoves
         ret.shipsToResolve = self.shipsToResolve
         ret.celestialRolls = self.celestialRolls
+        ret.hammerTrack = self.hammerTrack
         ret.ai = self.ai
         return ret
 
@@ -2181,7 +2248,10 @@ class Player:
         return self.die2ResultBuffer
 
     def gainGold(self, amount):
-        self.gold = min(self.gold + amount, self.maxGold)
+        if self.canAddHammer():
+            self.goldToGain += amount
+        else:
+            self.gold = min(self.gold + amount, self.maxGold)
 
     def gainSun(self, amount):
         self.sun = min(self.sun + amount, self.maxSun)
@@ -2200,7 +2270,7 @@ class Player:
 
     def gainAncientShards(self, amount):
         self.ancientShards = min(self.ancientShards + amount, 6)
-        # todo: advance on loyalty track
+        # todo: advance on loyalty track, spending ancient shards
 
     def gainLoyalty(self, amount):
         pass  # todo: advance on loyalty track
@@ -2212,8 +2282,25 @@ class Player:
                 ret += 30
         return ret
 
+    def canAddHammer(self):
+        return self.hammerTrack < self.getMaxHammer()
+
     def addHammer(self, amount):
-        self.hammer = min(self.hammer + amount, self.getMaxHammer())
+        beforeHammer = self.hammerTrack
+        self.hammerTrack = min(self.hammerTrack + amount, self.getMaxHammer())
+        i = 1
+        while i < 9:
+            if self.hammerTrack >= 15 * i > beforeHammer:
+                if i % 2 == 0:
+                    self.gainVP(15)
+                else:
+                    self.gainVP(10)
+            i += 1
+
+    def useHammer(self, hammerAmount): # spend hammerAmount on hammer, gain remainder as gold
+        self.addHammer(hammerAmount)
+        self.gainGold(self.goldToGain - hammerAmount)
+        self.goldToGain = 0
 
     def die1IsBoar(self):
         if self.die1ResultBuffer == Data.DieFace.MIRROR:
@@ -2256,7 +2343,7 @@ class Player:
             case "vp":
                 self.gainVP(amt)
 
-    def gainMinorBlessingEffect(self, cyclops): # todo: cyclops
+    def gainMinorBlessingEffect(self, cyclops):  # todo: cyclops
         if self.dieChoice:
             face = self.getDie1Result()
         else:
