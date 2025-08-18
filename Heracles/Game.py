@@ -4,7 +4,7 @@ import random
 import Data
 
 
-class Phase(Enum):
+class Phase(Enum): # todo: numbers
     TURN_START = 1
     ROLL_DIE_1 = 2
     ROLL_DIE_2 = 3
@@ -30,14 +30,12 @@ class Phase(Enum):
     MISFORTUNE_1_MIRROR = 23
     MISFORTUNE_1_CHOOSE_OR = 24
     MISFORTUNE_1_APPLY_EFFECTS = 25
-    MISFORTUNE_1_RESOLVE_MAZE_MOVES = 26
     MISFORTUNE_1_RESOLVE_SHIPS = 27
     MISFORTUNE_1_RESOLVE_SHIPS_FORGE = 28
     MISFORTUNE_2 = 29  # these go in reverse order since the misfortune face is on die 2
     MISFORTUNE_2_MIRROR = 30
     MISFORTUNE_2_CHOOSE_OR = 31
     MISFORTUNE_2_APPLY_EFFECTS = 32
-    MISFORTUNE_2_RESOLVE_MAZE_MOVES = 33
     MISFORTUNE_2_RESOLVE_SHIPS = 34
     MISFORTUNE_2_RESOLVE_SHIPS_FORGE = 35
     CERBERUS_DECISION = 36  # if used cerberus token, return to mirror 1 choice
@@ -60,7 +58,6 @@ class Phase(Enum):
     MINOR_MISFORTUNE_2_MIRROR = 53
     MINOR_MISFORTUNE_2_OR = 54
     MINOR_MISFORTUNE_RESOLVE = 55
-    MINOR_MISFORTUNE_MAZE = 56
     MINOR_MISFORTUNE_SHIPS = 57
     MINOR_MISFORTUNE_SHIPS_FORGE = 58
     MINOR_CERBERUS_DECISION = 59
@@ -98,6 +95,8 @@ class Phase(Enum):
     DIE_1_CHOOSE_SENTINEL = 91
     DIE_2_CHOOSE_SENTINEL = 92
     CHOOSE_CYCLOPS = 93
+    SATYRS_CHOOSE_DIE_1 = 94
+    SATYRS_CHOOSE_DIE_2 = 95
 
 
 class Move(Enum):
@@ -126,6 +125,7 @@ class Move(Enum):
     CHOOSE_USE_SENTINEL = 23
     CHOOSE_USE_CYCLOPS = 24
     CHOOSE_ADD_HAMMER = 25
+    SATYRS_CHOOSE_DIE = 26
 
 
 class BoardState:
@@ -156,6 +156,8 @@ class BoardState:
         self.faceToForge = None  # boar or misfortune face
         self.cyclops = False
         self.sentinel = False
+        self.satyrs = False
+        self.minotaur = False
         self.extraRolls = 0
         self.lastPlayer = 0  # player who last made a move
         self.phase = Phase.TURN_START
@@ -183,6 +185,8 @@ class BoardState:
         ret.returnPhase = self.returnPhase
         ret.sentinel = self.sentinel
         ret.cyclops = self.cyclops
+        ret.satyrs = self.satyrs
+        ret.minotaur = self.minotaur
         ret.extraRolls = self.extraRolls
         ret.lastPlayer = self.lastPlayer
         return ret
@@ -229,8 +233,14 @@ class BoardState:
                     self.players[self.blessingPlayer].die2.setToFace(move[2][0])
                     self.blessingPlayer = (self.blessingPlayer + 1) % len(self.players)
                     if self.blessingPlayer == self.activePlayer:
-                        self.players[self.blessingPlayer].populateTwins()
-                        self.phase = Phase.USE_TWINS_CHOICE
+                        if self.satyrs:
+                            self.phase = Phase.SATYRS_CHOOSE_DIE_1
+                        elif self.minotaur:
+                            self.blessingPlayer = (self.blessingPlayer + 1) % len(self.players)
+                            self.phase = Phase.MIRROR_1_CHOICE
+                        else:
+                            self.players[self.blessingPlayer].populateTwins()
+                            self.phase = Phase.USE_TWINS_CHOICE
                         self.makeMove((Move.PASS, move[1], ()))
                     else:
                         self.phase = Phase.ROLL_DIE_1
@@ -322,7 +332,7 @@ class BoardState:
                     self.players[self.blessingPlayer].mirrorChoice1 = move[2][0]
                     self.phase = Phase.MIRROR_2_CHOICE
                     self.makeMove((Move.PASS, move[1], ()))
-                elif self.players[self.blessingPlayer].getDie1UpFace() != Data.DieFace.MIRROR:
+                elif self.players[self.blessingPlayer].die1ResultBuffer != Data.DieFace.MIRROR:
                     self.phase = Phase.MIRROR_2_CHOICE
                     self.makeMove((Move.PASS, move[1], ()))
             case Phase.MIRROR_2_CHOICE:
@@ -330,7 +340,7 @@ class BoardState:
                     self.players[self.blessingPlayer].mirrorChoice2 = move[2][0]
                     self.phase = Phase.DIE_1_CHOOSE_OR
                     self.makeMove((Move.PASS, move[1], ()))
-                elif self.players[self.blessingPlayer].getDie2UpFace() != Data.DieFace.MIRROR:
+                elif self.players[self.blessingPlayer].die2ResultBuffer != Data.DieFace.MIRROR:
                     self.phase = Phase.DIE_1_CHOOSE_OR
                     self.makeMove((Move.PASS, move[1], ()))
             case Phase.DIE_1_CHOOSE_OR:
@@ -377,7 +387,7 @@ class BoardState:
                     self.phase = Phase.RESOLVE_MAZE_MOVES
                     self.makeMove((Move.PASS, move[1], ()))
                 else:
-                    self.players[self.blessingPlayer].gainDiceEffects(self.sentinel)
+                    self.players[self.blessingPlayer].gainDiceEffects(self.minotaur, self.sentinel)
                     if self.players[self.blessingPlayer].goldToGain == 0:
                         self.phase = Phase.RESOLVE_MAZE_MOVES
                         self.makeMove((Move.PASS, move[1], ()))
@@ -466,17 +476,23 @@ class BoardState:
                     self.phase = Phase.MISFORTUNE_1_APPLY_EFFECTS
                     self.makeMove((Move.PASS, move[1], ()))
             case Phase.MISFORTUNE_1_APPLY_EFFECTS:
-                self.players[self.misfortunePlayer].gainDiceEffects(False)
-                self.phase = Phase.MISFORTUNE_1_RESOLVE_MAZE_MOVES
-                self.makeMove((Move.PASS, move[1], ()))
-            case Phase.MISFORTUNE_1_RESOLVE_MAZE_MOVES:
-                # todo: implement maze
-                if self.players[self.misfortunePlayer].shipsToResolve == 0:
-                    self.phase = Phase.MISFORTUNE_2
-                    self.makeMove((Move.PASS, move[1], ()))
+                if move[0] == Move.CHOOSE_ADD_HAMMER:
+                    self.players[self.misfortunePlayer].useHammer(move[2][0])
+                    if self.players[self.misfortunePlayer].shipsToResolve == 0:
+                        self.phase = Phase.MISFORTUNE_2
+                        self.makeMove((Move.PASS, move[1], ()))
+                    else:
+                        self.phase = Phase.MISFORTUNE_1_RESOLVE_SHIPS
+                        self.makeMove((Move.PASS, move[1], ()))
                 else:
-                    self.phase = Phase.MISFORTUNE_1_RESOLVE_SHIPS
-                    self.makeMove((Move.PASS, move[1], ()))
+                    self.players[self.misfortunePlayer].gainDiceEffects(False, False)
+                    if self.players[self.misfortunePlayer].goldToGain == 0:
+                        if self.players[self.misfortunePlayer].shipsToResolve == 0:
+                            self.phase = Phase.MISFORTUNE_2
+                            self.makeMove((Move.PASS, move[1], ()))
+                        else:
+                            self.phase = Phase.MISFORTUNE_1_RESOLVE_SHIPS
+                            self.makeMove((Move.PASS, move[1], ()))
             case Phase.MISFORTUNE_1_RESOLVE_SHIPS:
                 if move[0] == Move.BUY_FACES:
                     self.players[self.misfortunePlayer].shipsToResolve -= 1
@@ -524,21 +540,21 @@ class BoardState:
             case Phase.MISFORTUNE_2_APPLY_EFFECTS:
                 if move[0] == Move.CHOOSE_ADD_HAMMER:
                     self.players[self.misfortunePlayer].useHammer(move[2][0])
-                    self.phase = Phase.MISFORTUNE_2_RESOLVE_MAZE_MOVES
-                    self.makeMove((Move.PASS, move[1], ()))
-                else:
-                    self.players[self.misfortunePlayer].gainDiceEffects(False)
-                    if self.players[self.misfortunePlayer].goldToGain == 0:
-                        self.phase = Phase.MISFORTUNE_2_RESOLVE_MAZE_MOVES
+                    if self.players[self.misfortunePlayer].shipsToResolve == 0:
+                        self.phase = Phase.CERBERUS_DECISION
                         self.makeMove((Move.PASS, move[1], ()))
-            case Phase.MISFORTUNE_2_RESOLVE_MAZE_MOVES:
-                # todo: implement maze
-                if self.players[self.misfortunePlayer].shipsToResolve == 0:
-                    self.phase = Phase.CERBERUS_DECISION
-                    self.makeMove((Move.PASS, move[1], ()))
+                    else:
+                        self.phase = Phase.MISFORTUNE_2_RESOLVE_SHIPS
+                        self.makeMove((Move.PASS, move[1], ()))
                 else:
-                    self.phase = Phase.MISFORTUNE_2_RESOLVE_SHIPS
-                    self.makeMove((Move.PASS, move[1], ()))
+                    self.players[self.misfortunePlayer].gainDiceEffects(False, False)
+                    if self.players[self.misfortunePlayer].goldToGain == 0:
+                        if self.players[self.misfortunePlayer].shipsToResolve == 0:
+                            self.phase = Phase.CERBERUS_DECISION
+                            self.makeMove((Move.PASS, move[1], ()))
+                        else:
+                            self.phase = Phase.MISFORTUNE_2_RESOLVE_SHIPS
+                            self.makeMove((Move.PASS, move[1], ()))
             case Phase.MISFORTUNE_2_RESOLVE_SHIPS:
                 if move[0] == Move.BUY_FACES:
                     self.players[self.misfortunePlayer].shipsToResolve -= 1
@@ -581,9 +597,35 @@ class BoardState:
                 elif self.extraRolls > 0:
                     self.extraRolls -= 1
                     self.phase = Phase.BLESSING_ROLL_DIE_1
+                elif self.minotaur:
+                    self.blessingPlayer = (self.blessingPlayer + 1) % len(self.players)
+                    if self.blessingPlayer == self.activePlayer:
+                        self.minotaur = False
+                        self.phase = self.returnPhase
+                        self.makeReturnMove(move[1])
+                    else:
+                        self.phase = Phase.MIRROR_1_CHOICE
+                        self.makeMove((Move.PASS, move[1], ()))
                 else:
                     self.phase = self.returnPhase
                     self.makeReturnMove(move[1])
+            case Phase.SATYRS_CHOOSE_DIE_1:
+                if move[0] == Move.SATYRS_CHOOSE_DIE:
+                    self.players[self.activePlayer].orChoice1 = move[2][0]
+                    self.phase = Phase.SATYRS_CHOOSE_DIE_2
+            case Phase.SATYRS_CHOOSE_DIE_2:
+                if move[0] == Move.SATYRS_CHOOSE_DIE:
+                    self.players[self.activePlayer].orChoice2 = move[2][0]
+                    if self.players[self.activePlayer].orChoice1 % 2 == 0:
+                        self.players[self.activePlayer].die1ResultBuffer = self.players[self.players[self.activePlayer].orChoice1 // 2].getDie1UpFace()
+                    else:
+                        self.players[self.activePlayer].die1ResultBuffer = self.players[self.players[self.activePlayer].orChoice1 // 2].getDie2UpFace()
+                    if self.players[self.activePlayer].orChoice2 % 2 == 0:
+                        self.players[self.activePlayer].die2ResultBuffer = self.players[self.players[self.activePlayer].orChoice2 // 2].getDie1UpFace()
+                    else:
+                        self.players[self.activePlayer].die2ResultBuffer = self.players[self.players[self.activePlayer].orChoice2 // 2].getDie2UpFace()
+                    self.phase = Phase.MIRROR_1_CHOICE
+                    self.makeMove((Move.PASS, move[1], ()))
             case Phase.MINOR_CHOOSE_DIE:
                 if move[0] == Move.CHOOSE_DIE:
                     self.players[self.blessingPlayer].dieChoice = move[2][0]
@@ -809,21 +851,21 @@ class BoardState:
             case Phase.MINOR_MISFORTUNE_RESOLVE:
                 if move[0] == Move.CHOOSE_ADD_HAMMER:
                     self.players[self.misfortunePlayer].useHammer(move[2][0])
-                    self.phase = Phase.MINOR_MISFORTUNE_MAZE
-                    self.makeMove((Move.PASS, move[1], ()))
-                else:
-                    self.players[self.misfortunePlayer].gainDiceEffects(False)
-                    if self.players[self.misfortunePlayer].goldToGain == 0:
-                        self.phase = Phase.MINOR_MISFORTUNE_MAZE
+                    if self.players[self.misfortunePlayer].shipsToResolve == 0:
+                        self.phase = Phase.MINOR_CERBERUS_DECISION
                         self.makeMove((Move.PASS, move[1], ()))
-            case Phase.MINOR_MISFORTUNE_MAZE:
-                # todo: implement maze
-                if self.players[self.misfortunePlayer].shipsToResolve == 0:
-                    self.phase = Phase.MINOR_CERBERUS_DECISION
-                    self.makeMove((Move.PASS, move[1], ()))
+                    else:
+                        self.phase = Phase.MINOR_MISFORTUNE_SHIPS
+                        self.makeMove((Move.PASS, move[1], ()))
                 else:
-                    self.phase = Phase.MINOR_MISFORTUNE_SHIPS
-                    self.makeMove((Move.PASS, move[1], ()))
+                    self.players[self.misfortunePlayer].gainDiceEffects(False, False)
+                    if self.players[self.misfortunePlayer].goldToGain == 0:
+                        if self.players[self.misfortunePlayer].shipsToResolve == 0:
+                            self.phase = Phase.MINOR_CERBERUS_DECISION
+                            self.makeMove((Move.PASS, move[1], ()))
+                        else:
+                            self.phase = Phase.MINOR_MISFORTUNE_SHIPS
+                            self.makeMove((Move.PASS, move[1], ()))
             case Phase.MINOR_MISFORTUNE_SHIPS:
                 if move[0] == Move.BUY_FACES:
                     self.players[self.misfortunePlayer].shipsToResolve -= 1
@@ -1106,7 +1148,17 @@ class BoardState:
                 ret = (
                     (Move.USE_CERBERUS, self.blessingPlayer, (True,)),
                     (Move.USE_CERBERUS, self.blessingPlayer, (False,)))
-            case Phase.MIRROR_1_CHOICE | Phase.MIRROR_2_CHOICE | Phase.MINOR_MIRROR_CHOICE:
+            case Phase.MIRROR_1_CHOICE:
+                if self.satyrs:
+                    ret = self.getMirrorChoices(self.players[self.activePlayer].orChoice1 // 2)
+                else:
+                    ret = self.getMirrorChoices(self.blessingPlayer)
+            case Phase.MIRROR_2_CHOICE:
+                if self.satyrs:
+                    ret = self.getMirrorChoices(self.players[self.activePlayer].orChoice2 // 2)
+                else:
+                    ret = self.getMirrorChoices(self.blessingPlayer)
+            case Phase.MINOR_MIRROR_CHOICE:
                 ret = self.getMirrorChoices(self.blessingPlayer)
             case Phase.DIE_1_CHOOSE_OR:
                 ret = self.players[self.blessingPlayer].getDieOptions(True)
@@ -1129,7 +1181,7 @@ class BoardState:
             case Phase.MISFORTUNE_1_MIRROR | Phase.MISFORTUNE_2_MIRROR | Phase.MINOR_MISFORTUNE_1_MIRROR | Phase.MINOR_MISFORTUNE_2_MIRROR:
                 ret = self.getMirrorChoices(
                     self.blessingPlayer)  # use blessing player since we are copying their effect, todo: do we even need to pass a player?
-            case Phase.MISFORTUNE_2_APPLY_EFFECTS:
+            case Phase.MISFORTUNE_2_APPLY_EFFECTS | Phase.MISFORTUNE_2_APPLY_EFFECTS:
                 ret = self.getHammerChoices(self.misfortunePlayer)
             case Phase.DIE_1_CHOOSE_SENTINEL | Phase.DIE_2_CHOOSE_SENTINEL:
                 ret = (Move.CHOOSE_USE_SENTINEL, self.blessingPlayer, (True,)), (
@@ -1224,7 +1276,10 @@ class BoardState:
                 ret = tuple(ret)
             case Phase.FORGE_BOAR_MISFORTUNE_1 | Phase.FORGE_BOAR_MISFORTUNE_2:
                 ret = self.generateForgeBoarFace()
-            # todo: other actions
+            case Phase.SATYRS_CHOOSE_DIE_1:
+                ret = self.generateSatyrsChooseDie(True)
+            case Phase.SATYRS_CHOOSE_DIE_2:
+                ret = self.generateSatyrsChooseDie(False)
         return ret
 
     def generateBuyFaces(self, gold):
@@ -1838,6 +1893,22 @@ class BoardState:
         if not ret:
             ret.append((Move.CHOOSE_ADD_HAMMER, player, (i,)))  # this will happen if both can be maxed out
         return tuple(ret)
+
+    def generateSatyrsChooseDie(self, die1):
+        picked = -1
+        if not die1:
+            picked = self.players[self.activePlayer].orChoice1
+        ret = []
+        for player in self.players:
+            if player.playerID == self.activePlayer:
+                continue
+            next = player.playerID * 2
+            if not picked == next:
+                ret.append((Move.SATYRS_CHOOSE_DIE, self.activePlayer, (next, )))
+            if not picked == next + 1:
+                ret.append((Move.SATYRS_CHOOSE_DIE, self.activePlayer, (next + 1, )))
+        return tuple(ret)
+
     def makeReturnMove(self, player):
         self.sentinel = False
         self.cyclops = False
@@ -1883,7 +1954,13 @@ class BoardState:
                 else:
                     self.phase = Phase.CHOOSE_SHIELD_FACE_2
             case "MINOTAUR_INST":
-                self.makeMove((Move.PASS, self.activePlayer, ()))  # todo
+                self.minotaur = True
+                if self.phase == Phase.ACTIVE_PLAYER_PERFORM_FEAT_1:
+                    self.returnPhase = Phase.EXTRA_TURN_DECISION
+                else:
+                    self.returnPhase = Phase.END_TURN
+                self.phase = Phase.ROLL_DIE_1
+                self.blessingPlayer = (self.activePlayer + 1) % len(self.players)
             case "TRITON_INST":  # todo: using triton tokens
                 self.players[self.activePlayer].tritonTokens += 1
                 self.makeMove((Move.PASS, self.activePlayer, ()))
@@ -1960,6 +2037,7 @@ class BoardState:
                 else:
                     self.phase = Phase.CHOOSE_BOAR_MISFORTUNE_PLAYER_2
             case "SATYRS_INST":
+                self.satyrs = True
                 self.makeMove((Move.PASS, self.activePlayer, ()))  # todo
             case "CHEST_INST":
                 self.players[self.activePlayer].chestEffect()
@@ -2248,19 +2326,19 @@ class Player:
         return self.die2ResultBuffer
 
     def gainGold(self, amount):
-        if self.canAddHammer():
+        if self.canAddHammer() and amount > 0:
             self.goldToGain += amount
         else:
-            self.gold = min(self.gold + amount, self.maxGold)
+            self.gold = max(min(self.gold + amount, self.maxGold), 0)
 
     def gainSun(self, amount):
-        self.sun = min(self.sun + amount, self.maxSun)
+        self.sun = max(min(self.sun + amount, self.maxSun), 0)
 
     def gainMoon(self, amount):
-        self.moon = min(self.moon + amount, self.maxMoon)
+        self.moon = max(min(self.moon + amount, self.maxMoon), 0)
 
     def gainVP(self, amount):
-        self.vp += amount
+        self.vp = max(self.vp + amount, 0)
 
     def hasMaxSun(self):
         return self.sun == self.maxSun
@@ -2269,7 +2347,7 @@ class Player:
         return self.moon == self.maxMoon
 
     def gainAncientShards(self, amount):
-        self.ancientShards = min(self.ancientShards + amount, 6)
+        self.ancientShards = max(min(self.ancientShards + amount, 6), 0)
         # todo: advance on loyalty track, spending ancient shards
 
     def gainLoyalty(self, amount):
@@ -2343,7 +2421,7 @@ class Player:
             case "vp":
                 self.gainVP(amt)
 
-    def gainMinorBlessingEffect(self, cyclops):  # todo: cyclops
+    def gainMinorBlessingEffect(self, cyclops):
         if self.dieChoice:
             face = self.getDie1Result()
         else:
@@ -2397,16 +2475,19 @@ class Player:
             case Data.DieFace.YELLOWCHAOS:
                 self.gainLoyalty(2)
 
-    def gainDiceEffects(self, sentinel):
+    def gainDiceEffects(self, minotaur, sentinel):
         die1 = self.getDie1Result()
         die2 = self.getDie2Result()
         mult = 1
         if die1 == Data.DieFace.TIMES3 or die2 == Data.DieFace.TIMES3:
             mult = 3
-        if die1 == Data.DieFace.SHIP:
-            self.shipsToResolve += 1
-        if die2 == Data.DieFace.SHIP:
-            self.shipsToResolve += 1
+        if minotaur:
+            mult *= -1
+        else:
+            if die1 == Data.DieFace.SHIP:
+                self.shipsToResolve += 1
+            if die2 == Data.DieFace.SHIP:
+                self.shipsToResolve += 1
         if die1 == Data.DieFace.MAZERED or die1 == Data.DieFace.MAZEBLUE:
             self.mazeMoves += 1
         if die2 == Data.DieFace.MAZERED or die2 == Data.DieFace.MAZEBLUE:
@@ -2496,7 +2577,7 @@ class Player:
                     else:
                         self.gainSun(2 * mult)
                 else:
-                    self.gainVP(5)
+                    self.gainVP(5 * mult)
             case Data.DieFace.BLUESHIELD:
                 if gains2[2] == 0:
                     if sentinel and self.sentinel1Choice:
@@ -2504,33 +2585,33 @@ class Player:
                     else:
                         self.gainMoon(2 * mult)
                 else:
-                    self.gainVP(5)
+                    self.gainVP(5 * mult)
             case Data.DieFace.GREENSHIELD:
                 if gains2[3] == 0:
                     self.gainVP(3 * mult)
                 else:
-                    self.gainVP(5)
+                    self.gainVP(5 * mult)
             case Data.DieFace.YELLOWSHIELD:
                 if gains2[0] == 0:
                     self.gainGold(3 * mult)
                 else:
-                    self.gainVP(5)
+                    self.gainVP(5 * mult)
             case Data.DieFace.REDCHAOS:
                 self.gainAncientShards(2 * mult)
                 if gains2[1] > 0:
-                    self.gainVP(3)
+                    self.gainVP(3 * mult)
             case Data.DieFace.BLUECHAOS:
                 self.gainAncientShards(2 * mult)
                 if gains2[2] > 0:
-                    self.gainVP(3)
+                    self.gainVP(3 * mult)
             case Data.DieFace.GREENCHAOS:
                 self.gainLoyalty(2 * mult)
                 if gains2[3] > 0:
-                    self.gainVP(3)
+                    self.gainVP(3 * mult)
             case Data.DieFace.YELLOWCHAOS:
                 self.gainLoyalty(2 * mult)
                 if gains2[0] > 0:
-                    self.gainVP(3)
+                    self.gainVP(3 * mult)
         match die2:
             case Data.DieFace.REDSHIELD:
                 if gains1[1] == 0:
@@ -2539,7 +2620,7 @@ class Player:
                     else:
                         self.gainSun(2 * mult)
                 else:
-                    self.gainVP(5)
+                    self.gainVP(5 * mult)
             case Data.DieFace.BLUESHIELD:
                 if gains1[2] == 0:
                     if sentinel and self.sentinel2Choice:
@@ -2547,33 +2628,33 @@ class Player:
                     else:
                         self.gainMoon(2 * mult)
                 else:
-                    self.gainVP(5)
+                    self.gainVP(5 * mult)
             case Data.DieFace.GREENSHIELD:
                 if gains1[3] == 0:
                     self.gainVP(3 * mult)
                 else:
-                    self.gainVP(5)
+                    self.gainVP(5 * mult)
             case Data.DieFace.YELLOWSHIELD:
                 if gains1[0] == 0:
                     self.gainGold(3 * mult)
                 else:
-                    self.gainVP(5)
+                    self.gainVP(5 * mult)
             case Data.DieFace.REDCHAOS:
                 self.gainAncientShards(2 * mult)
                 if gains1[1] > 0:
-                    self.gainVP(3)
+                    self.gainVP(3 * mult)
             case Data.DieFace.BLUECHAOS:
                 self.gainAncientShards(2 * mult)
                 if gains1[2] > 0:
-                    self.gainVP(3)
+                    self.gainVP(3 * mult)
             case Data.DieFace.GREENCHAOS:
                 self.gainLoyalty(2 * mult)
                 if gains1[3] > 0:
-                    self.gainVP(3)
+                    self.gainVP(3 * mult)
             case Data.DieFace.YELLOWCHAOS:
                 self.gainLoyalty(2 * mult)
                 if gains1[0] > 0:
-                    self.gainVP(3)
+                    self.gainVP(3 * mult)
 
     def buyFace(self, face):
         self.gainGold(-Data.getGoldValue(face))
