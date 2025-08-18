@@ -284,8 +284,8 @@ class BoardState:
                     self.phase = Phase.USE_CERBERUS_CHOICE
                     self.makeMove((Move.PASS, move[1], ()))
             case Phase.TWINS_REROLL_CHOICE:
-                if move[0] == Move.USE_TWINS:
-                    if move[2][0] == 1:
+                if move[0] == Move.TWINS_CHOOSE_DIE:
+                    if move[2][0]:
                         self.phase = Phase.TWINS_REROLL_1
                     else:
                         self.phase = Phase.TWINS_REROLL_2
@@ -1139,8 +1139,8 @@ class BoardState:
                 ret = ((Move.USE_TWINS, self.blessingPlayer, (True,)), (Move.USE_TWINS, self.blessingPlayer, (False,)))
             case Phase.TWINS_REROLL_CHOICE:
                 ret = (
-                    (Move.TWINS_CHOOSE_DIE, self.blessingPlayer, (1,)),
-                    (Move.TWINS_CHOOSE_DIE, self.blessingPlayer, (2,)))
+                    (Move.TWINS_CHOOSE_DIE, self.blessingPlayer, (True,)),
+                    (Move.TWINS_CHOOSE_DIE, self.blessingPlayer, (False,)))
             case Phase.TWINS_RESOURCE_CHOICE | Phase.MINOR_TWINS_RESOURCE:
                 ret = ((Move.TWINS_CHOOSE_RESOURCE, self.blessingPlayer, ("vp",)),
                        (Move.TWINS_CHOOSE_RESOURCE, self.blessingPlayer, ("moon",)))
