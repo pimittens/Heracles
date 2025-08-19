@@ -122,7 +122,7 @@ def printOptions(options, boardState):
                 if option[2][0] % 2 == 0:
                     print(f"{i}: Use the effect of the Satyrs to resolve the die face {boardState.players[option[2][0] // 2].getDie1UpFace()}")
                 else:
-                    print(f"{i}: Use the effect of the Satyrs to resolve the die face {boardState.players[option[2][0] // 2].getDie1UpFace()}")
+                    print(f"{i}: Use the effect of the Satyrs to resolve the die face {boardState.players[option[2][0] // 2].getDie2UpFace()}")
             # todo: triton tokens
         i += 1
 
@@ -137,15 +137,7 @@ while not theBoard.isOver():
         if options[0][0] == Game.Move.ROLL:
             printMove(options[len(options) - 1])
             theBoard.makeMove(options[len(options) - 1]) # always do random roll
-            if theBoard.phase == Game.Phase.ROLL_DIE_1 or theBoard.phase == Game.Phase.BLESSING_ROLL_DIE_1 or theBoard.phase == Game.Phase.TWINS_REROLL_1:
-                print(f"result of random roll: {theBoard.players[options[0][1]].getDie1UpFace()}")
-            elif theBoard.phase == Game.Phase.ROLL_DIE_2 or theBoard.phase == Game.Phase.BLESSING_ROLL_DIE_2 or theBoard.phase == Game.Phase.TWINS_REROLL_2:
-                print(f"result of random roll: {theBoard.players[options[0][1]].getDie2UpFace()}")
-            else:
-                if theBoard.players[options[0][1]].dieChoice:
-                    print(f"result of random roll: {theBoard.players[options[0][1]].getDie1UpFace()}")
-                else:
-                    print(f"result of random roll: {theBoard.players[options[0][1]].getDie2UpFace()}")
+            print(f"After rolling, player {options[0][1]} has the faces {theBoard.players[options[0][1]].getDie1UpFace()} and {theBoard.players[options[0][1]].getDie2UpFace()}")
         elif options[0][1] == 1:
             move = MCTS.mcts(theBoard.copyState(), 5000)
             printMove(move)
@@ -165,6 +157,10 @@ while not theBoard.isOver():
             if choice == "undo":
                 theBoard = undoState
                 options = theBoard.getOptions()
+                printOptions(options, theBoard)
+                continue
+            if not choice.isdigit():
+                print("invalid choice")
                 printOptions(options, theBoard)
                 continue
             choice = int(choice)

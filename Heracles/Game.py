@@ -213,6 +213,7 @@ class BoardState:
     def makeMove(self, move):
         # print(f"Round: {self.round}, Phase: {self.phase}. Making move: {move}. Islands: {self.islands}. Island Choice: {self.islandChoice}")
         # self.printBoardState()
+        # self.printPlayersInfo()
         self.lastPlayer = move[1]
         match self.phase:
             case Phase.TURN_START:
@@ -906,6 +907,7 @@ class BoardState:
                 elif move[0] == Move.CHOOSE_REINF_EFFECT:
                     self.players[self.activePlayer].unusedReinfEffects.remove(move[2][0])
                     self.selectReinfState(move[2][0])
+                    self.makeMove((Move.PASS, move[1], ()))
             case Phase.RESOLVE_ELDER_REINF:
                 if move[0] == Move.USE_ELDER:
                     if move[2][0]:
@@ -1038,6 +1040,7 @@ class BoardState:
                             ousted = True
                             self.oust(player, 2)
                             break
+                    self.players[self.activePlayer].location = island
                     if ousted:
                         self.islandChoice = Data.getPosition(move[2][0])
                     else:
@@ -2186,6 +2189,19 @@ class BoardState:
                 print("Empty")
             i += 1
 
+    def printPlayersInfo(self):
+        print(f"Player {self.activePlayer} is the active player.")
+        print(f"Current blessing player: {self.blessingPlayer}")
+        print("Players:")
+        for p in self.players:
+            p.printPlayerInfo()
+            print(f"die 1 result buffer: {p.die1ResultBuffer}")
+            print(f"die 2 result buffer: {p.die2ResultBuffer}")
+            print(f"or choice 1: {p.orChoice1}")
+            print(f"or choice 2: {p.orChoice2}")
+            print(f"mirror choice 1: {p.mirrorChoice1}")
+            print(f"mirror choice 2: {p.mirrorChoice2}")
+
     def printPoints(self):
         print("Victory Points:")
         for player in self.players:
@@ -2265,7 +2281,6 @@ class Player:
         self.location = 0  # 0 is portal, 1-7 are islands
         self.numForged = 0  # number of faces forged
         self.companions = [0, 0, 0, 0]
-        self.hammer = 0
         self.allegiance = 0
         self.mazePosition = 0
         self.mazeMoves = 0
@@ -2305,7 +2320,6 @@ class Player:
         ret.unforgedFaces = copy.deepcopy(self.unforgedFaces)
         ret.unusedReinfEffects = copy.deepcopy(self.unusedReinfEffects)
         ret.companions = copy.deepcopy(self.companions)
-        ret.hammer = self.hammer
         ret.allegiance = self.allegiance
         ret.mazePosition = self.mazePosition
         ret.mazeMoves = self.mazeMoves
@@ -2813,6 +2827,7 @@ class Player:
             print("Location: portal")
         else:
             print(f"Location: Island {self.location}")
+        print(f"Hammer: {self.hammerTrack} / {self.getMaxHammer()}")
         print(f"Number of faces forged: {self.numForged}")
         print("Unforged Faces:")
         for face in self.unforgedFaces:
