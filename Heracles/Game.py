@@ -248,8 +248,14 @@ class BoardState:
                     self.players[self.blessingPlayer].die2.roll()
                     self.blessingPlayer = (self.blessingPlayer + 1) % len(self.players)
                     if self.blessingPlayer == self.activePlayer:
-                        self.players[self.blessingPlayer].populateTwins()
-                        self.phase = Phase.USE_TWINS_CHOICE
+                        if self.satyrs:
+                            self.phase = Phase.SATYRS_CHOOSE_DIE_1
+                        elif self.minotaur:
+                            self.blessingPlayer = (self.blessingPlayer + 1) % len(self.players)
+                            self.phase = Phase.MIRROR_1_CHOICE
+                        else:
+                            self.players[self.blessingPlayer].populateTwins()
+                            self.phase = Phase.USE_TWINS_CHOICE
                         self.makeMove((Move.PASS, move[1], ()))
                     else:
                         self.phase = Phase.ROLL_DIE_1
@@ -2038,7 +2044,12 @@ class BoardState:
                     self.phase = Phase.CHOOSE_BOAR_MISFORTUNE_PLAYER_2
             case "SATYRS_INST":
                 self.satyrs = True
-                self.makeMove((Move.PASS, self.activePlayer, ()))  # todo
+                if self.phase == Phase.ACTIVE_PLAYER_PERFORM_FEAT_1:
+                    self.returnPhase = Phase.EXTRA_TURN_DECISION
+                else:
+                    self.returnPhase = Phase.END_TURN
+                self.phase = Phase.ROLL_DIE_1
+                self.blessingPlayer = (self.activePlayer + 1) % len(self.players)
             case "CHEST_INST":
                 self.players[self.activePlayer].chestEffect()
                 self.makeMove((Move.PASS, self.activePlayer, ()))

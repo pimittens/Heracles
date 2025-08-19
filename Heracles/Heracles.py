@@ -2,7 +2,7 @@ import random
 import Game
 import MCTS
 
-players = [Game.Player(0, True), Game.Player(1, True)]
+players = [Game.Player(0, False), Game.Player(1, True)]
 theBoard = Game.BoardState(players, True)
 undoState = theBoard.copyState()
 theBoard.printBoardState()
