@@ -29,7 +29,7 @@ class Node:
                 if roll < i:
                     return child
         choicesWeights = [
-            (child.points / (child.visits * 200)) + explorationWeight * math.sqrt(
+            (child.points / child.visits) + explorationWeight * math.sqrt(
                 math.log(self.visits) / child.visits
             )
             for child in self.children
@@ -152,7 +152,30 @@ def mcts(rootState, numSims):
         node.backpropagate(result)
     print("mcts results")
     for node in root.children:
-        print(f"Move: {node.move}, visits:{node.visits} , average points: {node.points/node.visits}")
+        print(f"Move: {node.move}, visits:{node.visits}, win probability: {node.points/node.visits}, lastPlayer: {node.state.lastPlayer}")
+    print(f"time elapsed: {(time.time() - startTime) / 60} minutes")
+    return root.mostVisitedChild().move
+
+def mctsWithHeuristic(rootState, numSims): # todo
+    startTime = time.time()
+    root = Node(rootState.copyState())
+    if len(root.state.getOptions()) == 1:
+        return root.state.getOptions()[0]
+    for _ in range(numSims):
+        node = root
+        # selection
+        while node.isFullyExpanded() and node.children:
+            node = node.bestChild()
+        # expansion
+        if not node.isTerminalNode():
+            node = node.expand()
+        # simulation
+        result = rollout(node.state)
+        # backpropagation
+        node.backpropagate(result)
+    print("mcts results")
+    for node in root.children:
+        print(f"Move: {node.move}, visits:{node.visits}, win probability: {node.points/node.visits}, lastPlayer: {node.state.lastPlayer}")
     print(f"time elapsed: {(time.time() - startTime) / 60} minutes")
     return root.mostVisitedChild().move
 
@@ -163,4 +186,4 @@ def rollout(state):
         possibleMoves = currentState.getOptions()
         move = random.choice(possibleMoves)
         currentState.makeMove(move)
-    return currentState.getScores()
+    return currentState.getWinners()

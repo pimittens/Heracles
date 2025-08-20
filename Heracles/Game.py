@@ -215,6 +215,7 @@ class BoardState:
         # self.printBoardState()
         # self.printPlayersInfo()
         self.lastPlayer = move[1]
+        # print(f"last player: {self.lastPlayer}")
         match self.phase:
             case Phase.TURN_START:
                 self.blessingPlayer = self.activePlayer
@@ -965,10 +966,10 @@ class BoardState:
                         self.phase = Phase.ACTIVE_PLAYER_CHOICE_2
                     else:
                         self.phase = Phase.TURN_START
-                        self.advanceActivePlayer()
+                        self.advanceActivePlayer(move[1])
                 elif self.players[self.activePlayer].sun < 2:
                     self.phase = Phase.TURN_START
-                    self.advanceActivePlayer()
+                    self.advanceActivePlayer(move[1])
             case Phase.ACTIVE_PLAYER_BUY_FACES_1:
                 if move[0] == Move.BUY_FACES:
                     for face in move[2]:
@@ -991,10 +992,10 @@ class BoardState:
                     self.players[self.activePlayer].forgeFace(move[2])
                     if not self.players[self.activePlayer].unforgedFaces:
                         self.phase = Phase.TURN_START
-                        self.advanceActivePlayer()
+                        self.advanceActivePlayer(move[1])
                 elif move[0] == Move.PASS:
                     self.phase = Phase.TURN_START
-                    self.advanceActivePlayer()
+                    self.advanceActivePlayer(move[1])
             case Phase.ACTIVE_PLAYER_PERFORM_FEAT_1:
                 if move[0] == Move.PERFORM_FEAT:
                     island = Data.getIsland(move[2][0])
@@ -1063,10 +1064,10 @@ class BoardState:
                 elif move[0] == Move.CHOOSE_ADD_HAMMER:
                     self.players[self.activePlayer].useHammer(move[2][0])
                     self.phase = Phase.TURN_START
-                    self.advanceActivePlayer()
+                    self.advanceActivePlayer(move[1])
                 elif move[0] == Move.PASS:
                     self.phase = Phase.TURN_START
-                    self.advanceActivePlayer()
+                    self.advanceActivePlayer(move[1])
             case Phase.FORGE_SHIP_FACE_1:
                 if move[0] == Move.FORGE_FACE:
                     self.players[self.activePlayer].forgeFace(move[2])
@@ -1076,7 +1077,7 @@ class BoardState:
                 if move[0] == Move.FORGE_FACE:
                     self.players[self.activePlayer].forgeFace(move[2])
                     self.phase = Phase.TURN_START
-                    self.advanceActivePlayer()
+                    self.advanceActivePlayer(move[1])
             case Phase.CHOOSE_SHIELD_FACE_1:
                 if move[0] == Move.BUY_FACES:
                     self.players[self.activePlayer].unforgedFaces.append(move[2][0])
@@ -1090,7 +1091,7 @@ class BoardState:
                 elif move[0] == Move.FORGE_FACE:
                     self.players[self.activePlayer].forgeFace(move[2])
                     self.phase = Phase.TURN_START
-                    self.advanceActivePlayer()
+                    self.advanceActivePlayer(move[1])
             case Phase.FORGE_MIRROR_FACE_1:
                 if move[0] == Move.FORGE_FACE:
                     self.players[self.activePlayer].forgeFace(move[2])
@@ -1100,7 +1101,7 @@ class BoardState:
                 if move[0] == Move.FORGE_FACE:
                     self.players[self.activePlayer].forgeFace(move[2])
                     self.phase = Phase.TURN_START
-                    self.advanceActivePlayer()
+                    self.advanceActivePlayer(move[1])
             case Phase.FORGE_HELMET_FACE_1:
                 if move[0] == Move.FORGE_FACE:
                     self.players[self.activePlayer].forgeFace(move[2])
@@ -1110,7 +1111,7 @@ class BoardState:
                 if move[0] == Move.FORGE_FACE:
                     self.players[self.activePlayer].forgeFace(move[2])
                     self.phase = Phase.TURN_START
-                    self.advanceActivePlayer()
+                    self.advanceActivePlayer(move[1])
             case Phase.CHOOSE_BOAR_MISFORTUNE_PLAYER_1:
                 if move[0] == Move.CHOOSE_BOAR_PLAYER:
                     self.blessingPlayer = move[2][0]  # use blessing player variable for boar face player
@@ -1128,10 +1129,10 @@ class BoardState:
                 if move[0] == Move.FORGE_FACE:
                     self.players[self.blessingPlayer].forgeBoarMisfortuneFace(move[2])
                     self.phase = Phase.TURN_START
-                    self.advanceActivePlayer()
+                    self.advanceActivePlayer(move[1])
             case Phase.END_TURN:
                 self.phase = Phase.TURN_START
-                self.advanceActivePlayer()
+                self.advanceActivePlayer(move[1])
 
         # todo: finish
 
@@ -1891,12 +1892,11 @@ class BoardState:
         return tuple(ret)
 
     def getHammerChoices(self, player):
-        maxHammer = self.players[player].getMaxHammer()
-        curHammer = self.players[player].hammerTrack
+        hammerLeft = self.players[player].getMaxHammer() - self.players[player].hammerTrack
         goldToSpend = self.players[player].goldToGain
         ret = []
-        i = goldToSpend - (self.players[player].maxGold - self.players[player].gold)
-        while i <= maxHammer - curHammer and i <= goldToSpend:
+        i = max(goldToSpend - (self.players[player].maxGold - self.players[player].gold), 0)
+        while i <= hammerLeft and i <= goldToSpend:
             ret.append((Move.CHOOSE_ADD_HAMMER, player, (i, ))) # spend i gold on hammer, remainder is gained
             i += 1
         if not ret:
@@ -2140,8 +2140,7 @@ class BoardState:
         player.checkBears()
         self.players[self.activePlayer].checkBears()
 
-    def advanceActivePlayer(self):
-        prevPlayer = self.activePlayer
+    def advanceActivePlayer(self, prevPlayer):
         self.activePlayer += 1
         if self.activePlayer >= len(self.players):
             self.activePlayer = 0
@@ -2253,6 +2252,7 @@ class BoardState:
 class Player:
     def __init__(self, playerID, ai):
         self.playerID = playerID
+        self.ai = ai
         self.maxGold = 12
         self.maxSun = 6
         self.maxMoon = 6
@@ -2274,12 +2274,12 @@ class Player:
         self.sentinel1Choice = False
         self.sentinel2Choice = False
         self.feats = []
-        self.unforgedFaces = []
-        self.unusedReinfEffects = []
         self.die1 = createLightDie()
         self.die2 = createDarkDie()
         self.location = 0  # 0 is portal, 1-7 are islands
         self.numForged = 0  # number of faces forged
+        self.unforgedFaces = []
+        self.unusedReinfEffects = []
         self.companions = [0, 0, 0, 0]
         self.allegiance = 0
         self.mazePosition = 0
@@ -2288,7 +2288,6 @@ class Player:
         self.celestialRolls = 0
         self.hammerTrack = 0
         self.goldToGain = 0  # can choose to spend on hammers
-        self.ai = ai
 
     def copyPlayer(self):
         ret = Player(self.playerID, self.ai)
@@ -2326,7 +2325,7 @@ class Player:
         ret.shipsToResolve = self.shipsToResolve
         ret.celestialRolls = self.celestialRolls
         ret.hammerTrack = self.hammerTrack
-        ret.ai = self.ai
+        ret.goldToGain = self.goldToGain
         return ret
 
     def chestEffect(self):

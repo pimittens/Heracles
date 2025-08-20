@@ -117,7 +117,7 @@ def printOptions(options, boardState):
                 else:
                     print(f"{i}: Do not use the effect of Cyclops")
             case Game.Move.CHOOSE_ADD_HAMMER:
-                print(f"{i}: Spend {option[2][0]} gold on The Blacksmith's Hammer track and gain {boardState.players[option[1].goldToGain - option[2][0]]} gold")
+                print(f"{i}: Spend {option[2][0]} gold on The Blacksmith's Hammer track and gain {boardState.players[option[1]].goldToGain - option[2][0]} gold")
             case Game.Move.SATYRS_CHOOSE_DIE:
                 if option[2][0] % 2 == 0:
                     print(f"{i}: Use the effect of the Satyrs to resolve the die face {boardState.players[option[2][0] // 2].getDie1UpFace()}")
@@ -138,7 +138,7 @@ while not theBoard.isOver():
             printMove(options[len(options) - 1])
             theBoard.makeMove(options[len(options) - 1]) # always do random roll
             print(f"After rolling, player {options[0][1]} has the faces {theBoard.players[options[0][1]].getDie1UpFace()} and {theBoard.players[options[0][1]].getDie2UpFace()}")
-        elif options[0][1] == 1:
+        elif options[0][1] < 2:
             move = MCTS.mcts(theBoard.copyState(), 5000)
             printMove(move)
             theBoard.makeMove(move)
