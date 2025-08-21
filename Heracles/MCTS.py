@@ -96,7 +96,8 @@ class HeuristicNode:
                 i += child.move[2][1]
                 if roll < i:
                     return child
-        if self.children[0].move[0] == Move.CHOOSE_BUY_FACES and (self.state.round == 1 or (self.state.round < 4 and self.state.players[self.children[0].move[1]].gold >= 8)):
+        if self.children[0].move[0] == Move.CHOOSE_BUY_FACES and (self.state.round == 1 or (
+                self.state.round < 4 and self.state.players[self.children[0].move[1]].gold >= 8)):
             # buy faces early if player has a lot of gold
             return self.children[0]
         elif self.children[0].move[0] == Move.BUY_FACES and len(self.children) > 5:

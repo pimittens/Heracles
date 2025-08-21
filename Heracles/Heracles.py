@@ -7,6 +7,7 @@ theBoard = Game.BoardState(players, True)
 undoState = theBoard.copyState()
 theBoard.printBoardState()
 
+
 def printOptions(options, boardState):
     print(f"Decision for player {options[0][1]}")
     i = 1
@@ -46,13 +47,13 @@ def printOptions(options, boardState):
                     case 5:
                         resource = "loyalty"
                 if boardState.phase == Game.Phase.MINOR_CHOOSE_OR:
-                    if boardState.players[option[1]].dieChoice: 
+                    if boardState.players[option[1]].dieChoice:
                         dieFace = boardState.players[option[1]].getDie1Result()
                     else:
                         dieFace = boardState.players[option[1]].getDie2Result()
                 elif boardState.phase == Game.Phase.DIE_1_CHOOSE_OR or Game.Phase.MISFORTUNE_1_CHOOSE_OR or Game.Phase.MINOR_MISFORTUNE_1_OR:
                     dieFace = boardState.players[option[1]].getDie1Result()
-                else: #elif boardState.phase == Game.Phase.DIE_2_CHOOSE_OR or Game.Phase.MISFORTUNE_2_CHOOSE_OR or Game.Phase.MINOR_MISFORTUNE_2_OR:
+                else:  # elif boardState.phase == Game.Phase.DIE_2_CHOOSE_OR or Game.Phase.MISFORTUNE_2_CHOOSE_OR or Game.Phase.MINOR_MISFORTUNE_2_OR:
                     dieFace = boardState.players[option[1]].getDie2Result()
                 print(f"{i}: Gain resource {resource} from die face {dieFace}")
             case Game.Move.CHOOSE_REINF_EFFECT:
@@ -81,7 +82,8 @@ def printOptions(options, boardState):
             case Game.Move.RANDOM_ROLL:
                 print(f"{i}: Roll randomly")
             case Game.Move.MIRROR_CHOICE:
-                print(f"{i}: Use the effect of The Mirror of the Abyss die face to copy the effect of the face {option[2][0]}")
+                print(
+                    f"{i}: Use the effect of The Mirror of the Abyss die face to copy the effect of the face {option[2][0]}")
             case Game.Move.USE_TWINS:
                 if option[2][0]:
                     print(f"{i}: Use the effect of The Twins (pay 3 gold to reroll)")
@@ -122,18 +124,22 @@ def printOptions(options, boardState):
                 else:
                     print(f"{i}: Do not use the effect of Cyclops")
             case Game.Move.CHOOSE_ADD_HAMMER:
-                print(f"{i}: Spend {option[2][0]} gold on The Blacksmith's Hammer track and gain {boardState.players[option[1]].goldToGain - option[2][0]} gold")
+                print(
+                    f"{i}: Spend {option[2][0]} gold on The Blacksmith's Hammer track and gain {boardState.players[option[1]].goldToGain - option[2][0]} gold")
             case Game.Move.SATYRS_CHOOSE_DIE:
                 if option[2][0] % 2 == 0:
-                    print(f"{i}: Use the effect of the Satyrs to resolve the die face {boardState.players[option[2][0] // 2].getDie1UpFace()}")
+                    print(
+                        f"{i}: Use the effect of the Satyrs to resolve the die face {boardState.players[option[2][0] // 2].getDie1UpFace()}")
                 else:
-                    print(f"{i}: Use the effect of the Satyrs to resolve the die face {boardState.players[option[2][0] // 2].getDie2UpFace()}")
+                    print(
+                        f"{i}: Use the effect of the Satyrs to resolve the die face {boardState.players[option[2][0] // 2].getDie2UpFace()}")
             # todo: triton tokens
         i += 1
 
 
 def printMove(move):
-    print(f"making move: {move}") # todo: more detail
+    print(f"making move: {move}")  # todo: more detail
+
 
 while not theBoard.isOver():
     options = theBoard.getOptions()
@@ -141,8 +147,9 @@ while not theBoard.isOver():
     if theBoard.players[options[0][1]].ai:
         if options[0][0] == Game.Move.ROLL:
             printMove(options[len(options) - 1])
-            theBoard.makeMove(options[len(options) - 1]) # always do random roll
-            print(f"After rolling, player {options[0][1]} has the faces {theBoard.players[options[0][1]].getDie1UpFace()} and {theBoard.players[options[0][1]].getDie2UpFace()}")
+            theBoard.makeMove(options[len(options) - 1])  # always do random roll
+            print(
+                f"After rolling, player {options[0][1]} has the faces {theBoard.players[options[0][1]].getDie1UpFace()} and {theBoard.players[options[0][1]].getDie2UpFace()}")
         elif options[0][1] == 0:
             move = MCTS.mcts(theBoard.copyState(), 5000)
             printMove(move)
@@ -156,7 +163,7 @@ while not theBoard.isOver():
             printMove(move)
             theBoard.makeMove(move)
     else:
-        #theBoard.makeMove(options[0])
+        # theBoard.makeMove(options[0])
         while True:
             choice = input("select from the above options: ")
             if choice == "print":
@@ -173,15 +180,13 @@ while not theBoard.isOver():
                 printOptions(options, theBoard)
                 continue
             choice = int(choice)
-            if choice in list(range(1,len(options) + 1)):
+            if choice in list(range(1, len(options) + 1)):
                 break
             print("invalid choice")
             printOptions(options, theBoard)
         undoState = theBoard.copyState()
         printMove(options[choice - 1])
         theBoard.makeMove(options[choice - 1])
-
-
 
 theBoard.printBoardState()
 theBoard.printPoints()

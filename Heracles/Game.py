@@ -4,7 +4,7 @@ import random
 import Data
 
 
-class Phase(Enum): # todo: numbers
+class Phase(Enum):  # todo: numbers
     TURN_START = 1
     ROLL_DIE_1 = 2
     ROLL_DIE_2 = 3
@@ -625,13 +625,17 @@ class BoardState:
                 if move[0] == Move.SATYRS_CHOOSE_DIE:
                     self.players[self.activePlayer].orChoice2 = move[2][0]
                     if self.players[self.activePlayer].orChoice1 % 2 == 0:
-                        self.players[self.activePlayer].die1ResultBuffer = self.players[self.players[self.activePlayer].orChoice1 // 2].getDie1UpFace()
+                        self.players[self.activePlayer].die1ResultBuffer = self.players[
+                            self.players[self.activePlayer].orChoice1 // 2].getDie1UpFace()
                     else:
-                        self.players[self.activePlayer].die1ResultBuffer = self.players[self.players[self.activePlayer].orChoice1 // 2].getDie2UpFace()
+                        self.players[self.activePlayer].die1ResultBuffer = self.players[
+                            self.players[self.activePlayer].orChoice1 // 2].getDie2UpFace()
                     if self.players[self.activePlayer].orChoice2 % 2 == 0:
-                        self.players[self.activePlayer].die2ResultBuffer = self.players[self.players[self.activePlayer].orChoice2 // 2].getDie1UpFace()
+                        self.players[self.activePlayer].die2ResultBuffer = self.players[
+                            self.players[self.activePlayer].orChoice2 // 2].getDie1UpFace()
                     else:
-                        self.players[self.activePlayer].die2ResultBuffer = self.players[self.players[self.activePlayer].orChoice2 // 2].getDie2UpFace()
+                        self.players[self.activePlayer].die2ResultBuffer = self.players[
+                            self.players[self.activePlayer].orChoice2 // 2].getDie2UpFace()
                     self.phase = Phase.MIRROR_1_CHOICE
                     self.makeMove((Move.PASS, move[1], ()))
             case Phase.MINOR_CHOOSE_DIE:
@@ -1231,8 +1235,9 @@ class BoardState:
                 ret = (Move.USE_ELDER, self.activePlayer, (True,)), (Move.USE_ELDER, self.activePlayer, (False,))
             case Phase.RESOLVE_OWL_REINF:
                 if self.players[self.activePlayer].goldToGain == 0:
-                    ret = ((Move.OWL_CHOICE, self.activePlayer, ("gold",)), (Move.OWL_CHOICE, self.activePlayer, ("sun",)),
-                       (Move.OWL_CHOICE, self.activePlayer, ("moon",)))
+                    ret = (
+                    (Move.OWL_CHOICE, self.activePlayer, ("gold",)), (Move.OWL_CHOICE, self.activePlayer, ("sun",)),
+                    (Move.OWL_CHOICE, self.activePlayer, ("moon",)))
                 else:
                     ret = self.getHammerChoices(self.activePlayer)
             case Phase.RESOLVE_TREE_REINF:
@@ -1897,7 +1902,7 @@ class BoardState:
         ret = []
         i = max(goldToSpend - (self.players[player].maxGold - self.players[player].gold), 0)
         while i <= hammerLeft and i <= goldToSpend:
-            ret.append((Move.CHOOSE_ADD_HAMMER, player, (i, ))) # spend i gold on hammer, remainder is gained
+            ret.append((Move.CHOOSE_ADD_HAMMER, player, (i,)))  # spend i gold on hammer, remainder is gained
             i += 1
         if not ret:
             ret.append((Move.CHOOSE_ADD_HAMMER, player, (i,)))  # this will happen if both can be maxed out
@@ -1913,9 +1918,9 @@ class BoardState:
                 continue
             next = player.playerID * 2
             if not picked == next:
-                ret.append((Move.SATYRS_CHOOSE_DIE, self.activePlayer, (next, )))
+                ret.append((Move.SATYRS_CHOOSE_DIE, self.activePlayer, (next,)))
             if not picked == next + 1:
-                ret.append((Move.SATYRS_CHOOSE_DIE, self.activePlayer, (next + 1, )))
+                ret.append((Move.SATYRS_CHOOSE_DIE, self.activePlayer, (next + 1,)))
         return tuple(ret)
 
     def makeReturnMove(self, player):
@@ -2399,7 +2404,7 @@ class Player:
                     self.gainVP(10)
             i += 1
 
-    def useHammer(self, hammerAmount): # spend hammerAmount on hammer, gain remainder as gold
+    def useHammer(self, hammerAmount):  # spend hammerAmount on hammer, gain remainder as gold
         self.addHammer(hammerAmount)
         self.gainGold(self.goldToGain - hammerAmount)
         self.goldToGain = 0
