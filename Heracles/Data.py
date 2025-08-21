@@ -274,3 +274,10 @@ def getIsland(feat):
     if 5 < pos < 9:
         return 4
     return (pos + 1) // 2
+
+
+def getTotalGoldCost(faces):
+    ret = 0
+    for face in faces:
+        ret += getGoldValue(face)
+    return ret

@@ -1,7 +1,10 @@
 import random
 import math
 from Game import Move
+from Data import getTotalGoldCost
+from Data import DieFace
 import time
+
 
 class Node:
     def __init__(self, state, parent=None, move=None):
@@ -58,7 +61,7 @@ class Node:
                 childNode = Node(nextState, self, move)
                 self.children.append(childNode)
                 return childNode
-        print(options) # shouldn't ever get here unless something is wrong
+        print(options)  # shouldn't ever get here unless something is wrong
         self.state.printBoardState()
 
     def backpropagate(self, result):
@@ -66,6 +69,102 @@ class Node:
         self.points += result[self.state.lastPlayer]
         if self.parent:
             self.parent.backpropagate(result)
+
+
+class HeuristicNode:
+    def __init__(self, state, parent=None, move=None):
+        self.state = state
+        self.parent = parent
+        self.move = move
+        self.children = []
+        self.visits = 0
+        self.points = 0
+
+    def isTerminalNode(self):
+        return self.state.isOver()
+
+    def isFullyExpanded(self):
+        if self.children and self.children[0].move[0] == Move.ROLL:
+            return True
+        return len(self.children) == len(self.state.getOptions())
+
+    def bestChild(self, explorationWeight=1.41):
+        if self.children[0].move[0] == Move.ROLL:
+            roll = random.choice(range(0, 6))
+            i = 0
+            for child in self.children:
+                i += child.move[2][1]
+                if roll < i:
+                    return child
+        if self.children[0].move[0] == Move.CHOOSE_BUY_FACES and (self.state.round == 1 or (self.state.round < 4 and self.state.players[self.children[0].move[1]].gold >= 8)):
+            # buy faces early if player has a lot of gold
+            return self.children[0]
+        elif self.children[0].move[0] == Move.BUY_FACES and len(self.children) > 5:
+            # don't consider face buys which don't spend most of current gold
+            gold = self.state.players[self.children[0].move[1]].gold
+            if self.state.round > 3:
+                gold -= 1
+            choicesWeights = []
+            for child in self.children:
+                if getTotalGoldCost(child.move[2]) < gold:
+                    choicesWeights.append(0)
+                else:
+                    choicesWeights.append((child.points / child.visits) + explorationWeight * math.sqrt(
+                        math.log(self.visits) / child.visits
+                    ))
+            if max(choicesWeights) > 0:
+                return self.children[choicesWeights.index(max(choicesWeights))]
+        elif self.children[0].move[0] == Move.FORGE_FACE:
+            # prioritize forging over gold 1 faces
+            choicesWeights = []
+            for child in self.children:
+                if child.move[2][2] == DieFace.GOLD1:
+                    choicesWeights.append((child.points / child.visits) + explorationWeight * math.sqrt(
+                        math.log(self.visits) / child.visits
+                    ))
+                else:
+                    choicesWeights.append(0)
+            if max(choicesWeights) > 0:
+                return self.children[choicesWeights.index(max(choicesWeights))]
+        choicesWeights = [
+            (child.points / child.visits) + explorationWeight * math.sqrt(
+                math.log(self.visits) / child.visits
+            )
+            for child in self.children
+        ]
+        return self.children[choicesWeights.index(max(choicesWeights))]
+
+    def mostVisitedChild(self):
+        visits = [child.visits for child in self.children]
+        return self.children[visits.index(max(visits))]
+
+    def expand(self):
+        tried = [child.move for child in self.children]
+        options = self.state.getOptions()
+        if options[0][0] == Move.ROLL:
+            for move in options:
+                if move[0] == Move.ROLL:
+                    nextState = self.state.copyState()
+                    nextState.makeMove(move)
+                    childNode = HeuristicNode(nextState, self, move)
+                    self.children.append(childNode)
+            return self.bestChild()
+        for move in options:
+            if move not in tried:
+                nextState = self.state.copyState()
+                nextState.makeMove(move)
+                childNode = HeuristicNode(nextState, self, move)
+                self.children.append(childNode)
+                return childNode
+        print(options)  # shouldn't ever get here unless something is wrong
+        self.state.printBoardState()
+
+    def backpropagate(self, result):
+        self.visits += 1
+        self.points += result[self.state.lastPlayer]
+        if self.parent:
+            self.parent.backpropagate(result)
+
 
 """
 class TicTacToeState:
@@ -152,13 +251,15 @@ def mcts(rootState, numSims):
         node.backpropagate(result)
     print("mcts results")
     for node in root.children:
-        print(f"Move: {node.move}, visits:{node.visits}, win probability: {node.points/node.visits}, lastPlayer: {node.state.lastPlayer}")
+        print(
+            f"Move: {node.move}, visits:{node.visits}, win probability: {node.points / node.visits}, lastPlayer: {node.state.lastPlayer}")
     print(f"time elapsed: {(time.time() - startTime) / 60} minutes")
     return root.mostVisitedChild().move
 
-def mctsWithHeuristic(rootState, numSims): # todo
+
+def mctsWithHeuristic(rootState, numSims):  # todo
     startTime = time.time()
-    root = Node(rootState.copyState())
+    root = HeuristicNode(rootState.copyState())
     if len(root.state.getOptions()) == 1:
         return root.state.getOptions()[0]
     for _ in range(numSims):
@@ -173,9 +274,10 @@ def mctsWithHeuristic(rootState, numSims): # todo
         result = rollout(node.state)
         # backpropagation
         node.backpropagate(result)
-    print("mcts results")
+    print("mcts (with heuristic) results")
     for node in root.children:
-        print(f"Move: {node.move}, visits:{node.visits}, win probability: {node.points/node.visits}, lastPlayer: {node.state.lastPlayer}")
+        print(
+            f"Move: {node.move}, visits:{node.visits}, win probability: {node.points / node.visits}, lastPlayer: {node.state.lastPlayer}")
     print(f"time elapsed: {(time.time() - startTime) / 60} minutes")
     return root.mostVisitedChild().move
 

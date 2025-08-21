@@ -2,7 +2,7 @@ import random
 import Game
 import MCTS
 
-players = [Game.Player(0, False), Game.Player(1, True)]
+players = [Game.Player(0, True), Game.Player(1, True)]
 theBoard = Game.BoardState(players, True)
 undoState = theBoard.copyState()
 theBoard.printBoardState()
@@ -45,7 +45,12 @@ def printOptions(options, boardState):
                         resource = "ancient shard"
                     case 5:
                         resource = "loyalty"
-                if boardState.phase == Game.Phase.DIE_1_CHOOSE_OR or Game.Phase.MISFORTUNE_1_CHOOSE_OR or Game.Phase.MINOR_MISFORTUNE_1_OR:
+                if boardState.phase == Game.Phase.MINOR_CHOOSE_OR:
+                    if boardState.players[option[1]].dieChoice: 
+                        dieFace = boardState.players[option[1]].getDie1Result()
+                    else:
+                        dieFace = boardState.players[option[1]].getDie2Result()
+                elif boardState.phase == Game.Phase.DIE_1_CHOOSE_OR or Game.Phase.MISFORTUNE_1_CHOOSE_OR or Game.Phase.MINOR_MISFORTUNE_1_OR:
                     dieFace = boardState.players[option[1]].getDie1Result()
                 else: #elif boardState.phase == Game.Phase.DIE_2_CHOOSE_OR or Game.Phase.MISFORTUNE_2_CHOOSE_OR or Game.Phase.MINOR_MISFORTUNE_2_OR:
                     dieFace = boardState.players[option[1]].getDie2Result()
@@ -138,8 +143,12 @@ while not theBoard.isOver():
             printMove(options[len(options) - 1])
             theBoard.makeMove(options[len(options) - 1]) # always do random roll
             print(f"After rolling, player {options[0][1]} has the faces {theBoard.players[options[0][1]].getDie1UpFace()} and {theBoard.players[options[0][1]].getDie2UpFace()}")
-        elif options[0][1] < 2:
+        elif options[0][1] == 0:
             move = MCTS.mcts(theBoard.copyState(), 5000)
+            printMove(move)
+            theBoard.makeMove(move)
+        elif options[0][1] == 1:
+            move = MCTS.mctsWithHeuristic(theBoard.copyState(), 5000)
             printMove(move)
             theBoard.makeMove(move)
         else:
