@@ -251,6 +251,7 @@ class BoardState:
                             self.phase = Phase.SATYRS_CHOOSE_DIE_1
                         elif self.minotaur:
                             self.blessingPlayer = (self.blessingPlayer + 1) % len(self.players)
+                            self.players[self.blessingPlayer].setBuffers()
                             self.phase = Phase.MIRROR_1_CHOICE
                         else:
                             self.players[self.blessingPlayer].populateTwins()
@@ -266,6 +267,7 @@ class BoardState:
                             self.phase = Phase.SATYRS_CHOOSE_DIE_1
                         elif self.minotaur:
                             self.blessingPlayer = (self.blessingPlayer + 1) % len(self.players)
+                            self.players[self.blessingPlayer].setBuffers()
                             self.phase = Phase.MIRROR_1_CHOICE
                         else:
                             self.players[self.blessingPlayer].populateTwins()
@@ -625,6 +627,7 @@ class BoardState:
                         self.makeReturnMove(move[1])
                     else:
                         self.phase = Phase.MIRROR_1_CHOICE
+                        self.players[self.blessingPlayer].setBuffers()
                         self.makeMove((Move.PASS, move[1], ()))
                 elif self.satyrs:
                     self.satyrs = False
