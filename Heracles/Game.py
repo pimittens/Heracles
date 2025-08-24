@@ -1,6 +1,8 @@
 import copy
 from enum import Enum
 import random
+from itertools import combinations
+
 import Data
 
 
@@ -1299,341 +1301,38 @@ class BoardState:
 
     def generateBuyFaces(self, gold):
         ret = []
+        availableFaces = []
         if gold >= 2:
             if self.temple[0]:
-                ret.append((Move.BUY_FACES, self.activePlayer, (self.temple[0][0],)))
+                availableFaces.append(self.temple[0][0])
             if self.temple[1]:
-                ret.append((Move.BUY_FACES, self.activePlayer, (self.temple[1][0],)))
+                availableFaces.append(self.temple[1][0])
             if gold >= 3:
                 if self.temple[2]:
-                    ret.append((Move.BUY_FACES, self.activePlayer, (self.temple[2][0],)))
+                    availableFaces.append(self.temple[2][0])
                 if self.temple[3]:
-                    ret.append((Move.BUY_FACES, self.activePlayer, (self.temple[3][0],)))
+                    availableFaces.append(self.temple[3][0])
                 if gold >= 4:
                     for face in self.temple[4]:
-                        ret.append((Move.BUY_FACES, self.activePlayer, (face,)))
-                    if self.temple[0] and self.temple[1]:
-                        ret.append((Move.BUY_FACES, self.activePlayer, (self.temple[0][0], self.temple[1][0])))
+                        availableFaces.append(face)
                     if gold >= 5:
                         if self.temple[5]:
-                            ret.append((Move.BUY_FACES, self.activePlayer, (self.temple[5][0],)))
-                        if self.temple[0] and self.temple[2]:
-                            ret.append((Move.BUY_FACES, self.activePlayer, (self.temple[0][0], self.temple[2][0])))
-                        if self.temple[1] and self.temple[2]:
-                            ret.append((Move.BUY_FACES, self.activePlayer, (self.temple[1][0], self.temple[2][0])))
-                        if self.temple[0] and self.temple[3]:
-                            ret.append((Move.BUY_FACES, self.activePlayer, (self.temple[0][0], self.temple[3][0])))
-                        if self.temple[1] and self.temple[3]:
-                            ret.append((Move.BUY_FACES, self.activePlayer, (self.temple[1][0], self.temple[3][0])))
+                            availableFaces.append(self.temple[5][0])
                         if gold >= 6:
                             if self.temple[6]:
-                                ret.append((Move.BUY_FACES, self.activePlayer, (self.temple[6][0],)))
-                            if self.temple[2] and self.temple[3]:
-                                ret.append((Move.BUY_FACES, self.activePlayer, (self.temple[2][0], self.temple[3][0])))
-                            if self.temple[0] and self.temple[4]:
-                                for face in self.temple[4]:
-                                    ret.append((Move.BUY_FACES, self.activePlayer, (self.temple[0][0], face)))
-                            if self.temple[1] and self.temple[4]:
-                                for face in self.temple[4]:
-                                    ret.append((Move.BUY_FACES, self.activePlayer, (self.temple[1][0], face)))
-                            if gold >= 7:
-                                if self.temple[2] and self.temple[4]:
-                                    for face in self.temple[4]:
-                                        ret.append((Move.BUY_FACES, self.activePlayer, (self.temple[2][0], face)))
-                                if self.temple[3] and self.temple[4]:
-                                    for face in self.temple[4]:
-                                        ret.append((Move.BUY_FACES, self.activePlayer, (self.temple[3][0], face)))
-                                if self.temple[0] and self.temple[5]:
-                                    ret.append(
-                                        (Move.BUY_FACES, self.activePlayer, (self.temple[0][0], self.temple[5][0])))
-                                if self.temple[1] and self.temple[5]:
-                                    ret.append(
-                                        (Move.BUY_FACES, self.activePlayer, (self.temple[1][0], self.temple[5][0])))
-                                if self.temple[0] and self.temple[1] and self.temple[2]:
-                                    ret.append((Move.BUY_FACES, self.activePlayer,
-                                                (self.temple[0][0], self.temple[1][0], self.temple[2][0])))
-                                if self.temple[0] and self.temple[1] and self.temple[3]:
-                                    ret.append((Move.BUY_FACES, self.activePlayer,
-                                                (self.temple[0][0], self.temple[1][0], self.temple[3][0])))
-                                if gold >= 8:
-                                    if self.temple[7]:
-                                        ret.append((Move.BUY_FACES, self.activePlayer, (self.temple[7][0],)))
-                                    if self.temple[8]:
-                                        ret.append((Move.BUY_FACES, self.activePlayer, (self.temple[8][0],)))
-                                    if len(self.temple[4]) > 1:
-                                        i = 0
-                                        while i < len(self.temple[4]) - 1:
-                                            j = i + 1
-                                            while j < len(self.temple[4]):
-                                                ret.append((Move.BUY_FACES, self.activePlayer,
-                                                            (self.temple[4][i], self.temple[4][j])))
-                                                j += 1
-                                            i += 1
-                                    if self.temple[0] and self.temple[6]:
-                                        ret.append(
-                                            (Move.BUY_FACES, self.activePlayer, (self.temple[0][0], self.temple[6][0])))
-                                    if self.temple[1] and self.temple[6]:
-                                        ret.append(
-                                            (Move.BUY_FACES, self.activePlayer, (self.temple[1][0], self.temple[6][0])))
-                                    if self.temple[2] and self.temple[5]:
-                                        ret.append(
-                                            (Move.BUY_FACES, self.activePlayer, (self.temple[2][0], self.temple[5][0])))
-                                    if self.temple[3] and self.temple[5]:
-                                        ret.append(
-                                            (Move.BUY_FACES, self.activePlayer, (self.temple[3][0], self.temple[5][0])))
-                                    if self.temple[0] and self.temple[2] and self.temple[3]:
-                                        ret.append((Move.BUY_FACES, self.activePlayer,
-                                                    (self.temple[0][0], self.temple[2][0], self.temple[3][0])))
-                                    if self.temple[1] and self.temple[2] and self.temple[3]:
-                                        ret.append((Move.BUY_FACES, self.activePlayer,
-                                                    (self.temple[1][0], self.temple[2][0], self.temple[3][0])))
-                                    if self.temple[0] and self.temple[1] and self.temple[4]:
-                                        for face in self.temple[4]:
-                                            ret.append((Move.BUY_FACES, self.activePlayer,
-                                                        (self.temple[0][0], self.temple[1][0], face)))
-                                    if gold >= 9:
-                                        if self.temple[0] and self.temple[1] and self.temple[5]:
-                                            ret.append((Move.BUY_FACES, self.activePlayer,
-                                                        (self.temple[0][0], self.temple[1][0], self.temple[5][0])))
-                                        if self.temple[0] and self.temple[2] and self.temple[4]:
-                                            for face in self.temple[4]:
-                                                ret.append((Move.BUY_FACES, self.activePlayer,
-                                                            (self.temple[0][0], self.temple[2][0], face)))
-                                        if self.temple[0] and self.temple[3] and self.temple[4]:
-                                            for face in self.temple[4]:
-                                                ret.append((Move.BUY_FACES, self.activePlayer,
-                                                            (self.temple[0][0], self.temple[3][0], face)))
-                                        if self.temple[1] and self.temple[2] and self.temple[4]:
-                                            for face in self.temple[4]:
-                                                ret.append((Move.BUY_FACES, self.activePlayer,
-                                                            (self.temple[1][0], self.temple[2][0], face)))
-                                        if self.temple[1] and self.temple[3] and self.temple[4]:
-                                            for face in self.temple[4]:
-                                                ret.append((Move.BUY_FACES, self.activePlayer,
-                                                            (self.temple[1][0], self.temple[3][0], face)))
-                                        if self.temple[4] and self.temple[5]:
-                                            for face in self.temple[4]:
-                                                ret.append(
-                                                    (Move.BUY_FACES, self.activePlayer, (face, self.temple[5][0])))
-                                        if self.temple[2] and self.temple[6]:
-                                            ret.append((Move.BUY_FACES, self.activePlayer,
-                                                        (self.temple[2][0], self.temple[6][0])))
-                                        if self.temple[3] and self.temple[6]:
-                                            ret.append((Move.BUY_FACES, self.activePlayer,
-                                                        (self.temple[3][0], self.temple[6][0])))
-                                        if gold >= 10:
-                                            if self.temple[0] and self.temple[7]:
-                                                ret.append((Move.BUY_FACES, self.activePlayer,
-                                                            (self.temple[0][0], self.temple[7][0])))
-                                            if self.temple[1] and self.temple[7]:
-                                                ret.append((Move.BUY_FACES, self.activePlayer,
-                                                            (self.temple[1][0], self.temple[7][0])))
-                                            if self.temple[0] and self.temple[8]:
-                                                ret.append((Move.BUY_FACES, self.activePlayer,
-                                                            (self.temple[0][0], self.temple[8][0])))
-                                            if self.temple[1] and self.temple[8]:
-                                                ret.append((Move.BUY_FACES, self.activePlayer,
-                                                            (self.temple[1][0], self.temple[8][0])))
-                                            if self.temple[0] and self.temple[1] and self.temple[6]:
-                                                ret.append((Move.BUY_FACES, self.activePlayer,
-                                                            (self.temple[0][0], self.temple[1][0], self.temple[6][0])))
-                                            if self.temple[4] and self.temple[6]:
-                                                for face in self.temple[4]:
-                                                    ret.append(
-                                                        (Move.BUY_FACES, self.activePlayer, (face, self.temple[6][0])))
-                                            if self.temple[0] and self.temple[1] and self.temple[2] and self.temple[3]:
-                                                ret.append((Move.BUY_FACES, self.activePlayer, (
-                                                    self.temple[0][0], self.temple[1][0], self.temple[2][0],
-                                                    self.temple[3][0])))
-                                            if self.temple[0] and self.temple[2] and self.temple[5]:
-                                                ret.append((Move.BUY_FACES, self.activePlayer,
-                                                            (self.temple[0][0], self.temple[2][0], self.temple[5][0])))
-                                            if self.temple[1] and self.temple[2] and self.temple[5]:
-                                                ret.append((Move.BUY_FACES, self.activePlayer,
-                                                            (self.temple[1][0], self.temple[2][0], self.temple[5][0])))
-                                            if self.temple[0] and self.temple[3] and self.temple[5]:
-                                                ret.append((Move.BUY_FACES, self.activePlayer,
-                                                            (self.temple[0][0], self.temple[3][0], self.temple[5][0])))
-                                            if self.temple[1] and self.temple[3] and self.temple[5]:
-                                                ret.append((Move.BUY_FACES, self.activePlayer,
-                                                            (self.temple[1][0], self.temple[3][0], self.temple[5][0])))
-                                            if self.temple[0] and len(self.temple[4]) > 1:
-                                                i = 0
-                                                while i < len(self.temple[4]) - 1:
-                                                    j = i + 1
-                                                    while j < len(self.temple[4]):
-                                                        ret.append((Move.BUY_FACES, self.activePlayer, (
-                                                            self.temple[0][0], self.temple[4][i], self.temple[4][j])))
-                                                        j += 1
-                                                    i += 1
-                                            if self.temple[1] and len(self.temple[4]) > 1:
-                                                i = 0
-                                                while i < len(self.temple[4]) - 1:
-                                                    j = i + 1
-                                                    while j < len(self.temple[4]):
-                                                        ret.append((Move.BUY_FACES, self.activePlayer, (
-                                                            self.temple[1][0], self.temple[4][i], self.temple[4][j])))
-                                                        j += 1
-                                                    i += 1
-                                            if self.temple[2] and self.temple[3] and self.temple[4]:
-                                                for face in self.temple[4]:
-                                                    ret.append((Move.BUY_FACES, self.activePlayer,
-                                                                (self.temple[2][0], self.temple[3][0], face)))
-                                            if gold >= 11:
-                                                if self.temple[2] and self.temple[7]:
-                                                    ret.append((Move.BUY_FACES, self.activePlayer,
-                                                                (self.temple[2][0], self.temple[7][0])))
-                                                if self.temple[3] and self.temple[7]:
-                                                    ret.append((Move.BUY_FACES, self.activePlayer,
-                                                                (self.temple[3][0], self.temple[7][0])))
-                                                if self.temple[2] and self.temple[8]:
-                                                    ret.append((Move.BUY_FACES, self.activePlayer,
-                                                                (self.temple[2][0], self.temple[8][0])))
-                                                if self.temple[3] and self.temple[8]:
-                                                    ret.append((Move.BUY_FACES, self.activePlayer,
-                                                                (self.temple[3][0], self.temple[8][0])))
-                                                if self.temple[2] and len(self.temple[4]) > 1:
-                                                    i = 0
-                                                    while i < len(self.temple[4]) - 1:
-                                                        j = i + 1
-                                                        while j < len(self.temple[4]):
-                                                            ret.append((Move.BUY_FACES, self.activePlayer, (
-                                                                self.temple[2][0], self.temple[4][i],
-                                                                self.temple[4][j])))
-                                                            j += 1
-                                                        i += 1
-                                                if self.temple[3] and len(self.temple[4]) > 1:
-                                                    i = 0
-                                                    while i < len(self.temple[4]) - 1:
-                                                        j = i + 1
-                                                        while j < len(self.temple[4]):
-                                                            ret.append((Move.BUY_FACES, self.activePlayer, (
-                                                                self.temple[3][0], self.temple[4][i],
-                                                                self.temple[4][j])))
-                                                            j += 1
-                                                        i += 1
-                                                if self.temple[0] and self.temple[2] and self.temple[6]:
-                                                    ret.append((Move.BUY_FACES, self.activePlayer, (
-                                                        self.temple[0][0], self.temple[2][0], self.temple[6][0])))
-                                                if self.temple[1] and self.temple[2] and self.temple[6]:
-                                                    ret.append((Move.BUY_FACES, self.activePlayer, (
-                                                        self.temple[1][0], self.temple[2][0], self.temple[6][0])))
-                                                if self.temple[0] and self.temple[3] and self.temple[6]:
-                                                    ret.append((Move.BUY_FACES, self.activePlayer, (
-                                                        self.temple[0][0], self.temple[3][0], self.temple[6][0])))
-                                                if self.temple[1] and self.temple[3] and self.temple[6]:
-                                                    ret.append((Move.BUY_FACES, self.activePlayer, (
-                                                        self.temple[1][0], self.temple[3][0], self.temple[6][0])))
-                                                if self.temple[5] and self.temple[6]:
-                                                    ret.append((Move.BUY_FACES, self.activePlayer,
-                                                                (self.temple[5][0], self.temple[6][0])))
-                                                if self.temple[0] and len(self.temple[4]) > 1 and self.temple[5]:
-                                                    for face in self.temple[4]:
-                                                        ret.append((Move.BUY_FACES, self.activePlayer,
-                                                                    (self.temple[0][0], face, self.temple[5][0])))
-                                                if self.temple[1] and len(self.temple[4]) > 1 and self.temple[5]:
-                                                    for face in self.temple[4]:
-                                                        ret.append((Move.BUY_FACES, self.activePlayer,
-                                                                    (self.temple[1][0], face, self.temple[5][0])))
-                                                if self.temple[2] and self.temple[3] and self.temple[5]:
-                                                    ret.append((Move.BUY_FACES, self.activePlayer, (
-                                                        self.temple[2][0], self.temple[3][0], self.temple[5][0])))
-                                                if self.temple[0] and self.temple[1] and self.temple[2] and self.temple[
-                                                    4]:
-                                                    for face in self.temple[4]:
-                                                        ret.append((Move.BUY_FACES, self.activePlayer, (
-                                                            self.temple[0][0], self.temple[1][0], self.temple[2][0],
-                                                            face)))
-                                                if self.temple[0] and self.temple[1] and self.temple[3] and self.temple[
-                                                    4]:
-                                                    for face in self.temple[4]:
-                                                        ret.append((Move.BUY_FACES, self.activePlayer, (
-                                                            self.temple[0][0], self.temple[1][0], self.temple[3][0],
-                                                            face)))
-                                                if gold >= 12:
-                                                    for face in self.temple[9]:
-                                                        ret.append((Move.BUY_FACES, self.activePlayer, (face,)))
-                                                    if self.temple[4] and self.temple[7]:
-                                                        for face in self.temple[4]:
-                                                            ret.append((Move.BUY_FACES, self.activePlayer,
-                                                                        (face, self.temple[7][0])))
-                                                    if self.temple[4] and self.temple[8]:
-                                                        for face in self.temple[4]:
-                                                            ret.append((Move.BUY_FACES, self.activePlayer,
-                                                                        (face, self.temple[8][0])))
-                                                    if self.temple[0] and self.temple[1] and self.temple[7]:
-                                                        ret.append((Move.BUY_FACES, self.activePlayer, (
-                                                            self.temple[0][0], self.temple[1][0], self.temple[7][0])))
-                                                    if self.temple[0] and self.temple[1] and self.temple[8]:
-                                                        ret.append((Move.BUY_FACES, self.activePlayer, (
-                                                            self.temple[0][0], self.temple[1][0], self.temple[8][0])))
-                                                    if self.temple[0] and self.temple[4] and self.temple[6]:
-                                                        for face in self.temple[4]:
-                                                            ret.append((Move.BUY_FACES, self.activePlayer,
-                                                                        (self.temple[0][0], face, self.temple[6][0])))
-                                                    if self.temple[1] and self.temple[4] and self.temple[6]:
-                                                        for face in self.temple[4]:
-                                                            ret.append((Move.BUY_FACES, self.activePlayer,
-                                                                        (self.temple[1][0], face, self.temple[6][0])))
-                                                    if self.temple[2] and self.temple[3] and self.temple[6]:
-                                                        ret.append((Move.BUY_FACES, self.activePlayer, (
-                                                            self.temple[2][0], self.temple[3][0], self.temple[6][0])))
-                                                    if self.temple[2] and self.temple[4] and self.temple[5]:
-                                                        for face in self.temple[4]:
-                                                            ret.append((Move.BUY_FACES, self.activePlayer,
-                                                                        (self.temple[2][0], face, self.temple[5][0])))
-                                                    if self.temple[3] and self.temple[4] and self.temple[5]:
-                                                        for face in self.temple[4]:
-                                                            ret.append((Move.BUY_FACES, self.activePlayer,
-                                                                        (self.temple[3][0], face, self.temple[5][0])))
-                                                    if self.temple[0] and self.temple[1] and self.temple[2] and \
-                                                            self.temple[5]:
-                                                        ret.append((Move.BUY_FACES, self.activePlayer, (
-                                                            self.temple[0][0], self.temple[1][0], self.temple[2][0],
-                                                            self.temple[5][0])))
-                                                    if self.temple[0] and self.temple[1] and self.temple[3] and \
-                                                            self.temple[5]:
-                                                        ret.append((Move.BUY_FACES, self.activePlayer, (
-                                                            self.temple[0][0], self.temple[1][0], self.temple[3][0],
-                                                            self.temple[5][0])))
-                                                    if len(self.temple[4]) > 2:
-                                                        i = 0
-                                                        while i < len(self.temple[4]) - 2:
-                                                            j = i + 1
-                                                            while j < len(self.temple[4]) - 1:
-                                                                k = j + 1
-                                                                while k < len(self.temple[4]):
-                                                                    ret.append((Move.BUY_FACES, self.activePlayer, (
-                                                                        self.temple[4][i], self.temple[4][j],
-                                                                        self.temple[4][k])))
-                                                                    k += 1
-                                                                j += 1
-                                                            i += 1
-                                                    if self.temple[0] and self.temple[2] and self.temple[3] and \
-                                                            self.temple[4]:
-                                                        for face in self.temple[4]:
-                                                            ret.append((Move.BUY_FACES, self.activePlayer, (
-                                                                self.temple[0][0], self.temple[2][0], self.temple[3][0],
-                                                                face)))
-                                                    if self.temple[1] and self.temple[2] and self.temple[3] and \
-                                                            self.temple[4]:
-                                                        for face in self.temple[4]:
-                                                            ret.append((Move.BUY_FACES, self.activePlayer, (
-                                                                self.temple[1][0], self.temple[2][0], self.temple[3][0],
-                                                                face)))
-                                                    if self.temple[0] and self.temple[1] and len(self.temple[4]) > 1:
-                                                        i = 0
-                                                        while i < len(self.temple[4]) - 1:
-                                                            j = i + 1
-                                                            while j < len(self.temple[4]):
-                                                                ret.append((Move.BUY_FACES, self.activePlayer, (
-                                                                    self.temple[0][0], self.temple[1][0],
-                                                                    self.temple[4][i],
-                                                                    self.temple[4][j])))
-                                                                j += 1
-                                                            i += 1
-
-        # todo, etc
+                                availableFaces.append(self.temple[6][0])
+                            if gold >= 8:
+                                if self.temple[7]:
+                                    availableFaces.append(self.temple[7][0])
+                                if self.temple[8]:
+                                    availableFaces.append(self.temple[8][0])
+                                if gold >= 12:
+                                    for face in self.temple[9]:
+                                        availableFaces.append(face)
+        for i in range(len(availableFaces) + 1):
+            for combo in combinations(availableFaces, i):
+                if Data.getTotalGoldCost(combo) <= gold:
+                    ret.append((Move.BUY_FACES, self.activePlayer, tuple(combo)))
         ret.append((Move.PASS, self.activePlayer, ()))
         return tuple(ret)
 
@@ -2686,11 +2385,11 @@ class Player:
                     self.gainVP(3 * mult)
 
     def buyFace(self, face):
-        self.gainGold(-Data.getGoldValue(face))
+        self.gainGold(-Data.faceCosts[face])
         self.unforgedFaces.append(face)
 
     def buyFaceShip(self, face):
-        self.gainGold(-(Data.getGoldValue(face) - 2))
+        self.gainGold(-(Data.faceCosts[face] - 2))
         self.unforgedFaces.append(face)
 
     def forgeFace(self, forgeInfo):

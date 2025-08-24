@@ -114,14 +114,14 @@ class DieFace(Enum):
     VP1GOLD2LOYALTY1 = 43
 
 
-facesData = tuple(json.loads(open("Faces.json").read(), object_hook=SimpleNamespace))
-featsData = tuple(json.loads(open("Feats.json").read(), object_hook=SimpleNamespace))
+facesData = tuple(json.loads(open("Faces.json").read()))
+featsData = tuple(json.loads(open("Feats.json").read()))
 
 
 def getLevel(face):
     for f in facesData:
-        if f.name == face.name:
-            return f.level
+        if f["name"] == face.name:
+            return f["level"]
     return 0
 
 
@@ -163,15 +163,15 @@ def getResourceValues(face):
     :return: a tuple containing the gold, sun, moon, vp, ancient shards, and loyalty for the face
     """
     for f in facesData:
-        if f.name == face.name:
-            return f.gold, f.sun, f.moon, f.vp, f.ancientshard, f.loyalty
+        if f["name"] == face.name:
+            return f["gold"], f["sun"], f["moon"], f["vp"], f["ancientshard"], f["loyalty"]
     return 0, 0, 0, 0, 0, 0
 
 
 def getIsOr(face):
     for f in facesData:
-        if f.name == face.name:
-            return f.isOr
+        if f["name"] == face.name:
+            return f["isOr"]
     return False
 
 
@@ -193,8 +193,8 @@ def isMisfortuneFeat(feat):
 
 def getPosition(feat):
     for f in featsData:
-        if f.name == feat.name:
-            return f.position
+        if f["name"] == feat.name:
+            return f["position"]
     if feat == HeroicFeat.TENACIOUS_BOAR_RED or feat == HeroicFeat.TENACIOUS_BOAR_BLUE or feat == HeroicFeat.TENACIOUS_BOAR_YELLOW or feat == HeroicFeat.TENACIOUS_BOAR_GREEN:
         return 11
     return -1
@@ -203,22 +203,22 @@ def getPosition(feat):
 def getFeatsByPosition(pos):
     ret = []
     for f in featsData:
-        if f.position == pos and f.set < 2:
-            ret.append(HeroicFeat[f.name])
+        if f["position"] == pos and f["set"] < 2:
+            ret.append(HeroicFeat[f["name"]])
     return ret
 
 
 def getSet(feat):
     for f in featsData:
-        if f.name == feat.name:
-            return f.set
+        if f["name"] == feat.name:
+            return f["set"]
     return 0
 
 
 def getPoints(feat):
     for f in featsData:
-        if f.name == feat.name:
-            return f.points
+        if f["name"] == feat.name:
+            return f["points"]
     return 0
 
 
@@ -240,8 +240,8 @@ def getEffect(feat):
     elif feat == HeroicFeat.MIRROR_OF_MISFORTUNE_GREEN:
         return "MISFORTUNE_INST_AUTO_GREEN"
     for f in featsData:
-        if f.name == feat.name:
-            return f.effect
+        if f["name"] == feat.name:
+            return f["effect"]
     return "NONE"
 
 
@@ -276,8 +276,11 @@ def getIsland(feat):
     return (pos + 1) // 2
 
 
+faceCosts = {face: getGoldValue(face) for face in DieFace}
+
+
 def getTotalGoldCost(faces):
     ret = 0
     for face in faces:
-        ret += getGoldValue(face)
+        ret += faceCosts[face]
     return ret
