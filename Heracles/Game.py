@@ -626,6 +626,10 @@ class BoardState:
                     else:
                         self.phase = Phase.MIRROR_1_CHOICE
                         self.makeMove((Move.PASS, move[1], ()))
+                elif self.satyrs:
+                    self.satyrs = False
+                    self.phase = self.returnPhase
+                    self.makeReturnMove(move[1])
                 else:
                     self.phase = self.returnPhase
                     self.makeReturnMove(move[1])
