@@ -128,6 +128,7 @@ class Move(Enum):
     CHOOSE_USE_CYCLOPS = 24
     CHOOSE_ADD_HAMMER = 25
     SATYRS_CHOOSE_DIE = 26
+    USE_TRITON_TOKEN = 27
 
 
 class BoardState:
@@ -218,6 +219,15 @@ class BoardState:
         # self.printPlayersInfo()
         self.lastPlayer = move[1]
         # print(f"last player: {self.lastPlayer}")
+        if move[0] == Move.USE_TRITON_TOKEN:
+            match move[2][0]:
+                case "sun":
+                    self.players[move[1]].gainSun(2)
+                case "moon":
+                    self.players[move[1]].gainMoon(2)
+                case "gold":
+                    self.players[move[1]].gainGold(6)
+            return
         match self.phase:
             case Phase.TURN_START:
                 self.blessingPlayer = self.activePlayer
@@ -1140,8 +1150,6 @@ class BoardState:
                 self.phase = Phase.TURN_START
                 self.advanceActivePlayer(move[1])
 
-        # todo: finish
-
     def getOptions(self):
         # print(self.phase)
         # self.printBoardState()
@@ -1297,6 +1305,15 @@ class BoardState:
                 ret = self.generateSatyrsChooseDie(True)
             case Phase.SATYRS_CHOOSE_DIE_2:
                 ret = self.generateSatyrsChooseDie(False)
+        if ret[0][1] == self.activePlayer and self.players[self.activePlayer].tritonTokens >= 1:
+            ret = list(ret)
+            if self.players[self.activePlayer].gold < self.players[self.activePlayer].maxGold:
+                ret.append((Move.USE_TRITON_TOKEN, self.activePlayer, ("gold", )))
+            if self.players[self.activePlayer].sun < self.players[self.activePlayer].maxSun:
+                ret.append((Move.USE_TRITON_TOKEN, self.activePlayer, ("sun", )))
+            if self.players[self.activePlayer].moon < self.players[self.activePlayer].maxMoon:
+                ret.append((Move.USE_TRITON_TOKEN, self.activePlayer, ("moon", )))
+            ret = tuple(ret)
         return ret
 
     def generateBuyFaces(self, gold):
@@ -1674,7 +1691,7 @@ class BoardState:
                     self.returnPhase = Phase.END_TURN
                 self.phase = Phase.ROLL_DIE_1
                 self.blessingPlayer = (self.activePlayer + 1) % len(self.players)
-            case "TRITON_INST":  # todo: using triton tokens
+            case "TRITON_INST":
                 self.players[self.activePlayer].tritonTokens += 1
                 self.makeMove((Move.PASS, self.activePlayer, ()))
             case "MIRROR_INST":
