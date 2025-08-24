@@ -1350,7 +1350,7 @@ class BoardState:
                                 if gold >= 12:
                                     for face in self.temple[9]:
                                         availableFaces.append(face)
-        for i in range(len(availableFaces) + 1):
+        for i in range(1, len(availableFaces) + 1):
             for combo in combinations(availableFaces, i):
                 if Data.getTotalGoldCost(combo) <= gold:
                     ret.append((Move.BUY_FACES, self.activePlayer, tuple(combo)))
