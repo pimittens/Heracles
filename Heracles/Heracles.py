@@ -52,9 +52,23 @@ def printOptions(options, boardState):
                     else:
                         dieFace = boardState.players[option[1]].getDie2Result()
                 elif boardState.phase == Game.Phase.DIE_1_CHOOSE_OR or Game.Phase.MISFORTUNE_1_CHOOSE_OR or Game.Phase.MINOR_MISFORTUNE_1_OR:
-                    dieFace = boardState.players[option[1]].getDie1Result()
+                    if boardState.satyrs:
+                        satyrsChoice = boardState.players[option[1]].orChoice1
+                        if satyrsChoice % 2 == 0:
+                            dieFace = boardState.players[satyrsChoice // 2].getDie1UpFace()
+                        else:
+                            dieFace = boardState.players[satyrsChoice // 2].getDie2UpFace()
+                    else:
+                        dieFace = boardState.players[option[1]].getDie1Result()
                 else:  # elif boardState.phase == Game.Phase.DIE_2_CHOOSE_OR or Game.Phase.MISFORTUNE_2_CHOOSE_OR or Game.Phase.MINOR_MISFORTUNE_2_OR:
-                    dieFace = boardState.players[option[1]].getDie2Result()
+                    if boardState.satyrs:
+                        satyrsChoice = boardState.players[option[1]].orChoice2
+                        if satyrsChoice % 2 == 0:
+                            dieFace = boardState.players[satyrsChoice // 2].getDie1UpFace()
+                        else:
+                            dieFace = boardState.players[satyrsChoice // 2].getDie2UpFace()
+                    else:
+                        dieFace = boardState.players[option[1]].getDie2Result()
                 print(f"{i}: Gain resource {resource} from die face {dieFace}")
             case Game.Move.CHOOSE_REINF_EFFECT:
                 print(f"{i}: Use reinforcement effect {option[2][0]}")
@@ -150,11 +164,11 @@ while not theBoard.isOver():
             theBoard.makeMove(options[len(options) - 1])  # always do random roll
             print(
                 f"After rolling, player {options[0][1]} has the faces {theBoard.players[options[0][1]].getDie1UpFace()} and {theBoard.players[options[0][1]].getDie2UpFace()}")
-        elif options[0][1] == 0:
+        elif options[0][1] == 1:
             move = MCTS.mcts(theBoard.copyState(), 5000)
             printMove(move)
             theBoard.makeMove(move)
-        elif options[0][1] == 1:
+        elif options[0][1] == 0:
             move = MCTS.mctsWithHeuristic(theBoard.copyState(), 5000)
             printMove(move)
             theBoard.makeMove(move)
