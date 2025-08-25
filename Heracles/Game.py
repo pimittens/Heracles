@@ -99,6 +99,11 @@ class Phase(Enum):  # todo: numbers
     CHOOSE_CYCLOPS = 93
     SATYRS_CHOOSE_DIE_1 = 94
     SATYRS_CHOOSE_DIE_2 = 95
+    CHOOSE_CHAOS_FACE_1 = 96
+    CHOOSE_CHAOS_FACE_2 = 97
+    CHOOSE_DOGGED_FACE_1 = 98
+    CHOOSE_DOGGED_FACE_2 = 99
+    RESOLVE_GUARDIAN_REINF = 100
 
 
 class Move(Enum):
@@ -129,6 +134,7 @@ class Move(Enum):
     CHOOSE_ADD_HAMMER = 25
     SATYRS_CHOOSE_DIE = 26
     USE_TRITON_TOKEN = 27
+    GUARDIAN_CHOICE = 28
 
 
 class BoardState:
@@ -147,8 +153,9 @@ class BoardState:
                        [Data.DieFace.VP3, Data.DieFace.VP3, Data.DieFace.VP3, Data.DieFace.VP3],
                        [Data.DieFace.VP4, Data.DieFace.MOON2VP2, Data.DieFace.GOLD1SUN1MOON1VP1,
                         Data.DieFace.GOLD2SUN2MOON2OR])
-        self.shields = [Data.DieFace.REDSHIELD, Data.DieFace.YELLOWSHIELD, Data.DieFace.GREENSHIELD,
-                        Data.DieFace.BLUESHIELD]
+        self.shields = []
+        self.chaos = []
+        self.dogged = []
         self.islands = ([], [], [], [], [], [], [], [], [], [], [], [], [], [], [])
         self.cerberus = False
         self.islandChoice = 0  # used to remember choice for ousting
@@ -176,6 +183,8 @@ class BoardState:
         ret = BoardState(copyPlayers, False)
         ret.temple = copy.deepcopy(self.temple)
         ret.shields = copy.deepcopy(self.shields)
+        ret.chaos = copy.deepcopy(self.chaos)
+        ret.dogged = copy.deepcopy(self.dogged)
         ret.islands = copy.deepcopy(self.islands)
         ret.cerberus = self.cerberus
         ret.islandChoice = self.islandChoice
@@ -961,8 +970,19 @@ class BoardState:
                 self.blessingPlayer = self.activePlayer
                 self.returnPhase = Phase.CHOOSE_REINF_EFFECT
             case Phase.RESOLVE_TREE_REINF:
-                self.phase = Phase.CHOOSE_REINF_EFFECT
-                self.makeMove((Move.PASS, move[1], ()))  # todo: effect
+                if move[0] == Move.PASS:
+                    if self.players[self.activePlayer].gold < 8:
+                        self.players[self.activePlayer].gainGold(3)
+                        self.players[self.activePlayer].gainVP(1)
+                    else:
+                        self.players[self.activePlayer].gainVP(2)
+                    if self.players[self.activePlayer].goldToGain == 0:
+                        self.phase = Phase.CHOOSE_REINF_EFFECT
+                        self.makeMove((Move.PASS, move[1], ()))
+                elif move[0] == Move.CHOOSE_ADD_HAMMER:
+                    self.players[self.activePlayer].useHammer(move[2][0])
+                    self.phase = Phase.CHOOSE_REINF_EFFECT
+                    self.makeMove((Move.PASS, move[1], ()))
             case Phase.RESOLVE_MERCHANT_REINF:
                 self.phase = Phase.CHOOSE_REINF_EFFECT
                 self.makeMove((Move.PASS, move[1], ()))  # todo: effect
@@ -972,6 +992,15 @@ class BoardState:
             case Phase.RESOLVE_COMPANION_REINF:
                 self.phase = Phase.CHOOSE_REINF_EFFECT
                 self.makeMove((Move.PASS, move[1], ()))  # todo: effect
+            case Phase.RESOLVE_GUARDIAN_REINF:
+                if move[0] == Move.GUARDIAN_CHOICE:
+                    match move[2][0]:
+                        case "ancientshard":
+                            self.players[self.activePlayer].gainAncientShards(1)
+                        case "loyalty":
+                            self.players[self.activePlayer].gainLoyalty(1)
+                    self.phase = Phase.CHOOSE_REINF_EFFECT
+                    self.makeMove((Move.PASS, move[1], ()))
             case Phase.ACTIVE_PLAYER_CHOICE_1:
                 if move[0] == Move.CHOOSE_BUY_FACES:
                     self.phase = Phase.ACTIVE_PLAYER_BUY_FACES_1
@@ -1101,14 +1130,14 @@ class BoardState:
                     self.players[self.activePlayer].forgeFace(move[2])
                     self.phase = Phase.TURN_START
                     self.advanceActivePlayer(move[1])
-            case Phase.CHOOSE_SHIELD_FACE_1:
+            case Phase.CHOOSE_SHIELD_FACE_1 | Phase.CHOOSE_CHAOS_FACE_1 | Phase.CHOOSE_DOGGED_FACE_1:
                 if move[0] == Move.BUY_FACES:
                     self.players[self.activePlayer].unforgedFaces.append(move[2][0])
                 elif move[0] == Move.FORGE_FACE:
                     self.players[self.activePlayer].forgeFace(move[2])
                     self.phase = Phase.EXTRA_TURN_DECISION
                     self.makeMove((Move.PASS, move[1], ()))
-            case Phase.CHOOSE_SHIELD_FACE_2:
+            case Phase.CHOOSE_SHIELD_FACE_2 | Phase.CHOOSE_CHAOS_FACE_2 | Phase.CHOOSE_DOGGED_FACE_2:
                 if move[0] == Move.BUY_FACES:
                     self.players[self.activePlayer].unforgedFaces.append(move[2][0])
                 elif move[0] == Move.FORGE_FACE:
@@ -1253,18 +1282,21 @@ class BoardState:
             case Phase.RESOLVE_OWL_REINF:
                 if self.players[self.activePlayer].goldToGain == 0:
                     ret = (
-                    (Move.OWL_CHOICE, self.activePlayer, ("gold",)), (Move.OWL_CHOICE, self.activePlayer, ("sun",)),
-                    (Move.OWL_CHOICE, self.activePlayer, ("moon",)))
+                        (Move.OWL_CHOICE, self.activePlayer, ("gold",)), (Move.OWL_CHOICE, self.activePlayer, ("sun",)),
+                        (Move.OWL_CHOICE, self.activePlayer, ("moon",)))
                 else:
                     ret = self.getHammerChoices(self.activePlayer)
             case Phase.RESOLVE_TREE_REINF:
-                pass  # todo
+                ret = self.getHammerChoices(self.activePlayer)
             case Phase.RESOLVE_MERCHANT_REINF:
                 pass  # todo
             case Phase.RESOLVE_LIGHT_REINF:
                 pass  # todo
             case Phase.RESOLVE_COMPANION_REINF:
                 pass  # todo
+            case Phase.RESOLVE_GUARDIAN_REINF:
+                ret = ((Move.GUARDIAN_CHOICE, self.activePlayer, ("anshientshard",)),
+                       (Move.GUARDIAN_CHOICE, self.activePlayer, ("loyalty",)))
             case Phase.ACTIVE_PLAYER_CHOICE_1 | Phase.ACTIVE_PLAYER_CHOICE_2:
                 ret = (Move.CHOOSE_BUY_FACES, self.activePlayer, ()), (Move.CHOOSE_PERFORM_FEAT, self.activePlayer, ())
             case Phase.ACTIVE_PLAYER_BUY_FACES_1 | Phase.ACTIVE_PLAYER_BUY_FACES_2:
@@ -1288,6 +1320,16 @@ class BoardState:
                     ret = self.generateForgeFace(self.activePlayer)
                 else:
                     ret = self.generateChooseShield()
+            case Phase.CHOOSE_CHAOS_FACE_1 | Phase.CHOOSE_CHAOS_FACE_2:
+                if self.players[self.activePlayer].unforgedFaces:
+                    ret = self.generateForgeFace(self.activePlayer)
+                else:
+                    ret = self.generateChooseChaos()
+            case Phase.CHOOSE_DOGGED_FACE_1 | Phase.CHOOSE_DOGGED_FACE_1:
+                if self.players[self.activePlayer].unforgedFaces:
+                    ret = self.generateForgeFace(self.activePlayer)
+                else:
+                    ret = self.generateChooseDogged()
             case Phase.FORGE_MIRROR_FACE_1 | Phase.FORGE_MIRROR_FACE_2:
                 ret = self.generateForgeFace(self.activePlayer)
             case Phase.FORGE_HELMET_FACE_1 | Phase.FORGE_HELMET_FACE_2:
@@ -1315,11 +1357,11 @@ class BoardState:
         if ret[0][1] == self.activePlayer and self.players[self.activePlayer].tritonTokens >= 1:
             ret = list(ret)
             if self.players[self.activePlayer].gold < self.players[self.activePlayer].maxGold:
-                ret.append((Move.USE_TRITON_TOKEN, self.activePlayer, ("gold", )))
+                ret.append((Move.USE_TRITON_TOKEN, self.activePlayer, ("gold",)))
             if self.players[self.activePlayer].sun < self.players[self.activePlayer].maxSun:
-                ret.append((Move.USE_TRITON_TOKEN, self.activePlayer, ("sun", )))
+                ret.append((Move.USE_TRITON_TOKEN, self.activePlayer, ("sun",)))
             if self.players[self.activePlayer].moon < self.players[self.activePlayer].maxMoon:
-                ret.append((Move.USE_TRITON_TOKEN, self.activePlayer, ("moon", )))
+                ret.append((Move.USE_TRITON_TOKEN, self.activePlayer, ("moon",)))
             ret = tuple(ret)
         return ret
 
@@ -1519,63 +1561,17 @@ class BoardState:
             ret.append((Move.BUY_FACES, self.activePlayer, (face,)))
         return tuple(ret)
 
-    def resolveShield(self, player, die):
-        if die == 1:
-            result = self.players[player].getDie2UpFace()
-            other = self.players[player].getDie1UpFace()
-        else:
-            result = self.players[player].getDie1UpFace()
-            other = self.players[player].getDie2UpFace()
-        if result == Data.DieFace.REDSHIELD:
-            if other == Data.DieFace.TIMES3:
-                self.players[player].gainSun(6)
-            elif Data.getResourceValues(other)[1] > 0:
-                self.players[player].gainVP(5)
-            else:
-                self.players[player].gainSun(2)
-        elif result == Data.DieFace.BLUESHIELD:
-            if other == Data.DieFace.TIMES3:
-                self.players[player].gainMoon(6)
-            elif Data.getResourceValues(other)[2] > 0:
-                self.players[player].gainVP(5)
-            else:
-                self.players[player].gainMoon(2)
-        elif result == Data.DieFace.YELLOWSHIELD:
-            if other == Data.DieFace.TIMES3:
-                self.players[player].gainGold(9)
-            elif Data.getResourceValues(other)[0] > 0:
-                self.players[player].gainVP(5)
-            else:
-                self.players[player].gainMoon(2)
-        elif result == Data.DieFace.GREENSHIELD:
-            if other == Data.DieFace.TIMES3:
-                self.players[player].gainVP(9)
-            elif Data.getResourceValues(other)[3] > 0:
-                self.players[player].gainVP(5)
-            else:
-                self.players[player].gainVP(3)
+    def generateChooseChaos(self):
+        ret = []
+        for face in self.chaos:
+            ret.append((Move.BUY_FACES, self.activePlayer, (face,)))
+        return tuple(ret)
 
-    def resolveShieldOr(self, player, die, orGain):
-        if die == Data.DieFace.REDSHIELD:
-            if orGain == "sun":
-                self.players[player].gainVP(5)
-            else:
-                self.players[player].gainSun(2)
-        elif die == Data.DieFace.BLUESHIELD:
-            if orGain == "moon":
-                self.players[player].gainVP(5)
-            else:
-                self.players[player].gainMoon(2)
-        elif die == Data.DieFace.YELLOWSHIELD:
-            if orGain == "gold":
-                self.players[player].gainVP(5)
-            else:
-                self.players[player].gainMoon(2)
-        elif die == Data.DieFace.GREENSHIELD:
-            if orGain == "vp":
-                self.players[player].gainVP(5)
-            else:
-                self.players[player].gainVP(3)
+    def generateChooseDogged(self):
+        ret = []
+        for face in self.dogged:
+            ret.append((Move.BUY_FACES, self.activePlayer, (face,)))
+        return tuple(ret)
 
     def generateRollDieOptions(self, player, die):
         faces = {}
@@ -1671,6 +1667,8 @@ class BoardState:
                 self.phase = Phase.RESOLVE_LIGHT_REINF
             case "COMPANION_INST_REINF":
                 self.phase = Phase.RESOLVE_COMPANION_REINF
+            case "GUARDIAN_REINF":
+                self.phase = Phase.RESOLVE_GUARDIAN_REINF
 
     def resolveInstEffect(self, effect):
         match effect:
@@ -1789,9 +1787,26 @@ class BoardState:
             case "NYMPH_INST":
                 self.makeMove((Move.PASS, self.activePlayer, ()))  # todo
             case "OMNISCIENT_INST":
-                self.makeMove((Move.PASS, self.activePlayer, ()))  # todo
+                vpFaces = 0
+                for face in self.players[self.activePlayer].die1.faces:
+                    if face == Data.DieFace.VP2 or face == Data.DieFace.VP3 or face == Data.DieFace.VP4 or face == Data.DieFace.VP1SUN1 or face == Data.DieFace.GOLD3VP2OR or face == Data.DieFace.GOLD1SUN1MOON1VP1 or face == Data.DieFace.MOON2VP2 or face == Data.DieFace.REDSHIELD or face == Data.DieFace.BLUESHIELD or face == Data.DieFace.YELLOWSHIELD or face == Data.DieFace.GREENSHIELD or face == Data.DieFace.VP1GOLD2LOYALTY1 or face == Data.DieFace.REDCHAOS or face == Data.DieFace.BLUECHAOS or face == Data.DieFace.YELLOWCHAOS or face == Data.DieFace.GREENCHAOS:
+                        vpFaces += 1
+                for face in self.players[self.activePlayer].die2.faces:
+                    if face == Data.DieFace.VP2 or face == Data.DieFace.VP3 or face == Data.DieFace.VP4 or face == Data.DieFace.VP1SUN1 or face == Data.DieFace.GOLD3VP2OR or face == Data.DieFace.GOLD1SUN1MOON1VP1 or face == Data.DieFace.MOON2VP2 or face == Data.DieFace.REDSHIELD or face == Data.DieFace.BLUESHIELD or face == Data.DieFace.YELLOWSHIELD or face == Data.DieFace.GREENSHIELD or face == Data.DieFace.VP1GOLD2LOYALTY1 or face == Data.DieFace.REDCHAOS or face == Data.DieFace.BLUECHAOS or face == Data.DieFace.YELLOWCHAOS or face == Data.DieFace.GREENCHAOS:
+                        vpFaces += 1
+                self.players[self.activePlayer].gainVP(2 * vpFaces)
+                self.makeMove((Move.PASS, self.activePlayer, ()))
             case "GOLDSMITH_INST":
-                self.makeMove((Move.PASS, self.activePlayer, ()))  # todo
+                feats = set()
+                for feat in self.players[self.activePlayer].feats:
+                    if feat == Data.HeroicFeat.TENACIOUS_BOAR_RED or feat == Data.HeroicFeat.TENACIOUS_BOAR_BLUE or feat == Data.HeroicFeat.TENACIOUS_BOAR_YELLOW or feat == Data.HeroicFeat.TENACIOUS_BOAR_GREEN:
+                        feats.add(Data.HeroicFeat.TENACIOUS_BOAR)
+                    elif feat == Data.HeroicFeat.MIRROR_OF_MISFORTUNE_RED or feat == Data.HeroicFeat.MIRROR_OF_MISFORTUNE_BLUE or feat == Data.HeroicFeat.MIRROR_OF_MISFORTUNE_YELLOW or feat == Data.HeroicFeat.MIRROR_OF_MISFORTUNE_GREEN:
+                        feats.add(Data.HeroicFeat.THE_MIRROR_OF_MISFORTUNE)
+                    else:
+                        feats.add(feat)
+                self.players[self.activePlayer].gainVP(2 * len(feats))
+                self.makeMove((Move.PASS, self.activePlayer, ()))
             case "TRIDENT_INST":
                 self.makeMove((Move.PASS, self.activePlayer, ()))  # todo
             case "LEFTHAND_INST":
@@ -1805,9 +1820,29 @@ class BoardState:
             case "RIGHTHAND_INST":
                 self.makeMove((Move.PASS, self.activePlayer, ()))  # todo
             case "NIGHT_INST":
-                self.makeMove((Move.PASS, self.activePlayer, ()))  # todo
+                sunLost = moonLost = 0
+                for player in self.players:
+                    if player.playerID == self.activePlayer:
+                        continue
+                    sunLost += min(1, player.sun)
+                    player.gainSun(-1)
+                    moonLost += min(1, player.moon)
+                    player.gainMoon(-1)
+                self.players[self.activePlayer].gainSun(sunLost)
+                self.players[self.activePlayer].gainMoon(moonLost)
+                self.makeMove((Move.PASS, self.activePlayer, ()))
             case "MISTS_INST":
-                self.makeMove((Move.PASS, self.activePlayer, ()))  # todo
+                minGold = self.players[0].gold
+                for player in self.players:
+                    if player.gold < minGold:
+                        minGold = player.gold
+                vpLost = 0
+                for player in self.players:
+                    if player.gold == minGold:
+                        vpLost += min(5, player.vp)
+                        player.gainVP(-5)
+                self.players[self.activePlayer].gainVP(vpLost)
+                self.makeMove((Move.PASS, self.activePlayer, ()))
             case "ANCESTOR_INST":
                 self.makeMove((Move.PASS, self.activePlayer, ()))  # todo
             case "WIND_INST":
@@ -1829,9 +1864,15 @@ class BoardState:
             case "MEMORY_INST_AUTO":
                 self.makeMove((Move.PASS, self.activePlayer, ()))  # todo
             case "CHAOS_INST":
-                self.makeMove((Move.PASS, self.activePlayer, ()))  # todo
+                if self.phase == Phase.ACTIVE_PLAYER_PERFORM_FEAT_1:
+                    self.phase = Phase.CHOOSE_CHAOS_FACE_1
+                else:
+                    self.phase = Phase.CHOOSE_CHAOS_FACE_2
             case "DOGGED_INST":
-                self.makeMove((Move.PASS, self.activePlayer, ()))  # todo
+                if self.phase == Phase.ACTIVE_PLAYER_PERFORM_FEAT_1:
+                    self.phase = Phase.CHOOSE_DOGGED_FACE_1
+                else:
+                    self.phase = Phase.CHOOSE_DOGGED_FACE_2
             case "MISFORTUNE_INST_AUTO_RED":
                 self.faceToForge = Data.DieFace.REDMISFORTUNE
                 if self.phase == Phase.ACTIVE_PLAYER_PERFORM_FEAT_1:
@@ -1971,6 +2012,15 @@ class BoardState:
                 if len(self.players) > 2:
                     self.islands[island].append(Data.HeroicFeat.MIRROR_OF_MISFORTUNE_YELLOW)
         else:
+            if feat == Data.HeroicFeat.THE_GUARDIANS_SHIELD:
+                self.shields = [Data.DieFace.REDSHIELD, Data.DieFace.YELLOWSHIELD, Data.DieFace.GREENSHIELD,
+                                Data.DieFace.BLUESHIELD]
+            elif feat == Data.HeroicFeat.THE_CHAOS:
+                self.chaos = [Data.DieFace.REDCHAOS, Data.DieFace.YELLOWCHAOS, Data.DieFace.GREENCHAOS,
+                              Data.DieFace.BLUECHAOS]
+            elif feat == Data.HeroicFeat.THE_DOGGED:
+                self.dogged = [Data.DieFace.GOLD3ANCIENTSHARD1, Data.DieFace.GOLD3ANCIENTSHARD1,
+                               Data.DieFace.VP1GOLD2LOYALTY1, Data.DieFace.VP1GOLD2LOYALTY1]
             j = 0
             while j < len(self.players):
                 self.islands[island].append(feat)
@@ -2453,7 +2503,6 @@ class Player:
         self.gainMoon(-Data.getMoonCost(feat))
         self.feats.append(feat)
         self.gainVP(Data.getPoints(feat))
-        # todo: instant actions
 
     def getDieOptions(self, die1):
         # True for die 1, False for die 2
