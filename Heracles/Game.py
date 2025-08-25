@@ -1295,7 +1295,7 @@ class BoardState:
             case Phase.RESOLVE_COMPANION_REINF:
                 pass  # todo
             case Phase.RESOLVE_GUARDIAN_REINF:
-                ret = ((Move.GUARDIAN_CHOICE, self.activePlayer, ("anshientshard",)),
+                ret = ((Move.GUARDIAN_CHOICE, self.activePlayer, ("ancientshard",)),
                        (Move.GUARDIAN_CHOICE, self.activePlayer, ("loyalty",)))
             case Phase.ACTIVE_PLAYER_CHOICE_1 | Phase.ACTIVE_PLAYER_CHOICE_2:
                 ret = (Move.CHOOSE_BUY_FACES, self.activePlayer, ()), (Move.CHOOSE_PERFORM_FEAT, self.activePlayer, ())
