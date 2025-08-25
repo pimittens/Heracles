@@ -2,7 +2,7 @@ import random
 import Game
 import MCTS
 
-players = [Game.Player(0, True), Game.Player(1, True)]
+players = [Game.Player(0, False), Game.Player(1, False)]
 theBoard = Game.BoardState(players, True)
 undoState = theBoard.copyState()
 theBoard.printBoardState()
@@ -147,7 +147,11 @@ def printOptions(options, boardState):
                 else:
                     print(
                         f"{i}: Use the effect of the Satyrs to resolve the die face {boardState.players[option[2][0] // 2].getDie2UpFace()}")
-            # todo: triton tokens
+            case Game.Move.USE_TRITON_TOKEN:
+                print(f"{i}: Spend a Triton token to gain {option[2][0]}")
+            case Game.Move.USE_COMPANION:
+                print(f"{i}: Use The Companion to gain {option[2][0]} sun and vp")
+
         i += 1
 
 

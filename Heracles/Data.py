@@ -203,7 +203,7 @@ def getPosition(feat):
 def getFeatsByPosition(pos):
     ret = []
     for f in featsData:
-        if f["position"] == pos and f["set"] < 2:
+        if f["position"] == pos and f["set"] < 3:
             ret.append(HeroicFeat[f["name"]])
     return ret
 

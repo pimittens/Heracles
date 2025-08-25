@@ -135,6 +135,7 @@ class Move(Enum):
     SATYRS_CHOOSE_DIE = 26
     USE_TRITON_TOKEN = 27
     GUARDIAN_CHOICE = 28
+    USE_COMPANION = 29
 
 
 class BoardState:
@@ -236,6 +237,12 @@ class BoardState:
                     self.players[move[1]].gainMoon(2)
                 case "gold":
                     self.players[move[1]].gainGold(6)
+            self.players[move[1]].tritonTokens -= 1
+            return
+        if move[0] == Move.USE_COMPANION:
+            self.players[move[1]].gainSun(move[2][0])
+            self.players[move[1]].gainVP(move[2][0])
+            self.players[move[1]].companions.remove(move[2][0])
             return
         match self.phase:
             case Phase.TURN_START:
@@ -990,8 +997,9 @@ class BoardState:
                 self.phase = Phase.CHOOSE_REINF_EFFECT
                 self.makeMove((Move.PASS, move[1], ()))  # todo: effect
             case Phase.RESOLVE_COMPANION_REINF:
+                self.players[self.activePlayer].advanceCompanions()
                 self.phase = Phase.CHOOSE_REINF_EFFECT
-                self.makeMove((Move.PASS, move[1], ()))  # todo: effect
+                self.makeMove((Move.PASS, move[1], ()))
             case Phase.RESOLVE_GUARDIAN_REINF:
                 if move[0] == Move.GUARDIAN_CHOICE:
                     match move[2][0]:
@@ -1292,8 +1300,6 @@ class BoardState:
                 pass  # todo
             case Phase.RESOLVE_LIGHT_REINF:
                 pass  # todo
-            case Phase.RESOLVE_COMPANION_REINF:
-                pass  # todo
             case Phase.RESOLVE_GUARDIAN_REINF:
                 ret = ((Move.GUARDIAN_CHOICE, self.activePlayer, ("ancientshard",)),
                        (Move.GUARDIAN_CHOICE, self.activePlayer, ("loyalty",)))
@@ -1362,6 +1368,14 @@ class BoardState:
                 ret.append((Move.USE_TRITON_TOKEN, self.activePlayer, ("sun",)))
             if self.players[self.activePlayer].moon < self.players[self.activePlayer].maxMoon:
                 ret.append((Move.USE_TRITON_TOKEN, self.activePlayer, ("moon",)))
+            ret = tuple(ret)
+        if ret[0][1] == self.activePlayer and self.players[self.activePlayer].companions:
+            ret = list(ret)
+            for companion in self.players[self.activePlayer].companions:
+                if companion > 0:
+                    print("test")
+                    ret.append((Move.USE_COMPANION, self.activePlayer, (companion,)))
+            ret = set(ret)
             ret = tuple(ret)
         return ret
 
@@ -1850,7 +1864,8 @@ class BoardState:
             case "DIE_INST":
                 self.makeMove((Move.PASS, self.activePlayer, ()))  # todo
             case "COMPANION_INST_REINF":
-                self.makeMove((Move.PASS, self.activePlayer, ()))  # todo
+                self.players[self.activePlayer].companions.append(0)
+                self.makeMove((Move.PASS, self.activePlayer, ()))
             case "SCEPTER_INST":
                 self.makeMove((Move.PASS, self.activePlayer, ()))  # todo
             case "MOONGOLEM_INST":
@@ -2058,7 +2073,7 @@ class Player:
         self.numForged = 0  # number of faces forged
         self.unforgedFaces = []
         self.unusedReinfEffects = []
-        self.companions = [0, 0, 0, 0]
+        self.companions = []
         self.allegiance = 0
         self.mazePosition = 0
         self.mazeMoves = 0
@@ -2492,6 +2507,15 @@ class Player:
             if feat == Data.HeroicFeat.GREAT_BEAR:
                 self.gainVP(3)
 
+    def advanceCompanions(self):
+        i = 0
+        while i < len(self.companions):
+            if self.companions[i] < 5:
+                self.companions[i] = self.companions[i] + 1
+            i += 1
+        while "COMPANION_INST_REINF" in self.unusedReinfEffects:
+            self.unusedReinfEffects.remove("COMPANION_INST_REINF")
+
     def hasFeat(self, feat):
         for myFeat in self.feats:
             if myFeat == feat:
@@ -2604,6 +2628,8 @@ class Player:
         else:
             print(f"Location: Island {self.location}")
         print(f"Hammer: {self.hammerTrack} / {self.getMaxHammer()}")
+        for companion in self.companions:
+            print(f"Companion: {companion}")
         print(f"Number of faces forged: {self.numForged}")
         print("Unforged Faces:")
         for face in self.unforgedFaces:
