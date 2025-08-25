@@ -136,6 +136,7 @@ class Move(Enum):
     USE_TRITON_TOKEN = 27
     GUARDIAN_CHOICE = 28
     USE_COMPANION = 29
+    USE_LIGHT = 30
 
 
 class BoardState:
@@ -951,9 +952,8 @@ class BoardState:
             case Phase.RESOLVE_ELDER_REINF:
                 if move[0] == Move.USE_ELDER:
                     if move[2][0]:
-                        if self.players[self.activePlayer].gold >= 3:
-                            self.players[self.activePlayer].gainGold(-3)
-                            self.players[self.activePlayer].gainVP(4)
+                        self.players[self.activePlayer].gainGold(-3)
+                        self.players[self.activePlayer].gainVP(4)
                     self.phase = Phase.CHOOSE_REINF_EFFECT
                     self.makeMove(move)
             case Phase.RESOLVE_OWL_REINF:
@@ -994,8 +994,16 @@ class BoardState:
                 self.phase = Phase.CHOOSE_REINF_EFFECT
                 self.makeMove((Move.PASS, move[1], ()))  # todo: effect
             case Phase.RESOLVE_LIGHT_REINF:
-                self.phase = Phase.CHOOSE_REINF_EFFECT
-                self.makeMove((Move.PASS, move[1], ()))  # todo: effect
+                if move[0] == Move.USE_LIGHT:
+                    if move[2][0]:
+                        self.players[self.activePlayer].gainGold(-3)
+                        self.players[self.activePlayer].die1ResultBuffer = move[2][1]
+                        self.blessingPlayer = self.activePlayer
+                        self.phase = Phase.MINOR_MIRROR_CHOICE
+                        self.returnPhase = Phase.CHOOSE_REINF_EFFECT
+                    else:
+                        self.phase = Phase.CHOOSE_REINF_EFFECT
+                    self.makeMove((Move.PASS, move[1], ()))
             case Phase.RESOLVE_COMPANION_REINF:
                 self.players[self.activePlayer].advanceCompanions()
                 self.phase = Phase.CHOOSE_REINF_EFFECT
@@ -1286,7 +1294,10 @@ class BoardState:
             case Phase.CHOOSE_REINF_EFFECT:
                 ret = self.players[self.activePlayer].getReinfOptions()
             case Phase.RESOLVE_ELDER_REINF:
-                ret = (Move.USE_ELDER, self.activePlayer, (True,)), (Move.USE_ELDER, self.activePlayer, (False,))
+                if self.players[self.activePlayer].gold >= 3:
+                    ret = (Move.USE_ELDER, self.activePlayer, (True,)), (Move.USE_ELDER, self.activePlayer, (False,))
+                else:
+                    ret = (Move.USE_ELDER, self.activePlayer, (False,)),
             case Phase.RESOLVE_OWL_REINF:
                 if self.players[self.activePlayer].goldToGain == 0:
                     ret = (
@@ -1299,7 +1310,10 @@ class BoardState:
             case Phase.RESOLVE_MERCHANT_REINF:
                 pass  # todo
             case Phase.RESOLVE_LIGHT_REINF:
-                pass  # todo
+                if self.players[self.activePlayer].gold >= 3:
+                    ret = self.generateLightChoices()
+                else:
+                    ret = (Move.USE_LIGHT, self.activePlayer, (False,)),
             case Phase.RESOLVE_GUARDIAN_REINF:
                 ret = ((Move.GUARDIAN_CHOICE, self.activePlayer, ("ancientshard",)),
                        (Move.GUARDIAN_CHOICE, self.activePlayer, ("loyalty",)))
@@ -1373,9 +1387,9 @@ class BoardState:
             ret = list(ret)
             for companion in self.players[self.activePlayer].companions:
                 if companion > 0:
-                    print("test")
-                    ret.append((Move.USE_COMPANION, self.activePlayer, (companion,)))
-            ret = set(ret)
+                    move = (Move.USE_COMPANION, self.activePlayer, (companion,)),
+                    if move not in ret:
+                        ret.append(move)
             ret = tuple(ret)
         return ret
 
@@ -1654,6 +1668,18 @@ class BoardState:
                 ret.append((Move.SATYRS_CHOOSE_DIE, self.activePlayer, (next,)))
             if not picked == next + 1:
                 ret.append((Move.SATYRS_CHOOSE_DIE, self.activePlayer, (next + 1,)))
+        return tuple(ret)
+
+    def generateLightChoices(self):
+        ret = []
+        for player in self.players:
+            move = Move.USE_LIGHT, self.activePlayer, (True, player.getDie1UpFace())
+            if not move in ret:
+                ret.append(move)
+            move = Move.USE_LIGHT, self.activePlayer, (True, player.getDie2UpFace())
+            if not move in ret:
+                ret.append(move)
+        ret.append((Move.USE_LIGHT, self.activePlayer, (False,)))
         return tuple(ret)
 
     def makeReturnMove(self, player):

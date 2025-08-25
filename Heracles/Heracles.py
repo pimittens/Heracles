@@ -151,6 +151,13 @@ def printOptions(options, boardState):
                 print(f"{i}: Spend a Triton token to gain {option[2][0]}")
             case Game.Move.USE_COMPANION:
                 print(f"{i}: Use The Companion to gain {option[2][0]} sun and vp")
+            case Game.Move.USE_LIGHT:
+                if option[2][0]:
+                    print(f"{i}: Use the effect of The Light to gain the effect of {option[2][1]} (spend 3 gold)")
+                else:
+                    print(f"{i}: Do not use the effect of The Light")
+            case _:
+                print(f"{i}: Unhandled move type {option[0]}")
 
         i += 1
 
