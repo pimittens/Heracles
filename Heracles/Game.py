@@ -104,6 +104,8 @@ class Phase(Enum):  # todo: numbers
     CHOOSE_DOGGED_FACE_1 = 98
     CHOOSE_DOGGED_FACE_2 = 99
     RESOLVE_GUARDIAN_REINF = 100
+    NYMPH_1 = 101
+    NYMPH_2 = 102
 
 
 class Move(Enum):
@@ -347,7 +349,7 @@ class BoardState:
                     else:
                         self.phase = Phase.TWINS_RESOURCE_CHOICE
             case Phase.TWINS_RESOURCE_CHOICE:
-                if move[0] == Move.USE_TWINS:
+                if move[0] == Move.TWINS_CHOOSE_RESOURCE:
                     if move[2][0] == "vp":
                         self.players[self.blessingPlayer].gainVP(1)
                     else:
@@ -720,7 +722,7 @@ class BoardState:
                     else:
                         self.phase = Phase.MINOR_TWINS_RESOURCE
             case Phase.MINOR_TWINS_RESOURCE:
-                if move[0] == Move.USE_TWINS:
+                if move[0] == Move.TWINS_CHOOSE_RESOURCE:
                     if move[2][0] == "vp":
                         self.players[self.blessingPlayer].gainVP(1)
                     else:
@@ -998,8 +1000,9 @@ class BoardState:
                     if move[2][0]:
                         self.players[self.activePlayer].gainGold(-3)
                         self.players[self.activePlayer].die1ResultBuffer = move[2][1]
+                        self.players[self.activePlayer].dieChoice = True
                         self.blessingPlayer = self.activePlayer
-                        self.phase = Phase.MINOR_MIRROR_CHOICE
+                        self.phase = Phase.MINOR_CHOOSE_OR
                         self.returnPhase = Phase.CHOOSE_REINF_EFFECT
                     else:
                         self.phase = Phase.CHOOSE_REINF_EFFECT
@@ -1198,6 +1201,32 @@ class BoardState:
                     self.players[self.blessingPlayer].forgeBoarMisfortuneFace(move[2])
                     self.phase = Phase.TURN_START
                     self.advanceActivePlayer(move[1])
+            case Phase.NYMPH_1:
+                if move[0] == Move.CHOOSE_ADD_HAMMER:
+                    self.players[self.activePlayer].useHammer(move[2][0])
+                elif move[0] == Move.BUY_FACES:
+                    self.temple[Data.getPool(move[2][0])].remove(move[2][0])
+                    self.players[self.activePlayer].buyFace(move[2][0])
+                elif move[0] == Move.FORGE_FACE:
+                    self.players[self.activePlayer].forgeFace(move[2])
+                    self.phase = Phase.EXTRA_TURN_DECISION
+                    self.makeMove((Move.PASS, move[1], ()))
+                elif move[0] == Move.PASS:
+                    self.phase = Phase.EXTRA_TURN_DECISION
+                    self.makeMove((Move.PASS, move[1], ()))
+            case Phase.NYMPH_2:
+                if move[0] == Move.CHOOSE_ADD_HAMMER:
+                    self.players[self.activePlayer].useHammer(move[2][0])
+                elif move[0] == Move.BUY_FACES:
+                    self.temple[Data.getPool(move[2][0])].remove(move[2][0])
+                    self.players[self.activePlayer].buyFace(move[2][0])
+                elif move[0] == Move.FORGE_FACE:
+                    self.players[self.activePlayer].forgeFace(move[2])
+                    self.phase = Phase.TURN_START
+                    self.advanceActivePlayer(move[1])
+                elif move[0] == Move.PASS:
+                    self.phase = Phase.TURN_START
+                    self.advanceActivePlayer(move[1])
             case Phase.END_TURN:
                 self.phase = Phase.TURN_START
                 self.advanceActivePlayer(move[1])
@@ -1355,11 +1384,11 @@ class BoardState:
             case Phase.FORGE_HELMET_FACE_1 | Phase.FORGE_HELMET_FACE_2:
                 ret = self.generateForgeFace(self.activePlayer)
             case Phase.RESOLVE_SHIPS | Phase.MINOR_RESOLVE_SHIPS:
-                ret = self.generateShipBuyFace(self.blessingPlayer)
+                ret = self.generateBuyFace(self.blessingPlayer, 2)
             case Phase.RESOLVE_SHIPS_FORGE | Phase.MINOR_RESOLVE_SHIPS_FORGE:
                 ret = self.generateForgeFace(self.blessingPlayer)
             case Phase.MISFORTUNE_1_RESOLVE_SHIPS | Phase.MISFORTUNE_2_RESOLVE_SHIPS | Phase.MINOR_MISFORTUNE_SHIPS:
-                ret = self.generateShipBuyFace(self.misfortunePlayer)
+                ret = self.generateBuyFace(self.misfortunePlayer, 2)
             case Phase.MISFORTUNE_1_RESOLVE_SHIPS_FORGE | Phase.MISFORTUNE_2_RESOLVE_SHIPS_FORGE | Phase.MINOR_MISFORTUNE_SHIPS_FORGE:
                 ret = self.generateForgeFace(self.misfortunePlayer)
             case Phase.CHOOSE_BOAR_MISFORTUNE_PLAYER_1 | Phase.CHOOSE_BOAR_MISFORTUNE_PLAYER_2:
@@ -1374,6 +1403,13 @@ class BoardState:
                 ret = self.generateSatyrsChooseDie(True)
             case Phase.SATYRS_CHOOSE_DIE_2:
                 ret = self.generateSatyrsChooseDie(False)
+            case Phase.NYMPH_1 | Phase.NYMPH_2:
+                if self.players[self.activePlayer].goldToGain > 0:
+                    ret = self.getHammerChoices(self.activePlayer)
+                elif self.players[self.activePlayer].unforgedFaces:
+                    ret = self.generateForgeFace(self.activePlayer)
+                else:
+                    ret = self.generateBuyFace(self.activePlayer, 0)
         if ret[0][1] == self.activePlayer and self.players[self.activePlayer].tritonTokens >= 1:
             ret = list(ret)
             if self.players[self.activePlayer].gold < self.players[self.activePlayer].maxGold:
@@ -1387,7 +1423,7 @@ class BoardState:
             ret = list(ret)
             for companion in self.players[self.activePlayer].companions:
                 if companion > 0:
-                    move = (Move.USE_COMPANION, self.activePlayer, (companion,)),
+                    move = Move.USE_COMPANION, self.activePlayer, (companion,)
                     if move not in ret:
                         ret.append(move)
             ret = tuple(ret)
@@ -1430,9 +1466,9 @@ class BoardState:
         ret.append((Move.PASS, self.activePlayer, ()))
         return tuple(ret)
 
-    def generateShipBuyFace(self, player):
+    def generateBuyFace(self, player, goldBonus):
         ret = []
-        gold = self.players[player].gold + 2
+        gold = self.players[player].gold + goldBonus
         if gold >= 2:
             if self.temple[0]:
                 ret.append((Move.BUY_FACES, player, (self.temple[0][0],)))
@@ -1673,12 +1709,14 @@ class BoardState:
     def generateLightChoices(self):
         ret = []
         for player in self.players:
-            move = Move.USE_LIGHT, self.activePlayer, (True, player.getDie1UpFace())
-            if not move in ret:
-                ret.append(move)
-            move = Move.USE_LIGHT, self.activePlayer, (True, player.getDie2UpFace())
-            if not move in ret:
-                ret.append(move)
+            if player.getDie1UpFace() != Data.DieFace.MIRROR:
+                move = Move.USE_LIGHT, self.activePlayer, (True, player.getDie1UpFace())
+                if not move in ret:
+                    ret.append(move)
+            if player.getDie2UpFace() != Data.DieFace.MIRROR:
+                move = Move.USE_LIGHT, self.activePlayer, (True, player.getDie2UpFace())
+                if not move in ret:
+                    ret.append(move)
         ret.append((Move.USE_LIGHT, self.activePlayer, (False,)))
         return tuple(ret)
 
@@ -1825,7 +1863,11 @@ class BoardState:
             case "HAMMER_INST":
                 self.makeMove((Move.PASS, self.activePlayer, ()))  # handled elsewhere
             case "NYMPH_INST":
-                self.makeMove((Move.PASS, self.activePlayer, ()))  # todo
+                self.players[self.activePlayer].gainGold(4)
+                if self.phase == Phase.ACTIVE_PLAYER_PERFORM_FEAT_1:
+                    self.phase = Phase.NYMPH_1
+                else:
+                    self.phase = Phase.NYMPH_2
             case "OMNISCIENT_INST":
                 vpFaces = 0
                 for face in self.players[self.activePlayer].die1.faces:
