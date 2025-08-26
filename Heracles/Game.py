@@ -2890,6 +2890,7 @@ class Player:
     def printPlayerInfo(self):
         print(f"Player {self.playerID}:\nGold: {self.gold}/{self.maxGold}\nSun: {self.sun}/{self.maxSun}")
         print(f"Moon: {self.moon}/{self.maxMoon}\nVictory Points: {self.vp}")
+        print(f"Ancient Shards: {self.ancientShards}/6")
         print("Heroic Feats:")
         for feat in self.feats:
             print(feat.name)
@@ -2903,6 +2904,8 @@ class Player:
         print(f"Hammer: {self.hammerTrack} / {self.getMaxHammer()}")
         for companion in self.companions:
             print(f"Companion: {companion}")
+        for scepter in self.scepters:
+            print(f"Scepter: {scepter}")
         print(f"Number of faces forged: {self.numForged}")
         print("Unforged Faces:")
         for face in self.unforgedFaces:
