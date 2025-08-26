@@ -2,7 +2,7 @@ import random
 import Game
 import MCTS
 
-players = [Game.Player(0, False), Game.Player(1, False)]
+players = [Game.Player(0, True), Game.Player(1, True)]
 theBoard = Game.BoardState(players, True)
 undoState = theBoard.copyState()
 theBoard.printBoardState()
@@ -137,9 +137,9 @@ def printOptions(options, boardState):
                     print(f"{i}: Use the effect of Cyclops (convert gold into vp)")
                 else:
                     print(f"{i}: Do not use the effect of Cyclops")
-            case Game.Move.CHOOSE_ADD_HAMMER:
+            case Game.Move.CHOOSE_ADD_HAMMER_SCEPTER:
                 print(
-                    f"{i}: Spend {option[2][0]} gold on The Blacksmith's Hammer track and gain {boardState.players[option[1]].goldToGain - option[2][0]} gold")
+                    f"{i}: Spend {option[2][0]} gold on The Blacksmith's Hammer/Scepter track and gain {boardState.players[option[1]].goldToGain - option[2][0]} gold")
             case Game.Move.SATYRS_CHOOSE_DIE:
                 if option[2][0] % 2 == 0:
                     print(
@@ -156,6 +156,12 @@ def printOptions(options, boardState):
                     print(f"{i}: Use the effect of The Light to gain the effect of {option[2][1]} (spend 3 gold)")
                 else:
                     print(f"{i}: Do not use the effect of The Light")
+            case Game.Move.SPEND_GOLD:
+                print(f"{i}: Spend {option[2][0]} gold from The Blacksmith's Scepters and {boardState.players[option[1]].goldToSpend - option[2][0]} from the main gold reserve")
+            case Game.Move.SPEND_SUN:
+                print(f"{i}: Spend {option[2][0]} sun from The Blacksmith's Scepters, {option[2][1]} ancient shards, and {boardState.players[option[1]].sunToSpend - option[2][0] - option[2][1]} from the main sun reserve")
+            case Game.Move.SPEND_MOON:
+                print(f"{i}: Spend {option[2][0]} sun from The Blacksmith's Scepters, {option[2][1]} ancient shards, and {boardState.players[option[1]].moonToSpend - option[2][0] - option[2][1]} from the main moon reserve")
             case _:
                 print(f"{i}: Unhandled move type {option[0]}")
 

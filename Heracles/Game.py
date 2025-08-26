@@ -133,12 +133,15 @@ class Move(Enum):
     CHOOSE_DIE = 22
     CHOOSE_USE_SENTINEL = 23
     CHOOSE_USE_CYCLOPS = 24
-    CHOOSE_ADD_HAMMER = 25
+    CHOOSE_ADD_HAMMER_SCEPTER = 25
     SATYRS_CHOOSE_DIE = 26
     USE_TRITON_TOKEN = 27
     GUARDIAN_CHOICE = 28
     USE_COMPANION = 29
     USE_LIGHT = 30
+    SPEND_GOLD = 31
+    SPEND_SUN = 32
+    SPEND_MOON = 33
 
 
 class BoardState:
@@ -232,6 +235,15 @@ class BoardState:
         # self.printPlayersInfo()
         self.lastPlayer = move[1]
         # print(f"last player: {self.lastPlayer}")
+        if move[0] == Move.SPEND_GOLD:
+            self.players[move[1]].spendGold(move[2][0])
+            return
+        if move[0] == Move.SPEND_SUN:
+            self.players[move[1]].spendSun(move[2][0], move[2][1])
+            return
+        if move[0] == Move.SPEND_MOON:
+            self.players[move[1]].spendMoon(move[2][0], move[2][1])
+            return
         if move[0] == Move.USE_TRITON_TOKEN:
             match move[2][0]:
                 case "sun":
@@ -321,7 +333,8 @@ class BoardState:
                     else:
                         self.phase = Phase.USE_CERBERUS_CHOICE
                         self.makeMove((Move.PASS, move[1], ()))
-                elif self.players[self.blessingPlayer].twinsToUse == 0 or self.players[self.blessingPlayer].gold < 3:
+                elif self.players[self.blessingPlayer].twinsToUse == 0 or self.players[
+                    self.blessingPlayer].getEffectiveGold() < 3:
                     self.phase = Phase.USE_CERBERUS_CHOICE
                     self.makeMove((Move.PASS, move[1], ()))
             case Phase.TWINS_REROLL_CHOICE:
@@ -423,8 +436,8 @@ class BoardState:
                     self.phase = Phase.APPLY_DICE_EFFECTS
                     self.makeMove((Move.PASS, move[1], ()))
             case Phase.APPLY_DICE_EFFECTS:
-                if move[0] == Move.CHOOSE_ADD_HAMMER:
-                    self.players[self.blessingPlayer].useHammer(move[2][0])
+                if move[0] == Move.CHOOSE_ADD_HAMMER_SCEPTER:
+                    self.players[self.blessingPlayer].useHammerOrScepter(move[2][0])
                     self.phase = Phase.RESOLVE_MAZE_MOVES
                     self.makeMove((Move.PASS, move[1], ()))
                 else:
@@ -517,8 +530,8 @@ class BoardState:
                     self.phase = Phase.MISFORTUNE_1_APPLY_EFFECTS
                     self.makeMove((Move.PASS, move[1], ()))
             case Phase.MISFORTUNE_1_APPLY_EFFECTS:
-                if move[0] == Move.CHOOSE_ADD_HAMMER:
-                    self.players[self.misfortunePlayer].useHammer(move[2][0])
+                if move[0] == Move.CHOOSE_ADD_HAMMER_SCEPTER:
+                    self.players[self.misfortunePlayer].useHammerOrScepter(move[2][0])
                     if self.players[self.misfortunePlayer].shipsToResolve == 0:
                         self.phase = Phase.MISFORTUNE_2
                         self.makeMove((Move.PASS, move[1], ()))
@@ -579,8 +592,8 @@ class BoardState:
                     self.phase = Phase.MISFORTUNE_2_APPLY_EFFECTS
                     self.makeMove((Move.PASS, move[1], ()))
             case Phase.MISFORTUNE_2_APPLY_EFFECTS:
-                if move[0] == Move.CHOOSE_ADD_HAMMER:
-                    self.players[self.misfortunePlayer].useHammer(move[2][0])
+                if move[0] == Move.CHOOSE_ADD_HAMMER_SCEPTER:
+                    self.players[self.misfortunePlayer].useHammerOrScepter(move[2][0])
                     if self.players[self.misfortunePlayer].shipsToResolve == 0:
                         self.phase = Phase.CERBERUS_DECISION
                         self.makeMove((Move.PASS, move[1], ()))
@@ -706,7 +719,8 @@ class BoardState:
                     else:
                         self.phase = Phase.MINOR_USE_CERBERUS
                         self.makeMove((Move.PASS, move[1], ()))
-                elif self.players[self.blessingPlayer].twinsToUse == 0 or self.players[self.blessingPlayer].gold < 3:
+                elif self.players[self.blessingPlayer].twinsToUse == 0 or self.players[
+                    self.blessingPlayer].getEffectiveGold() < 3:
                     self.phase = Phase.MINOR_USE_CERBERUS
                     self.makeMove((Move.PASS, move[1], ()))
             case Phase.MINOR_TWINS_REROLL:
@@ -796,8 +810,8 @@ class BoardState:
                     self.phase = Phase.MINOR_RESOLVE_EFFECTS
                     self.makeMove((Move.PASS, move[1], ()))
             case Phase.MINOR_RESOLVE_EFFECTS:
-                if move[0] == Move.CHOOSE_ADD_HAMMER:
-                    self.players[self.blessingPlayer].useHammer(move[2][0])
+                if move[0] == Move.CHOOSE_ADD_HAMMER_SCEPTER:
+                    self.players[self.blessingPlayer].useHammerOrScepter(move[2][0])
                     self.phase = Phase.MINOR_MAZE_MOVES
                     self.makeMove((Move.PASS, move[1], ()))
                 else:
@@ -899,8 +913,8 @@ class BoardState:
                     self.phase = Phase.MINOR_MISFORTUNE_RESOLVE
                     self.makeMove((Move.PASS, move[1], ()))
             case Phase.MINOR_MISFORTUNE_RESOLVE:
-                if move[0] == Move.CHOOSE_ADD_HAMMER:
-                    self.players[self.misfortunePlayer].useHammer(move[2][0])
+                if move[0] == Move.CHOOSE_ADD_HAMMER_SCEPTER:
+                    self.players[self.misfortunePlayer].useHammerOrScepter(move[2][0])
                     if self.players[self.misfortunePlayer].shipsToResolve == 0:
                         self.phase = Phase.MINOR_CERBERUS_DECISION
                         self.makeMove((Move.PASS, move[1], ()))
@@ -970,8 +984,8 @@ class BoardState:
                     if self.players[self.activePlayer].goldToGain == 0:
                         self.phase = Phase.CHOOSE_REINF_EFFECT
                         self.makeMove((Move.PASS, move[1], ()))
-                elif move[0] == Move.CHOOSE_ADD_HAMMER:
-                    self.players[self.activePlayer].useHammer(move[2][0])
+                elif move[0] == Move.CHOOSE_ADD_HAMMER_SCEPTER:
+                    self.players[self.activePlayer].useHammerOrScepter(move[2][0])
                     self.phase = Phase.CHOOSE_REINF_EFFECT
                     self.makeMove((Move.PASS, move[1], ()))
             case Phase.RESOLVE_HIND_REINF:
@@ -980,7 +994,7 @@ class BoardState:
                 self.returnPhase = Phase.CHOOSE_REINF_EFFECT
             case Phase.RESOLVE_TREE_REINF:
                 if move[0] == Move.PASS:
-                    if self.players[self.activePlayer].gold < 8:
+                    if self.players[self.activePlayer].gold < 8:  # note: this only checks hero inventory reserve
                         self.players[self.activePlayer].gainGold(3)
                         self.players[self.activePlayer].gainVP(1)
                     else:
@@ -988,8 +1002,8 @@ class BoardState:
                     if self.players[self.activePlayer].goldToGain == 0:
                         self.phase = Phase.CHOOSE_REINF_EFFECT
                         self.makeMove((Move.PASS, move[1], ()))
-                elif move[0] == Move.CHOOSE_ADD_HAMMER:
-                    self.players[self.activePlayer].useHammer(move[2][0])
+                elif move[0] == Move.CHOOSE_ADD_HAMMER_SCEPTER:
+                    self.players[self.activePlayer].useHammerOrScepter(move[2][0])
                     self.phase = Phase.CHOOSE_REINF_EFFECT
                     self.makeMove((Move.PASS, move[1], ()))
             case Phase.RESOLVE_MERCHANT_REINF:
@@ -1038,7 +1052,7 @@ class BoardState:
                     else:
                         self.phase = Phase.TURN_START
                         self.advanceActivePlayer(move[1])
-                elif self.players[self.activePlayer].sun < 2:
+                elif self.players[self.activePlayer].getEffectiveSun() < 2:
                     self.phase = Phase.TURN_START
                     self.advanceActivePlayer(move[1])
             case Phase.ACTIVE_PLAYER_BUY_FACES_1:
@@ -1096,8 +1110,8 @@ class BoardState:
                         self.resolveInstEffect(effect)
                     else:
                         self.makeMove((Move.PASS, move[1], ()))
-                elif move[0] == Move.CHOOSE_ADD_HAMMER:
-                    self.players[self.activePlayer].useHammer(move[2][0])
+                elif move[0] == Move.CHOOSE_ADD_HAMMER_SCEPTER:
+                    self.players[self.activePlayer].useHammerOrScepter(move[2][0])
                     self.phase = Phase.EXTRA_TURN_DECISION
                     self.makeMove((Move.PASS, move[1], ()))
                 elif move[0] == Move.PASS:
@@ -1132,8 +1146,8 @@ class BoardState:
                         self.resolveInstEffect(effect)
                     else:
                         self.makeMove((Move.PASS, move[1], ()))
-                elif move[0] == Move.CHOOSE_ADD_HAMMER:
-                    self.players[self.activePlayer].useHammer(move[2][0])
+                elif move[0] == Move.CHOOSE_ADD_HAMMER_SCEPTER:
+                    self.players[self.activePlayer].useHammerOrScepter(move[2][0])
                     self.phase = Phase.TURN_START
                     self.advanceActivePlayer(move[1])
                 elif move[0] == Move.PASS:
@@ -1202,8 +1216,8 @@ class BoardState:
                     self.phase = Phase.TURN_START
                     self.advanceActivePlayer(move[1])
             case Phase.NYMPH_1:
-                if move[0] == Move.CHOOSE_ADD_HAMMER:
-                    self.players[self.activePlayer].useHammer(move[2][0])
+                if move[0] == Move.CHOOSE_ADD_HAMMER_SCEPTER:
+                    self.players[self.activePlayer].useHammerOrScepter(move[2][0])
                 elif move[0] == Move.BUY_FACES:
                     self.temple[Data.getPool(move[2][0])].remove(move[2][0])
                     self.players[self.activePlayer].buyFace(move[2][0])
@@ -1215,8 +1229,8 @@ class BoardState:
                     self.phase = Phase.EXTRA_TURN_DECISION
                     self.makeMove((Move.PASS, move[1], ()))
             case Phase.NYMPH_2:
-                if move[0] == Move.CHOOSE_ADD_HAMMER:
-                    self.players[self.activePlayer].useHammer(move[2][0])
+                if move[0] == Move.CHOOSE_ADD_HAMMER_SCEPTER:
+                    self.players[self.activePlayer].useHammerOrScepter(move[2][0])
                 elif move[0] == Move.BUY_FACES:
                     self.temple[Data.getPool(move[2][0])].remove(move[2][0])
                     self.players[self.activePlayer].buyFace(move[2][0])
@@ -1234,6 +1248,13 @@ class BoardState:
     def getOptions(self):
         # print(self.phase)
         # self.printBoardState()
+        for player in self.players:
+            if player.goldToSpend > 0:
+                return self.getSpendGoldOptions(player)
+            if player.sunToSpend > 0:
+                return self.getSpendSunOptions(player)
+            if player.moonToSpend > 0:
+                return self.getSpendMoonOptions(player)
         ret = ((Move.PASS, self.activePlayer, ()),)
         match self.phase:
             case Phase.ROLL_DIE_1 | Phase.BLESSING_ROLL_DIE_1 | Phase.TWINS_REROLL_1:
@@ -1270,7 +1291,7 @@ class BoardState:
             case Phase.DIE_2_CHOOSE_OR:
                 ret = self.players[self.blessingPlayer].getDieOptions(False)
             case Phase.APPLY_DICE_EFFECTS:
-                ret = self.getHammerChoices(self.blessingPlayer)
+                ret = self.getHammerScepterChoices(self.blessingPlayer)
             case Phase.BOAR_CHOICE_1:
                 ret = self.generateBoarChoice(self.players[self.blessingPlayer].getDie1Result())
             case Phase.BOAR_CHOICE_2:
@@ -1287,7 +1308,7 @@ class BoardState:
                 ret = self.getMirrorChoices(
                     self.blessingPlayer)  # use blessing player since we are copying their effect, todo: do we even need to pass a player?
             case Phase.MISFORTUNE_2_APPLY_EFFECTS | Phase.MISFORTUNE_2_APPLY_EFFECTS:
-                ret = self.getHammerChoices(self.misfortunePlayer)
+                ret = self.getHammerScepterChoices(self.misfortunePlayer)
             case Phase.DIE_1_CHOOSE_SENTINEL | Phase.DIE_2_CHOOSE_SENTINEL:
                 ret = (Move.CHOOSE_USE_SENTINEL, self.blessingPlayer, (True,)), (
                     Move.CHOOSE_USE_SENTINEL, self.blessingPlayer, (False,))
@@ -1312,18 +1333,18 @@ class BoardState:
                 ret = (Move.CHOOSE_USE_CYCLOPS, self.blessingPlayer, (True,)), (
                     Move.CHOOSE_USE_CYCLOPS, self.blessingPlayer, (False,))
             case Phase.MINOR_RESOLVE_EFFECTS:
-                ret = self.getHammerChoices(self.blessingPlayer)
+                ret = self.getHammerScepterChoices(self.blessingPlayer)
             case Phase.MINOR_BOAR_CHOICE:
                 if self.players[self.blessingPlayer].dieChoice:
                     ret = self.generateBoarChoice(self.players[self.blessingPlayer].getDie1Result())
                 else:
                     ret = self.generateBoarChoice(self.players[self.blessingPlayer].getDie2Result())
             case Phase.MINOR_MISFORTUNE_RESOLVE:
-                ret = self.getHammerChoices(self.misfortunePlayer)
+                ret = self.getHammerScepterChoices(self.misfortunePlayer)
             case Phase.CHOOSE_REINF_EFFECT:
                 ret = self.players[self.activePlayer].getReinfOptions()
             case Phase.RESOLVE_ELDER_REINF:
-                if self.players[self.activePlayer].gold >= 3:
+                if self.players[self.activePlayer].getEffectiveGold() >= 3:
                     ret = (Move.USE_ELDER, self.activePlayer, (True,)), (Move.USE_ELDER, self.activePlayer, (False,))
                 else:
                     ret = (Move.USE_ELDER, self.activePlayer, (False,)),
@@ -1333,13 +1354,13 @@ class BoardState:
                         (Move.OWL_CHOICE, self.activePlayer, ("gold",)), (Move.OWL_CHOICE, self.activePlayer, ("sun",)),
                         (Move.OWL_CHOICE, self.activePlayer, ("moon",)))
                 else:
-                    ret = self.getHammerChoices(self.activePlayer)
+                    ret = self.getHammerScepterChoices(self.activePlayer)
             case Phase.RESOLVE_TREE_REINF:
-                ret = self.getHammerChoices(self.activePlayer)
+                ret = self.getHammerScepterChoices(self.activePlayer)
             case Phase.RESOLVE_MERCHANT_REINF:
                 pass  # todo
             case Phase.RESOLVE_LIGHT_REINF:
-                if self.players[self.activePlayer].gold >= 3:
+                if self.players[self.activePlayer].getEffectiveGold() >= 3:
                     ret = self.generateLightChoices()
                 else:
                     ret = (Move.USE_LIGHT, self.activePlayer, (False,)),
@@ -1357,7 +1378,7 @@ class BoardState:
                 if self.players[self.activePlayer].goldToGain == 0:
                     ret = self.generatePerformFeats()
                 else:
-                    ret = self.getHammerChoices(self.activePlayer)
+                    ret = self.getHammerScepterChoices(self.activePlayer)
             case Phase.EXTRA_TURN_DECISION:
                 ret = (
                     (Move.TAKE_EXTRA_TURN, self.activePlayer, (True,)),
@@ -1405,15 +1426,14 @@ class BoardState:
                 ret = self.generateSatyrsChooseDie(False)
             case Phase.NYMPH_1 | Phase.NYMPH_2:
                 if self.players[self.activePlayer].goldToGain > 0:
-                    ret = self.getHammerChoices(self.activePlayer)
+                    ret = self.getHammerScepterChoices(self.activePlayer)
                 elif self.players[self.activePlayer].unforgedFaces:
                     ret = self.generateForgeFace(self.activePlayer)
                 else:
                     ret = self.generateBuyFace(self.activePlayer, 0)
         if ret[0][1] == self.activePlayer and self.players[self.activePlayer].tritonTokens >= 1:
             ret = list(ret)
-            if self.players[self.activePlayer].gold < self.players[self.activePlayer].maxGold:
-                ret.append((Move.USE_TRITON_TOKEN, self.activePlayer, ("gold",)))
+            ret.append((Move.USE_TRITON_TOKEN, self.activePlayer, ("gold",)))
             if self.players[self.activePlayer].sun < self.players[self.activePlayer].maxSun:
                 ret.append((Move.USE_TRITON_TOKEN, self.activePlayer, ("sun",)))
             if self.players[self.activePlayer].moon < self.players[self.activePlayer].maxMoon:
@@ -1468,7 +1488,7 @@ class BoardState:
 
     def generateBuyFace(self, player, goldBonus):
         ret = []
-        gold = self.players[player].gold + goldBonus
+        gold = self.players[player].getEffectiveGold() + goldBonus
         if gold >= 2:
             if self.temple[0]:
                 ret.append((Move.BUY_FACES, player, (self.temple[0][0],)))
@@ -1501,8 +1521,8 @@ class BoardState:
 
     def generatePerformFeats(self):
         ret = []
-        sun = self.players[self.activePlayer].sun
-        moon = self.players[self.activePlayer].moon
+        sun = self.players[self.activePlayer].getEffectiveSun()
+        moon = self.players[self.activePlayer].getEffectiveMoon()
         if sun >= 1:
             if self.islands[0]:
                 ret.append((Move.PERFORM_FEAT, self.activePlayer, (self.islands[0][0],)))
@@ -1543,8 +1563,12 @@ class BoardState:
                             if moon >= 6:
                                 if self.islands[8]:
                                     ret.append((Move.PERFORM_FEAT, self.activePlayer, (self.islands[8][0],)))
-        if sun >= 5 and moon >= 5:
-            if self.islands[7]:
+        if self.islands[7] and sun >= 5:
+            if self.players[self.activePlayer].sun >= 5:
+                if moon >= 5:
+                    ret.append((Move.PERFORM_FEAT, self.activePlayer, (self.islands[7][0],)))
+            elif self.players[
+                self.activePlayer].moon + sun - 5 >= 5:  # sun - 5 is the extra from sceptres and ancient shards since sun < 5
                 ret.append((Move.PERFORM_FEAT, self.activePlayer, (self.islands[7][0],)))
         ret.append((Move.PASS, self.activePlayer, ()))
         return tuple(ret)
@@ -1637,6 +1661,39 @@ class BoardState:
             ret.append((Move.BUY_FACES, self.activePlayer, (face,)))
         return tuple(ret)
 
+    def getSpendGoldOptions(self, player):
+        ret = []
+        i = 0
+        while i <= player.getScepterGold() and i <= player.goldToSpend:
+            ret.append((Move.SPEND_GOLD, player.playerID,
+                        (i,)))  # spend this amount from scepters, spend the rest from main reserve
+            i += 1
+        return tuple(ret)
+
+    def getSpendSunOptions(self, player):
+        ret = []
+        i = 0  # counts scepter spends
+        while i <= player.getScepterSunMoon() and i <= player.sunToSpend:
+            j = 0  # counts ancient shards
+            while j <= player.ancientShards and i + j <= player.sunToSpend:
+                ret.append((Move.SPEND_SUN, player.playerID,
+                            (i, j)))  # spend i from scepters, j ancient shards, and spend the rest from main reserve
+                j += 1
+            i += 1
+        return tuple(ret)
+
+    def getSpendMoonOptions(self, player):
+        ret = []
+        i = 0  # counts scepter spends
+        while i <= player.getScepterSunMoon() and i <= player.moonToSpend:
+            j = 0  # counts ancient shards
+            while j <= player.ancientShards and i + j <= player.moonToSpend:
+                ret.append((Move.SPEND_MOON, player.playerID,
+                            (i, j)))  # spend i from scepters, j ancient shards, and spend the rest from main reserve
+                j += 1
+            i += 1
+        return tuple(ret)
+
     def generateRollDieOptions(self, player, die):
         faces = {}
         for face in die.faces:
@@ -1679,16 +1736,33 @@ class BoardState:
         ret = set(ret)  # remove duplicates
         return tuple(ret)
 
+    def getHammerScepterChoices(self, player):
+        if self.players[player].canAddHammer():
+            return self.getHammerChoices(player)
+        return self.getScepterChoices(player)
+
     def getHammerChoices(self, player):
         hammerLeft = self.players[player].getMaxHammer() - self.players[player].hammerTrack
         goldToSpend = self.players[player].goldToGain
         ret = []
         i = max(goldToSpend - (self.players[player].maxGold - self.players[player].gold), 0)
         while i <= hammerLeft and i <= goldToSpend:
-            ret.append((Move.CHOOSE_ADD_HAMMER, player, (i,)))  # spend i gold on hammer, remainder is gained
+            ret.append((Move.CHOOSE_ADD_HAMMER_SCEPTER, player, (i,)))  # spend i gold on hammer, remainder is gained
             i += 1
         if not ret:
-            ret.append((Move.CHOOSE_ADD_HAMMER, player, (i,)))  # this will happen if both can be maxed out
+            ret.append((Move.CHOOSE_ADD_HAMMER_SCEPTER, player, (i,)))  # this will happen if both can be maxed out
+        return tuple(ret)
+
+    def getScepterChoices(self, player):
+        scepterSpace = self.players[player].getScepterSpace()
+        goldToSpend = self.players[player].goldToGain
+        ret = []
+        i = max(goldToSpend - scepterSpace, 0)
+        while i <= scepterSpace and i <= goldToSpend:
+            ret.append((Move.CHOOSE_ADD_HAMMER_SCEPTER, player, (i,)))  # spend i gold on scepter, remainder is gained
+            i += 1
+        if not ret:
+            ret.append((Move.CHOOSE_ADD_HAMMER_SCEPTER, player, (i,)))  # this will happen if both can be maxed out
         return tuple(ret)
 
     def generateSatyrsChooseDie(self, die1):
@@ -1916,7 +1990,7 @@ class BoardState:
             case "MISTS_INST":
                 minGold = self.players[0].gold
                 for player in self.players:
-                    if player.gold < minGold:
+                    if player.gold < minGold:  # only checks regular reserve
                         minGold = player.gold
                 vpLost = 0
                 for player in self.players:
@@ -1935,7 +2009,8 @@ class BoardState:
                 self.players[self.activePlayer].companions.append(0)
                 self.makeMove((Move.PASS, self.activePlayer, ()))
             case "SCEPTER_INST":
-                self.makeMove((Move.PASS, self.activePlayer, ()))  # todo
+                self.players[self.activePlayer].scepters.append(0)
+                self.makeMove((Move.PASS, self.activePlayer, ()))
             case "MOONGOLEM_INST":
                 self.makeMove((Move.PASS, self.activePlayer, ()))  # todo
             case "GREATGOLEM_INST":
@@ -2142,13 +2217,17 @@ class Player:
         self.unforgedFaces = []
         self.unusedReinfEffects = []
         self.companions = []
+        self.scepters = []
         self.allegiance = 0
         self.mazePosition = 0
         self.mazeMoves = 0
         self.shipsToResolve = 0
         self.celestialRolls = 0
         self.hammerTrack = 0
-        self.goldToGain = 0  # can choose to spend on hammers
+        self.goldToGain = 0  # can choose to spend on hammers or scepters
+        self.goldToSpend = 0  # can spend from track or scepters
+        self.sunToSpend = 0
+        self.moonToSpend = 0
 
     def copyPlayer(self):
         ret = Player(self.playerID, self.ai)
@@ -2180,6 +2259,7 @@ class Player:
         ret.unforgedFaces = copy.deepcopy(self.unforgedFaces)
         ret.unusedReinfEffects = copy.deepcopy(self.unusedReinfEffects)
         ret.companions = copy.deepcopy(self.companions)
+        ret.scepters = copy.deepcopy(self.scepters)
         ret.allegiance = self.allegiance
         ret.mazePosition = self.mazePosition
         ret.mazeMoves = self.mazeMoves
@@ -2187,6 +2267,9 @@ class Player:
         ret.celestialRolls = self.celestialRolls
         ret.hammerTrack = self.hammerTrack
         ret.goldToGain = self.goldToGain
+        ret.goldToSpend = self.goldToSpend
+        ret.sunToSpend = self.sunToSpend
+        ret.moonToSpend = self.moonToSpend
         return ret
 
     def chestEffect(self):
@@ -2211,16 +2294,73 @@ class Player:
         return self.die2ResultBuffer
 
     def gainGold(self, amount):
-        if self.canAddHammer() and amount > 0:
+        if (self.canAddHammer() or self.canAddScepter()) and amount > 0:
             self.goldToGain += amount
+        elif amount < 0 < self.getScepterGold():
+            self.goldToSpend += amount
         else:
             self.gold = max(min(self.gold + amount, self.maxGold), 0)
 
+    def spendGold(self, scepter):
+        i = len(self.scepters) - 1
+        toSpend = scepter
+        while i >= 0 and toSpend >= 0:
+            next = min(self.scepters[i], toSpend)
+            self.scepters[i] -= next
+            toSpend -= next
+            i -= 1
+        self.gold = max(self.gold - (self.goldToSpend - scepter), 0)
+        self.goldToSpend = 0
+
     def gainSun(self, amount):
-        self.sun = max(min(self.sun + amount, self.maxSun), 0)
+        if amount < 0 and (self.ancientShards > 0 or self.getScepterSunMoon() > 0):
+            self.sunToSpend += amount
+        else:
+            self.sun = max(min(self.sun + amount, self.maxSun), 0)
+
+    def spendSun(self, scepter, ancientShard):
+        toSpend = scepter
+        if scepter > 1:
+            i = len(self.scepters) - 1
+            while i >= 0 and toSpend >= 0 and toSpend != 1:
+                if self.scepters[i] == 6:
+                    self.scepters[i] = 0
+                    toSpend -= 2
+                i -= 1
+        i = len(self.scepters) - 1
+        while i >= 0 and toSpend >= 0:
+            if self.scepters[i] > 3:
+                self.scepters[i] = 0
+                toSpend -= 1
+            i -= 1
+        self.ancientShards = max(self.ancientShards - ancientShard, 0)
+        self.sun = max(self.sun - (self.sunToSpend - scepter - ancientShard), 0)
+        self.sunToSpend = 0
 
     def gainMoon(self, amount):
-        self.moon = max(min(self.moon + amount, self.maxMoon), 0)
+        if amount < 0 and (self.ancientShards > 0 or self.getScepterSunMoon() > 0):
+            self.moonToSpend += amount
+        else:
+            self.moon = max(min(self.moon + amount, self.maxMoon), 0)
+
+    def spendMoon(self, scepter, ancientShard):
+        toSpend = scepter
+        if scepter > 1:
+            i = len(self.scepters) - 1
+            while i >= 0 and toSpend >= 0 and toSpend != 1:
+                if self.scepters[i] == 6:
+                    self.scepters[i] = 0
+                    toSpend -= 2
+                i -= 1
+        i = len(self.scepters) - 1
+        while i >= 0 and toSpend >= 0:
+            if self.scepters[i] > 3:
+                self.scepters[i] = 0
+                toSpend -= 1
+            i -= 1
+        self.ancientShards = max(self.ancientShards - ancientShard, 0)
+        self.moon = max(self.moon - (self.moonToSpend - scepter - ancientShard), 0)
+        self.moonToSpend = 0
 
     def gainVP(self, amount):
         self.vp = max(self.vp + amount, 0)
@@ -2231,9 +2371,35 @@ class Player:
     def hasMaxMoon(self):
         return self.moon == self.maxMoon
 
+    def getEffectiveGold(self):
+        ret = self.gold
+        for scepter in self.scepters:
+            ret += scepter
+        return ret
+
+    def getEffectiveSun(self):
+        ret = self.sun
+        for scepter in self.scepters:
+            if scepter == 6:
+                ret += 2
+            elif scepter > 3:
+                ret += 1
+        ret += self.ancientShards
+        return ret
+
+    def getEffectiveMoon(self):
+        ret = self.moon
+        for scepter in self.scepters:
+            if scepter == 6:
+                ret += 2
+            elif scepter > 3:
+                ret += 1
+        ret += self.ancientShards
+        return ret
+
     def gainAncientShards(self, amount):
         self.ancientShards = max(min(self.ancientShards + amount, 6), 0)
-        # todo: advance on loyalty track, spending ancient shards
+        # todo: advance on loyalty track
 
     def gainLoyalty(self, amount):
         pass  # todo: advance on loyalty track
@@ -2248,6 +2414,33 @@ class Player:
     def canAddHammer(self):
         return self.hammerTrack < self.getMaxHammer()
 
+    def canAddScepter(self):
+        for scepter in self.scepters:
+            if scepter < 6:
+                return True
+        return False
+
+    def getScepterSpace(self):
+        ret = 0
+        for scepter in self.scepters:
+            ret += 6 - scepter
+        return ret
+
+    def getScepterGold(self):
+        ret = 0
+        for scepter in self.scepters:
+            ret += scepter
+        return ret
+
+    def getScepterSunMoon(self):
+        ret = 0
+        for scepter in self.scepters:
+            if scepter == 6:
+                ret += 2
+            elif scepter > 3:
+                ret += 1
+        return ret
+
     def addHammer(self, amount):
         beforeHammer = self.hammerTrack
         self.hammerTrack = min(self.hammerTrack + amount, self.getMaxHammer())
@@ -2260,9 +2453,21 @@ class Player:
                     self.gainVP(10)
             i += 1
 
-    def useHammer(self, hammerAmount):  # spend hammerAmount on hammer, gain remainder as gold
-        self.addHammer(hammerAmount)
-        self.gainGold(self.goldToGain - hammerAmount)
+    def addScepter(self, amount):  # just adding to scepters in order should be optimal
+        i = 0
+        toSpend = amount
+        while i < len(self.scepters) and toSpend > 0:
+            spend = min(6 - self.scepters[i], toSpend)
+            self.scepters[i] = self.scepters[i] + spend
+            toSpend -= spend
+            i += 1
+
+    def useHammerOrScepter(self, amount):  # spend hammerAmount on hammer or scepter, gain remainder as gold
+        if self.canAddScepter():
+            self.addScepter(amount)
+        else:
+            self.addHammer(amount)
+        self.gainGold(self.goldToGain - amount)
         self.goldToGain = 0
 
     def die1IsBoar(self):
