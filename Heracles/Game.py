@@ -2333,6 +2333,7 @@ class Player:
                 self.scepters[i] = 0
                 toSpend -= 1
             i -= 1
+        self.scepters.sort(reverse=True)
         self.ancientShards = max(self.ancientShards - ancientShard, 0)
         self.sun = max(self.sun - (self.sunToSpend - scepter - ancientShard), 0)
         self.sunToSpend = 0
@@ -2358,6 +2359,7 @@ class Player:
                 self.scepters[i] = 0
                 toSpend -= 1
             i -= 1
+        self.scepters.sort(reverse=True)
         self.ancientShards = max(self.ancientShards - ancientShard, 0)
         self.moon = max(self.moon - (self.moonToSpend - scepter - ancientShard), 0)
         self.moonToSpend = 0
