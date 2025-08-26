@@ -1825,7 +1825,12 @@ class BoardState:
     def resolveInstEffect(self, effect):
         match effect:
             case "SPIRITS_INST":
-                self.players[self.activePlayer].gainGold(3)
+                if self.players[self.activePlayer].scepters:
+                    # it is possible to spend gold from scepter tracks to pay for the feat
+                    # this can open up space for gold, but happens after this, so delay the gold gain
+                    self.players[self.activePlayer].goldToGain = 3
+                else:
+                    self.players[self.activePlayer].gainGold(3)
                 self.players[self.activePlayer].gainMoon(3)
                 if self.players[self.activePlayer].goldToGain == 0:
                     self.makeMove((Move.PASS, self.activePlayer, ()))
