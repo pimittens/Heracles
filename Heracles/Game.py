@@ -106,6 +106,9 @@ class Phase(Enum):  # todo: numbers
     RESOLVE_GUARDIAN_REINF = 100
     NYMPH_1 = 101
     NYMPH_2 = 102
+    TRIDENT_1 = 103
+    TRIDENT_2 = 104
+    GODDESS_CHOOSE_FACES = 105
 
 
 class Move(Enum):
@@ -142,6 +145,7 @@ class Move(Enum):
     SPEND_GOLD = 31
     SPEND_SUN = 32
     SPEND_MOON = 33
+    CHOOSE_FACES = 34 # choose faces to place face up
 
 
 class BoardState:
@@ -175,6 +179,7 @@ class BoardState:
         self.sentinel = False
         self.satyrs = False
         self.minotaur = False
+        self.eternalFire = False
         self.extraRolls = 0
         self.lastPlayer = 0  # player who last made a move
         self.phase = Phase.TURN_START
@@ -206,6 +211,7 @@ class BoardState:
         ret.cyclops = self.cyclops
         ret.satyrs = self.satyrs
         ret.minotaur = self.minotaur
+        ret.eternalFire = self.eternalFire
         ret.extraRolls = self.extraRolls
         ret.lastPlayer = self.lastPlayer
         return ret
@@ -276,7 +282,8 @@ class BoardState:
             case Phase.ROLL_DIE_2:
                 if move[0] == Move.ROLL:
                     self.players[self.blessingPlayer].die2.setToFace(move[2][0])
-                    self.blessingPlayer = (self.blessingPlayer + 1) % len(self.players)
+                    if not self.eternalFire:
+                        self.blessingPlayer = (self.blessingPlayer + 1) % len(self.players)
                     if self.blessingPlayer == self.activePlayer:
                         if self.satyrs:
                             self.phase = Phase.SATYRS_CHOOSE_DIE_1
@@ -292,7 +299,8 @@ class BoardState:
                         self.phase = Phase.ROLL_DIE_1
                 elif move[0] == Move.RANDOM_ROLL:
                     self.players[self.blessingPlayer].die2.roll()
-                    self.blessingPlayer = (self.blessingPlayer + 1) % len(self.players)
+                    if not self.eternalFire:
+                        self.blessingPlayer = (self.blessingPlayer + 1) % len(self.players)
                     if self.blessingPlayer == self.activePlayer:
                         if self.satyrs:
                             self.phase = Phase.SATYRS_CHOOSE_DIE_1
@@ -635,7 +643,8 @@ class BoardState:
                     self.phase = Phase.MIRROR_1_CHOICE
                     self.makeMove((Move.PASS, move[1], ()))
                 elif self.returnPhase == Phase.USE_TWINS_CHOICE:  # start of turn divine blessings
-                    self.blessingPlayer = (self.blessingPlayer + 1) % len(self.players)
+                    if not self.eternalFire:
+                        self.blessingPlayer = (self.blessingPlayer + 1) % len(self.players)
                     if self.blessingPlayer == self.activePlayer:
                         if self.extraRolls > 0:
                             self.extraRolls -= 1
@@ -643,6 +652,7 @@ class BoardState:
                         else:
                             self.players[self.activePlayer].populateReinfEffects()
                             self.phase = Phase.CHOOSE_REINF_EFFECT
+                            self.eternalFire = False
                             self.makeMove((Move.PASS, move[1], ()))
                     else:
                         self.players[self.blessingPlayer].populateTwins()
@@ -1241,6 +1251,30 @@ class BoardState:
                 elif move[0] == Move.PASS:
                     self.phase = Phase.TURN_START
                     self.advanceActivePlayer(move[1])
+            case Phase.TRIDENT_1:
+                if move[0] == Move.BUY_FACES:
+                    self.temple[Data.getPool(move[2][0])].remove(move[2][0])
+                    self.players[self.activePlayer].unforgedFaces.append(move[2][0])
+                elif move[0] == Move.FORGE_FACE:
+                    self.players[self.activePlayer].forgeFace(move[2])
+                    self.phase = Phase.EXTRA_TURN_DECISION
+                    self.makeMove((Move.PASS, move[1], ()))
+            case Phase.TRIDENT_2:
+                if move[0] == Move.BUY_FACES:
+                    self.temple[Data.getPool(move[2][0])].remove(move[2][0])
+                    self.players[self.activePlayer].unforgedFaces.append(move[2][0])
+                elif move[0] == Move.FORGE_FACE:
+                    self.players[self.activePlayer].forgeFace(move[2])
+                    self.phase = Phase.TURN_START
+                    self.advanceActivePlayer(move[1])
+            case Phase.GODDESS_CHOOSE_FACES:
+                if move[0] == Move.CHOOSE_FACES:
+                    self.players[self.activePlayer].die1.setToFace(move[2][0])
+                    self.players[self.activePlayer].die2.setToFace(move[2][1])
+                    self.players[self.activePlayer].setBuffers()
+                    self.blessingPlayer = self.activePlayer
+                    self.phase = Phase.MIRROR_1_CHOICE
+                    self.makeMove((Move.PASS, move[1], ()))
             case Phase.END_TURN:
                 self.phase = Phase.TURN_START
                 self.advanceActivePlayer(move[1])
@@ -1431,6 +1465,13 @@ class BoardState:
                     ret = self.generateForgeFace(self.activePlayer)
                 else:
                     ret = self.generateBuyFace(self.activePlayer, 0)
+            case Phase.TRIDENT_1 | Phase.TRIDENT_2:
+                if self.players[self.activePlayer].unforgedFaces:
+                    ret = self.generateForgeFace(self.activePlayer)
+                else:
+                    ret = self.generateBuyFace(self.activePlayer, 100) # can buy any face
+            case Phase.GODDESS_CHOOSE_FACES:
+                ret = self.generateGoddessChoice(self.players[self.activePlayer])
         if ret[0][1] == self.activePlayer and self.players[self.activePlayer].tritonTokens >= 1:
             ret = list(ret)
             ret.append((Move.USE_TRITON_TOKEN, self.activePlayer, ("gold",)))
@@ -1659,6 +1700,16 @@ class BoardState:
         ret = []
         for face in self.dogged:
             ret.append((Move.BUY_FACES, self.activePlayer, (face,)))
+        return tuple(ret)
+
+    def generateGoddessChoice(self, player):
+        # choose a face on each die to place face up
+        die1Faces = set(player.die1.faces) # don't need duplicates
+        die2Faces = set(player.die2.faces)
+        ret = []
+        for face1 in die1Faces:
+            for face2 in die2Faces:
+                ret.append((Move.CHOOSE_FACES, player.playerID, (face1, face2)))
         return tuple(ret)
 
     def getSpendGoldOptions(self, player):
@@ -1969,15 +2020,25 @@ class BoardState:
                 self.players[self.activePlayer].gainVP(2 * len(feats))
                 self.makeMove((Move.PASS, self.activePlayer, ()))
             case "TRIDENT_INST":
-                self.makeMove((Move.PASS, self.activePlayer, ()))  # todo
+                self.players[self.activePlayer].gold = 0
+                if self.phase == Phase.ACTIVE_PLAYER_PERFORM_FEAT_1:
+                    self.phase = Phase.TRIDENT_1
+                else:
+                    self.phase = Phase.TRIDENT_2
             case "LEFTHAND_INST":
                 self.makeMove((Move.PASS, self.activePlayer, ()))  # todo
             case "FIRE_INST":
-                self.makeMove((Move.PASS, self.activePlayer, ()))  # todo
+                self.eternalFire = True
+                self.phase = Phase.TURN_START
+                self.makeMove((Move.PASS, self.activePlayer, ()))
             case "TITAN_INST":
                 self.makeMove((Move.PASS, self.activePlayer, ()))  # todo
             case "GODDESS_INST":
-                self.makeMove((Move.PASS, self.activePlayer, ()))  # todo
+                if self.phase == Phase.ACTIVE_PLAYER_PERFORM_FEAT_1:
+                    self.returnPhase = Phase.EXTRA_TURN_DECISION
+                else:
+                    self.returnPhase = Phase.END_TURN
+                self.phase = Phase.GODDESS_CHOOSE_FACES
             case "RIGHTHAND_INST":
                 self.makeMove((Move.PASS, self.activePlayer, ()))  # todo
             case "NIGHT_INST":
