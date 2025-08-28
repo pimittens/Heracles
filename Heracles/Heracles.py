@@ -164,6 +164,23 @@ def printOptions(options, boardState):
                 print(f"{i}: Spend {option[2][0]} sun from The Blacksmith's Scepters, {option[2][1]} ancient shards, and {boardState.players[option[1]].moonToSpend - option[2][0] - option[2][1]} from the main moon reserve")
             case Game.Move.CHOOSE_FACES:
                 print(f"{i}: Place the faces {option[2][0]} and {option[2][1]} face up and gain their effects")
+            case Game.Move.RIGHTHAND_SPEND:
+                print(f"{i}: Use the effect of The Right Hand to spend {option[2][0]} gold and gain {option[2][0]} vp")
+            case Game.Move.CHOOSE_RESOURCE:
+                match option[2][0]:
+                    case 0:
+                        type = "gold"
+                    case 1:
+                        type = "sun"
+                    case 2:
+                        type = "moon"
+                    case 3:
+                        type = "vp"
+                    case 4:
+                        type = "ancient shards"
+                    case _:
+                        type = "loyalty"
+                print(f"{i}: Use the effect of The Wind to gain all of the {type} shown on dice")
             case _:
                 print(f"{i}: Unhandled move type {option[0]}")
 

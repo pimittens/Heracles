@@ -112,6 +112,7 @@ class DieFace(Enum):
     GREENMISFORTUNE = 41
     GOLD3ANCIENTSHARD1 = 42
     VP1GOLD2LOYALTY1 = 43
+    BOAR = 44
 
 
 facesData = tuple(json.loads(open("Faces.json").read()))
@@ -127,6 +128,8 @@ def getLevel(face):
 
 def getPool(face):
     level = getLevel(face)
+    if level == 0:
+        return -1
     if level == 1:
         if face == DieFace.GOLD3:
             return 0

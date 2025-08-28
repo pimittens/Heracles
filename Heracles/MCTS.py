@@ -107,7 +107,7 @@ class HeuristicNode:
                 gold -= 1
             choicesWeights = []
             for child in self.children:
-                if getTotalGoldCost(child.move[2]) < gold:
+                if child.move[0] != Move.BUY_FACES or getTotalGoldCost(child.move[2]) < gold:
                     choicesWeights.append(0)
                 else:
                     choicesWeights.append((child.points / child.visits) + explorationWeight * math.sqrt(
@@ -119,7 +119,7 @@ class HeuristicNode:
             # prioritize forging over gold 1 faces
             choicesWeights = []
             for child in self.children:
-                if child.move[2][2] == DieFace.GOLD1:
+                if child.move[0] == Move.FORGE_FACE and child.move[2][2] == DieFace.GOLD1:
                     choicesWeights.append((child.points / child.visits) + explorationWeight * math.sqrt(
                         math.log(self.visits) / child.visits
                     ))

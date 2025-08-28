@@ -109,6 +109,11 @@ class Phase(Enum):  # todo: numbers
     TRIDENT_1 = 103
     TRIDENT_2 = 104
     GODDESS_CHOOSE_FACES = 105
+    RIGHTHAND_1 = 106
+    RIGHTHAND_2 = 107
+    WIND_ROLL_DIE_1 = 108
+    WIND_ROLL_DIE_2 = 109
+    WIND_CHOOSE_RESOURCE = 110
 
 
 class Move(Enum):
@@ -145,7 +150,9 @@ class Move(Enum):
     SPEND_GOLD = 31
     SPEND_SUN = 32
     SPEND_MOON = 33
-    CHOOSE_FACES = 34 # choose faces to place face up
+    CHOOSE_FACES = 34  # choose faces to place face up
+    RIGHTHAND_SPEND = 35  # gain 1 vp per gold spent
+    CHOOSE_RESOURCE = 36
 
 
 class BoardState:
@@ -360,9 +367,25 @@ class BoardState:
                         self.makeMove((Move.PASS, move[1], ()))
                     else:
                         self.phase = Phase.TWINS_RESOURCE_CHOICE
+                elif move[0] == Move.RANDOM_ROLL:
+                    self.players[self.blessingPlayer].die1.roll()
+                    if self.players[self.blessingPlayer].hasMaxMoon():  # max moon so gain vp
+                        self.players[self.blessingPlayer].gainVP(1)
+                        self.phase = Phase.USE_TWINS_CHOICE
+                        self.makeMove((Move.PASS, move[1], ()))
+                    else:
+                        self.phase = Phase.TWINS_RESOURCE_CHOICE
             case Phase.TWINS_REROLL_2:
                 if move[0] == Move.ROLL:
                     self.players[self.blessingPlayer].die2.setToFace(move[2][0])
+                    if self.players[self.blessingPlayer].hasMaxMoon():  # max moon so gain vp
+                        self.players[self.blessingPlayer].gainVP(1)
+                        self.phase = Phase.USE_TWINS_CHOICE
+                        self.makeMove((Move.PASS, move[1], ()))
+                    else:
+                        self.phase = Phase.TWINS_RESOURCE_CHOICE
+                elif move[0] == Move.RANDOM_ROLL:
+                    self.players[self.blessingPlayer].die2.roll()
                     if self.players[self.blessingPlayer].hasMaxMoon():  # max moon so gain vp
                         self.players[self.blessingPlayer].gainVP(1)
                         self.phase = Phase.USE_TWINS_CHOICE
@@ -739,6 +762,17 @@ class BoardState:
                         self.players[self.blessingPlayer].die1.setToFace(move[2][0])
                     else:
                         self.players[self.blessingPlayer].die2.setToFace(move[2][0])
+                    if self.players[self.blessingPlayer].hasMaxMoon():  # max moon so gain vp
+                        self.players[self.blessingPlayer].gainVP(1)
+                        self.phase = Phase.MINOR_TWINS_CHOICE
+                        self.makeMove((Move.PASS, move[1], ()))
+                    else:
+                        self.phase = Phase.MINOR_TWINS_RESOURCE
+                elif move[0] == Move.RANDOM_ROLL:
+                    if self.players[self.blessingPlayer].dieChoice:
+                        self.players[self.blessingPlayer].die1.roll()
+                    else:
+                        self.players[self.blessingPlayer].die2.roll()
                     if self.players[self.blessingPlayer].hasMaxMoon():  # max moon so gain vp
                         self.players[self.blessingPlayer].gainVP(1)
                         self.phase = Phase.MINOR_TWINS_CHOICE
@@ -1253,18 +1287,30 @@ class BoardState:
                     self.advanceActivePlayer(move[1])
             case Phase.TRIDENT_1:
                 if move[0] == Move.BUY_FACES:
-                    self.temple[Data.getPool(move[2][0])].remove(move[2][0])
+                    if move[2][0] == Data.DieFace.REDSHIELD or move[2][0] == Data.DieFace.REDSHIELD or move[2][0] == Data.DieFace.REDSHIELD or move[2][0] == Data.DieFace.REDSHIELD:
+                        self.shields.remove(move[2][0])
+                    elif Data.getPool(move[2][0]) != -1:
+                        self.temple[Data.getPool(move[2][0])].remove(move[2][0])
                     self.players[self.activePlayer].unforgedFaces.append(move[2][0])
                 elif move[0] == Move.FORGE_FACE:
                     self.players[self.activePlayer].forgeFace(move[2])
                     self.phase = Phase.EXTRA_TURN_DECISION
                     self.makeMove((Move.PASS, move[1], ()))
+                elif move[0] == Move.PASS:
+                    self.phase = Phase.EXTRA_TURN_DECISION
+                    self.makeMove((Move.PASS, move[1], ()))
             case Phase.TRIDENT_2:
                 if move[0] == Move.BUY_FACES:
-                    self.temple[Data.getPool(move[2][0])].remove(move[2][0])
+                    if move[2][0] == Data.DieFace.REDSHIELD or move[2][0] == Data.DieFace.REDSHIELD or move[2][0] == Data.DieFace.REDSHIELD or move[2][0] == Data.DieFace.REDSHIELD:
+                        self.shields.remove(move[2][0])
+                    elif Data.getPool(move[2][0]) != -1:
+                        self.temple[Data.getPool(move[2][0])].remove(move[2][0])
                     self.players[self.activePlayer].unforgedFaces.append(move[2][0])
                 elif move[0] == Move.FORGE_FACE:
                     self.players[self.activePlayer].forgeFace(move[2])
+                    self.phase = Phase.TURN_START
+                    self.advanceActivePlayer(move[1])
+                elif move[0] == Move.PASS:
                     self.phase = Phase.TURN_START
                     self.advanceActivePlayer(move[1])
             case Phase.GODDESS_CHOOSE_FACES:
@@ -1275,6 +1321,47 @@ class BoardState:
                     self.blessingPlayer = self.activePlayer
                     self.phase = Phase.MIRROR_1_CHOICE
                     self.makeMove((Move.PASS, move[1], ()))
+            case Phase.RIGHTHAND_1:
+                if move[0] == Move.RIGHTHAND_SPEND:
+                    self.players[self.activePlayer].gainGold(-move[2][0])
+                    self.players[self.activePlayer].gainVP(move[2][0])
+                    self.phase = Phase.EXTRA_TURN_DECISION
+                    self.makeMove((Move.PASS, move[1], ()))
+            case Phase.RIGHTHAND_2:
+                if move[0] == Move.RIGHTHAND_SPEND:
+                    self.players[self.activePlayer].gainGold(-move[2][0])
+                    self.players[self.activePlayer].gainVP(move[2][0])
+                    self.phase = Phase.TURN_START
+                    self.advanceActivePlayer(move[1])
+            case Phase.WIND_ROLL_DIE_1:
+                if move[0] == Move.ROLL:
+                    self.players[self.blessingPlayer].die1.setToFace(move[2][0])
+                    self.phase = Phase.WIND_ROLL_DIE_2
+                elif move[0] == Move.RANDOM_ROLL:
+                    self.players[self.blessingPlayer].die1.roll()
+                    self.phase = Phase.WIND_ROLL_DIE_2
+            case Phase.WIND_ROLL_DIE_2:
+                if move[0] == Move.ROLL:
+                    self.players[self.blessingPlayer].die2.setToFace(move[2][0])
+                    self.blessingPlayer = (self.blessingPlayer + 1) % len(self.players)
+                    if self.blessingPlayer == self.activePlayer:
+                        self.phase = Phase.WIND_CHOOSE_RESOURCE
+                    else:
+                        self.phase = Phase.WIND_ROLL_DIE_1
+                elif move[0] == Move.RANDOM_ROLL:
+                    self.players[self.blessingPlayer].die2.roll()
+                    self.blessingPlayer = (self.blessingPlayer + 1) % len(self.players)
+                    if self.blessingPlayer == self.activePlayer:
+                        self.phase = Phase.WIND_CHOOSE_RESOURCE
+                    else:
+                        self.phase = Phase.WIND_ROLL_DIE_1
+            case Phase.WIND_CHOOSE_RESOURCE:
+                if move[0] == Move.CHOOSE_RESOURCE:
+                    for player in self.players:
+                        self.players[self.activePlayer].gainWindResources(player.getDie1UpFace(), move[2][0])
+                        self.players[self.activePlayer].gainWindResources(player.getDie2UpFace(), move[2][0])
+                    self.phase = self.returnPhase
+                    self.makeReturnMove(self.activePlayer)
             case Phase.END_TURN:
                 self.phase = Phase.TURN_START
                 self.advanceActivePlayer(move[1])
@@ -1291,9 +1378,9 @@ class BoardState:
                 return self.getSpendMoonOptions(player)
         ret = ((Move.PASS, self.activePlayer, ()),)
         match self.phase:
-            case Phase.ROLL_DIE_1 | Phase.BLESSING_ROLL_DIE_1 | Phase.TWINS_REROLL_1:
+            case Phase.ROLL_DIE_1 | Phase.BLESSING_ROLL_DIE_1 | Phase.TWINS_REROLL_1 | Phase.WIND_ROLL_DIE_1:
                 ret = self.generateRollDieOptions(self.blessingPlayer, self.players[self.blessingPlayer].die1)
-            case Phase.ROLL_DIE_2 | Phase.BLESSING_ROLL_DIE_2 | Phase.TWINS_REROLL_2:
+            case Phase.ROLL_DIE_2 | Phase.BLESSING_ROLL_DIE_2 | Phase.TWINS_REROLL_2 | Phase.WIND_ROLL_DIE_2:
                 ret = self.generateRollDieOptions(self.blessingPlayer, self.players[self.blessingPlayer].die2)
             case Phase.USE_TWINS_CHOICE | Phase.MINOR_TWINS_CHOICE:
                 ret = ((Move.USE_TWINS, self.blessingPlayer, (True,)), (Move.USE_TWINS, self.blessingPlayer, (False,)))
@@ -1469,9 +1556,16 @@ class BoardState:
                 if self.players[self.activePlayer].unforgedFaces:
                     ret = self.generateForgeFace(self.activePlayer)
                 else:
-                    ret = self.generateBuyFace(self.activePlayer, 100) # can buy any face
+                    ret = self.generateTridentAction(self.activePlayer)
             case Phase.GODDESS_CHOOSE_FACES:
                 ret = self.generateGoddessChoice(self.players[self.activePlayer])
+            case Phase.RIGHTHAND_1 | Phase.RIGHTHAND_2:
+                ret = self.generateRightHandChoice(self.players[self.activePlayer])
+            case Phase.WIND_CHOOSE_RESOURCE:
+                ret = (Move.CHOOSE_RESOURCE, self.activePlayer, (0,)), (
+                    Move.CHOOSE_RESOURCE, self.activePlayer, (1,)), (Move.CHOOSE_RESOURCE, self.activePlayer, (2,)), (
+                    Move.CHOOSE_RESOURCE, self.activePlayer, (3,)), (Move.CHOOSE_RESOURCE, self.activePlayer, (4,)), (
+                    Move.CHOOSE_RESOURCE, self.activePlayer, (5,))
         if ret[0][1] == self.activePlayer and self.players[self.activePlayer].tritonTokens >= 1:
             ret = list(ret)
             ret.append((Move.USE_TRITON_TOKEN, self.activePlayer, ("gold",)))
@@ -1558,6 +1652,53 @@ class BoardState:
                                     for face in self.temple[9]:
                                         ret.append((Move.BUY_FACES, player, (face,)))
         ret.append((Move.PASS, player, ()))
+        return tuple(ret)
+
+    def generateTridentAction(self, playerID):
+        ret = []
+        for pool in self.temple:
+            for face in pool:
+                next = Move.BUY_FACES, playerID, (face,)
+                if not next in ret:
+                    ret.append(next)
+        times3 = boar = ship = shield = mirror = False
+        for island in self.islands:
+            for feat in island:
+                if feat == Data.HeroicFeat.HELMET_OF_INVISIBILITY:
+                    times3 = True
+                elif feat == Data.HeroicFeat.TENACIOUS_BOAR_RED or feat == Data.HeroicFeat.TENACIOUS_BOAR_RED or feat == Data.HeroicFeat.TENACIOUS_BOAR_YELLOW or feat == Data.HeroicFeat.TENACIOUS_BOAR_GREEN:
+                    boar = True
+                elif feat == Data.HeroicFeat.CELESTIAL_SHIP:
+                    ship = True
+                elif feat == Data.HeroicFeat.THE_GUARDIANS_SHIELD:
+                    shield = True
+                elif feat == Data.HeroicFeat.MIRROR_OF_THE_ABYSS:
+                    mirror = True
+        for player in self.players:
+            for feat in player.feats:
+                if feat == Data.HeroicFeat.HELMET_OF_INVISIBILITY:
+                    times3 = True
+                elif feat == Data.HeroicFeat.TENACIOUS_BOAR_RED or feat == Data.HeroicFeat.TENACIOUS_BOAR_RED or feat == Data.HeroicFeat.TENACIOUS_BOAR_YELLOW or feat == Data.HeroicFeat.TENACIOUS_BOAR_GREEN:
+                    boar = True
+                elif feat == Data.HeroicFeat.CELESTIAL_SHIP:
+                    ship = True
+                elif feat == Data.HeroicFeat.THE_GUARDIANS_SHIELD:
+                    shield = True
+                elif feat == Data.HeroicFeat.MIRROR_OF_THE_ABYSS:
+                    mirror = True
+        if not times3:
+            ret.append((Move.BUY_FACES, playerID, (Data.DieFace.TIMES3,)))
+        if not boar:
+            ret.append((Move.BUY_FACES, playerID, (Data.DieFace.BOAR,)))
+        if not ship:
+            ret.append((Move.BUY_FACES, playerID, (Data.DieFace.SHIP,)))
+        if not shield:
+            for face in self.shields:
+                ret.append((Move.BUY_FACES, playerID, (face,)))
+        if not mirror:
+            ret.append((Move.BUY_FACES, playerID, (Data.DieFace.MIRROR,)))
+        if not ret:
+            ret.append((Move.PASS, playerID, ()))
         return tuple(ret)
 
     def generatePerformFeats(self):
@@ -1704,12 +1845,21 @@ class BoardState:
 
     def generateGoddessChoice(self, player):
         # choose a face on each die to place face up
-        die1Faces = set(player.die1.faces) # don't need duplicates
+        die1Faces = set(player.die1.faces)  # don't need duplicates
         die2Faces = set(player.die2.faces)
         ret = []
         for face1 in die1Faces:
             for face2 in die2Faces:
                 ret.append((Move.CHOOSE_FACES, player.playerID, (face1, face2)))
+        return tuple(ret)
+
+    def generateRightHandChoice(self, player):
+        ret = []
+        i = 0
+        max = player.getEffectiveGold()
+        while i <= max:
+            ret.append((Move.RIGHTHAND_SPEND, player.playerID, (i,)))
+            i += 1
         return tuple(ret)
 
     def getSpendGoldOptions(self, player):
@@ -2040,7 +2190,13 @@ class BoardState:
                     self.returnPhase = Phase.END_TURN
                 self.phase = Phase.GODDESS_CHOOSE_FACES
             case "RIGHTHAND_INST":
-                self.makeMove((Move.PASS, self.activePlayer, ()))  # todo
+                if self.players[self.activePlayer].getEffectiveGold() > 0:
+                    if self.phase == Phase.ACTIVE_PLAYER_PERFORM_FEAT_1:
+                        self.phase = Phase.RIGHTHAND_1
+                    else:
+                        self.phase = Phase.RIGHTHAND_2
+                else:
+                    self.makeMove((Move.PASS, self.activePlayer, ()))
             case "NIGHT_INST":
                 sunLost = moonLost = 0
                 for player in self.players:
@@ -2068,7 +2224,12 @@ class BoardState:
             case "ANCESTOR_INST":
                 self.makeMove((Move.PASS, self.activePlayer, ()))  # todo
             case "WIND_INST":
-                self.makeMove((Move.PASS, self.activePlayer, ()))  # todo
+                if self.phase == Phase.ACTIVE_PLAYER_PERFORM_FEAT_1:
+                    self.returnPhase = Phase.EXTRA_TURN_DECISION
+                else:
+                    self.returnPhase = Phase.END_TURN
+                self.blessingPlayer = self.activePlayer
+                self.phase = Phase.WIND_ROLL_DIE_1
             case "DIE_INST":
                 self.makeMove((Move.PASS, self.activePlayer, ()))  # todo
             case "COMPANION_INST_REINF":
@@ -2219,6 +2380,8 @@ class BoardState:
             feats = Data.getFeatsByPosition(i)
             self.addFeat(i, feats[random.randrange(len(feats))])
             i += 1
+        self.shields = [Data.DieFace.REDSHIELD, Data.DieFace.YELLOWSHIELD, Data.DieFace.GREENSHIELD,
+                        Data.DieFace.BLUESHIELD] # always need these in case of abyssal trident
 
     def addFeat(self, island, feat):
         if feat == Data.HeroicFeat.TENACIOUS_BOAR:
@@ -2226,20 +2389,17 @@ class BoardState:
             self.islands[island].append(Data.HeroicFeat.TENACIOUS_BOAR_BLUE)
             if len(self.players) > 2:
                 self.islands[island].append(Data.HeroicFeat.TENACIOUS_BOAR_GREEN)
-                if len(self.players) > 2:
+                if len(self.players) > 3:
                     self.islands[island].append(Data.HeroicFeat.TENACIOUS_BOAR_YELLOW)
         elif feat == Data.HeroicFeat.THE_MIRROR_OF_MISFORTUNE:
             self.islands[island].append(Data.HeroicFeat.MIRROR_OF_MISFORTUNE_RED)
             self.islands[island].append(Data.HeroicFeat.MIRROR_OF_MISFORTUNE_BLUE)
             if len(self.players) > 2:
                 self.islands[island].append(Data.HeroicFeat.MIRROR_OF_MISFORTUNE_GREEN)
-                if len(self.players) > 2:
+                if len(self.players) > 3:
                     self.islands[island].append(Data.HeroicFeat.MIRROR_OF_MISFORTUNE_YELLOW)
         else:
-            if feat == Data.HeroicFeat.THE_GUARDIANS_SHIELD:
-                self.shields = [Data.DieFace.REDSHIELD, Data.DieFace.YELLOWSHIELD, Data.DieFace.GREENSHIELD,
-                                Data.DieFace.BLUESHIELD]
-            elif feat == Data.HeroicFeat.THE_CHAOS:
+            if feat == Data.HeroicFeat.THE_CHAOS:
                 self.chaos = [Data.DieFace.REDCHAOS, Data.DieFace.YELLOWCHAOS, Data.DieFace.GREENCHAOS,
                               Data.DieFace.BLUECHAOS]
             elif feat == Data.HeroicFeat.THE_DOGGED:
@@ -2578,6 +2738,39 @@ class Player:
                 self.gainMoon(amt)
             case "vp":
                 self.gainVP(amt)
+
+    def gainWindResources(self, face, resourceType):
+        if face == Data.DieFace.REDSHIELD:
+            self.gainSun(2)
+            return
+        if face == Data.DieFace.BLUESHIELD:
+            self.gainMoon(2)
+            return
+        if face == Data.DieFace.YELLOWSHIELD:
+            self.gainGold(3)
+            return
+        if face == Data.DieFace.GREENSHIELD:
+            self.gainVP(3)
+            return
+        if face == Data.DieFace.REDCHAOS or face == Data.DieFace.BLUECHAOS:
+            self.gainAncientShards(2)
+            return
+        if face == Data.DieFace.YELLOWCHAOS or face == Data.DieFace.GREENCHAOS:
+            self.gainLoyalty(2)
+            return
+        match resourceType:
+            case 0:
+                self.gainGold(Data.getResourceValues(face)[0])
+            case 1:
+                self.gainSun(Data.getResourceValues(face)[1])
+            case 2:
+                self.gainMoon(Data.getResourceValues(face)[2])
+            case 3:
+                self.gainVP(Data.getResourceValues(face)[3])
+            case 4:
+                self.gainAncientShards(Data.getResourceValues(face)[4])
+            case 5:
+                self.gainLoyalty(Data.getResourceValues(face)[5])
 
     def gainMinorBlessingEffect(self, cyclops):
         if self.dieChoice:

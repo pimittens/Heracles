@@ -253,6 +253,17 @@
     "level" : 0
   },
   {
+    "name" : "BOAR",
+    "gold" : 0,
+    "sun" : 1,
+    "moon" : 1,
+    "vp" : 0,
+    "ancientshard" : 0,
+    "loyalty" : 0,
+    "isOr" : true,
+    "level" : 0
+  },
+  {
     "name" : "REDBOAR",
     "gold" : 0,
     "sun" : 1,
