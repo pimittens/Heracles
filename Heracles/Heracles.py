@@ -32,7 +32,11 @@ def printOptions(options, boardState):
             case Game.Move.PERFORM_FEAT:
                 print(f"{i}: Perform the feat {option[2][0]}")
             case Game.Move.FORGE_FACE:
-                print(f"{i}: Forge face {option[2][1]} over face {option[2][2]} on die {option[2][0]}")
+                if option[2][0]:
+                    die = 1
+                else:
+                    die = 2
+                print(f"{i}: Forge face {option[2][1]} over face {option[2][2]} on die {die}")
             case Game.Move.CHOOSE_DIE_OR:
                 resource = "gold"
                 match option[2][0]:
@@ -157,11 +161,14 @@ def printOptions(options, boardState):
                 else:
                     print(f"{i}: Do not use the effect of The Light")
             case Game.Move.SPEND_GOLD:
-                print(f"{i}: Spend {option[2][0]} gold from The Blacksmith's Scepters and {boardState.players[option[1]].goldToSpend - option[2][0]} from the main gold reserve")
+                print(
+                    f"{i}: Spend {option[2][0]} gold from The Blacksmith's Scepters and {boardState.players[option[1]].goldToSpend - option[2][0]} from the main gold reserve")
             case Game.Move.SPEND_SUN:
-                print(f"{i}: Spend {option[2][0]} sun from The Blacksmith's Scepters, {option[2][1]} ancient shards, and {boardState.players[option[1]].sunToSpend - option[2][0] - option[2][1]} from the main sun reserve")
+                print(
+                    f"{i}: Spend {option[2][0]} sun from The Blacksmith's Scepters, {option[2][1]} ancient shards, and {boardState.players[option[1]].sunToSpend - option[2][0] - option[2][1]} from the main sun reserve")
             case Game.Move.SPEND_MOON:
-                print(f"{i}: Spend {option[2][0]} sun from The Blacksmith's Scepters, {option[2][1]} ancient shards, and {boardState.players[option[1]].moonToSpend - option[2][0] - option[2][1]} from the main moon reserve")
+                print(
+                    f"{i}: Spend {option[2][0]} sun from The Blacksmith's Scepters, {option[2][1]} ancient shards, and {boardState.players[option[1]].moonToSpend - option[2][0] - option[2][1]} from the main moon reserve")
             case Game.Move.CHOOSE_FACES:
                 print(f"{i}: Place the faces {option[2][0]} and {option[2][1]} face up and gain their effects")
             case Game.Move.RIGHTHAND_SPEND:
@@ -201,11 +208,11 @@ while not theBoard.isOver():
             print(
                 f"After rolling, player {options[0][1]} has the faces {theBoard.players[options[0][1]].getDie1UpFace()} and {theBoard.players[options[0][1]].getDie2UpFace()}")
         elif options[0][1] == 1:
-            move = MCTS.mcts(theBoard.copyState(), 5000)
+            move = MCTS.mcts(theBoard.copyState(), 50)
             printMove(move)
             theBoard.makeMove(move)
         elif options[0][1] == 0:
-            move = MCTS.mctsWithHeuristic(theBoard.copyState(), 5000)
+            move = MCTS.mctsWithHeuristic(theBoard.copyState(), 50)
             printMove(move)
             theBoard.makeMove(move)
         else:

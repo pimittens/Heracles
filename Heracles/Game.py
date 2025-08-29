@@ -114,6 +114,9 @@ class Phase(Enum):  # todo: numbers
     WIND_ROLL_DIE_1 = 108
     WIND_ROLL_DIE_2 = 109
     WIND_CHOOSE_RESOURCE = 110
+    USE_ANCESTOR = 111
+    TITAN_1 = 112
+    TITAN_2 = 113
 
 
 class Move(Enum):
@@ -1362,6 +1365,48 @@ class BoardState:
                         self.players[self.activePlayer].gainWindResources(player.getDie2UpFace(), move[2][0])
                     self.phase = self.returnPhase
                     self.makeReturnMove(self.activePlayer)
+            case Phase.USE_ANCESTOR:
+                if move[0] == Move.BUY_FACES:
+                    self.temple[Data.getPool(move[2][0])].remove(move[2][0])
+                    self.players[self.activePlayer].unforgedFaces.append(move[2][0])
+                elif move[0] == Move.FORGE_FACE:
+                    self.players[self.activePlayer].forgeFace(move[2])
+                    self.players[self.activePlayer].dieChoice = move[2][0]
+                    self.phase = Phase.MINOR_ROLL_DIE
+                elif move[0] == Move.PASS:
+                    self.phase = Phase.MINOR_CHOOSE_DIE
+            case Phase.TITAN_1:
+                if move[0] == Move.PERFORM_FEAT:
+                    self.islands[Data.getPosition(move[2][0])].remove(move[2][0])
+                    self.players[self.activePlayer].performFreeFeat(move[2][0])
+                    effect = Data.getEffect(move[2][0])
+                    if "INST" in effect:
+                        self.resolveInstEffect(effect)
+                    else:
+                        self.makeMove((Move.PASS, move[1], ()))
+                elif move[0] == Move.CHOOSE_ADD_HAMMER_SCEPTER:
+                    self.players[self.activePlayer].useHammerOrScepter(move[2][0])
+                    self.phase = Phase.EXTRA_TURN_DECISION
+                    self.makeMove((Move.PASS, move[1], ()))
+                elif move[0] == Move.PASS:
+                    self.phase = Phase.EXTRA_TURN_DECISION
+                    self.makeMove((Move.PASS, move[1], ()))
+            case Phase.TITAN_2:
+                if move[0] == Move.PERFORM_FEAT:
+                    self.islands[Data.getPosition(move[2][0])].remove(move[2][0])
+                    self.players[self.activePlayer].performFreeFeat(move[2][0])
+                    effect = Data.getEffect(move[2][0])
+                    if "INST" in effect:
+                        self.resolveInstEffect(effect)
+                    else:
+                        self.makeMove((Move.PASS, move[1], ()))
+                elif move[0] == Move.CHOOSE_ADD_HAMMER_SCEPTER:
+                    self.players[self.activePlayer].useHammerOrScepter(move[2][0])
+                    self.phase = Phase.TURN_START
+                    self.advanceActivePlayer(move[1])
+                elif move[0] == Move.PASS:
+                    self.phase = Phase.TURN_START
+                    self.advanceActivePlayer(move[1])
             case Phase.END_TURN:
                 self.phase = Phase.TURN_START
                 self.advanceActivePlayer(move[1])
@@ -1566,6 +1611,16 @@ class BoardState:
                     Move.CHOOSE_RESOURCE, self.activePlayer, (1,)), (Move.CHOOSE_RESOURCE, self.activePlayer, (2,)), (
                     Move.CHOOSE_RESOURCE, self.activePlayer, (3,)), (Move.CHOOSE_RESOURCE, self.activePlayer, (4,)), (
                     Move.CHOOSE_RESOURCE, self.activePlayer, (5,))
+            case Phase.USE_ANCESTOR:
+                if self.players[self.activePlayer].unforgedFaces:
+                    ret = self.generateForgeFace(self.activePlayer)
+                else:
+                    ret = self.generateAncestorChoice(self.players[self.activePlayer])
+            case Phase.TITAN_1 | Phase.TITAN_2:
+                if self.players[self.activePlayer].goldToGain == 0:
+                    ret = self.generateTitanChoice(self.activePlayer)
+                else:
+                    ret = self.getHammerScepterChoices(self.activePlayer)
         if ret[0][1] == self.activePlayer and self.players[self.activePlayer].tritonTokens >= 1:
             ret = list(ret)
             ret.append((Move.USE_TRITON_TOKEN, self.activePlayer, ("gold",)))
@@ -1760,10 +1815,10 @@ class BoardState:
         face = self.players[player].unforgedFaces[0]
         for existingFace in self.players[player].die1.faces:
             if not Data.isBoarFace(existingFace) and not Data.isMisfortuneFace(existingFace):
-                ret.append((Move.FORGE_FACE, player, (1, face, existingFace)))
+                ret.append((Move.FORGE_FACE, player, (True, face, existingFace)))
         for existingFace in self.players[player].die2.faces:
             if not Data.isBoarFace(existingFace) and not Data.isMisfortuneFace(existingFace):
-                ret.append((Move.FORGE_FACE, player, (2, face, existingFace)))
+                ret.append((Move.FORGE_FACE, player, (False, face, existingFace)))
         ret = set(ret)  # remove duplicates
         return tuple(ret)
 
@@ -1860,6 +1915,33 @@ class BoardState:
         while i <= max:
             ret.append((Move.RIGHTHAND_SPEND, player.playerID, (i,)))
             i += 1
+        return tuple(ret)
+
+    def generateAncestorChoice(self, player):
+        if Data.DieFace.VP1SUN1 in self.temple[4]:
+            return (Move.BUY_FACES, player.playerID, (Data.DieFace.VP1SUN1,)),
+        if self.temple[5]:
+            return (Move.BUY_FACES, player.playerID, (self.temple[5][0],)),
+        if self.temple[8]:
+            return (Move.BUY_FACES, player.playerID, (self.temple[8][0],)),
+        ret = []
+        for face in self.temple[9]:
+            if not face == Data.DieFace.GOLD2SUN2MOON2OR:
+                ret.append((Move.BUY_FACES, player.playerID, (face,)))
+        if not ret:
+            return (Move.PASS, player.playerID, ()),
+        return tuple(ret)
+
+    def generateTitanChoice(self, player):
+        ret = []
+        if self.islands[0]:
+            ret.append((Move.PERFORM_FEAT, player, (self.islands[0][0],)))
+        if self.islands[1]:
+            ret.append((Move.PERFORM_FEAT, player, (self.islands[1][0],)))
+        if self.islands[13]:
+            ret.append((Move.PERFORM_FEAT, player, (self.islands[13][0],)))
+        if self.islands[14]:
+            ret.append((Move.PERFORM_FEAT, player, (self.islands[14][0],)))
         return tuple(ret)
 
     def getSpendGoldOptions(self, player):
@@ -2144,7 +2226,7 @@ class BoardState:
                 self.makeMove((Move.PASS, self.activePlayer, ()))  # handled elsewhere
             case "NYMPH_INST":
                 self.players[self.activePlayer].gainGold(4)
-                if self.phase == Phase.ACTIVE_PLAYER_PERFORM_FEAT_1:
+                if self.phase == Phase.ACTIVE_PLAYER_PERFORM_FEAT_1 or self.phase == Phase.TITAN_1:
                     self.phase = Phase.NYMPH_1
                 else:
                     self.phase = Phase.NYMPH_2
@@ -2182,7 +2264,13 @@ class BoardState:
                 self.phase = Phase.TURN_START
                 self.makeMove((Move.PASS, self.activePlayer, ()))
             case "TITAN_INST":
-                self.makeMove((Move.PASS, self.activePlayer, ()))  # todo
+                if self.islands[0] or self.islands[1] or self.islands[13] or self.islands[14]:
+                    if self.phase == Phase.ACTIVE_PLAYER_PERFORM_FEAT_1:
+                        self.phase = Phase.TITAN_1
+                    else:
+                        self.phase = Phase.TITAN_2
+                else:
+                    self.makeMove((Move.PASS, self.activePlayer, ()))
             case "GODDESS_INST":
                 if self.phase == Phase.ACTIVE_PLAYER_PERFORM_FEAT_1:
                     self.returnPhase = Phase.EXTRA_TURN_DECISION
@@ -2222,7 +2310,12 @@ class BoardState:
                 self.players[self.activePlayer].gainVP(vpLost)
                 self.makeMove((Move.PASS, self.activePlayer, ()))
             case "ANCESTOR_INST":
-                self.makeMove((Move.PASS, self.activePlayer, ()))  # todo
+                if self.phase == Phase.ACTIVE_PLAYER_PERFORM_FEAT_1:
+                    self.returnPhase = Phase.EXTRA_TURN_DECISION
+                else:
+                    self.returnPhase = Phase.END_TURN
+                self.blessingPlayer = self.activePlayer
+                self.phase = Phase.USE_ANCESTOR
             case "WIND_INST":
                 if self.phase == Phase.ACTIVE_PLAYER_PERFORM_FEAT_1:
                     self.returnPhase = Phase.EXTRA_TURN_DECISION
@@ -3016,7 +3109,7 @@ class Player:
         self.unforgedFaces.append(face)
 
     def forgeFace(self, forgeInfo):
-        if forgeInfo[0] == 1:
+        if forgeInfo[0]:
             die = self.die1
         else:
             die = self.die2
@@ -3059,6 +3152,10 @@ class Player:
     def performFeat(self, feat):
         self.gainSun(-Data.getSunCost(feat))
         self.gainMoon(-Data.getMoonCost(feat))
+        self.feats.append(feat)
+        self.gainVP(Data.getPoints(feat))
+
+    def performFreeFeat(self, feat):
         self.feats.append(feat)
         self.gainVP(Data.getPoints(feat))
 
