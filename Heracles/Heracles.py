@@ -188,6 +188,14 @@ def printOptions(options, boardState):
                     case _:
                         type = "loyalty"
                 print(f"{i}: Use the effect of The Wind to gain all of the {type} shown on dice")
+            case Game.Move.MERCHANT_UPGRADE:
+                if len(option[2]) == 1:
+                    print(f"{i}: Use the effect of The Merchant to gain {option[2][0]} vp")
+                else:
+                    if option[2][1]:
+                        print(f"{i}: Use the effect of The Merchant to gain {option[2][0]} vp and upgrade the face {option[2][2]} on die 1 to the face {option[2][3]}")
+                    else:
+                        print(f"{i}: Use the effect of The Merchant to gain {option[2][0]} vp and upgrade the face {option[2][2]} on die 2 to the face {option[2][3]}")
             case _:
                 print(f"{i}: Unhandled move type {option[0]}")
 
@@ -208,11 +216,11 @@ while not theBoard.isOver():
             print(
                 f"After rolling, player {options[0][1]} has the faces {theBoard.players[options[0][1]].getDie1UpFace()} and {theBoard.players[options[0][1]].getDie2UpFace()}")
         elif options[0][1] == 1:
-            move = MCTS.mcts(theBoard.copyState(), 50)
+            move = MCTS.mcts(theBoard.copyState(), 1000)
             printMove(move)
             theBoard.makeMove(move)
         elif options[0][1] == 0:
-            move = MCTS.mctsWithHeuristic(theBoard.copyState(), 50)
+            move = MCTS.mctsWithHeuristic(theBoard.copyState(), 1000)
             printMove(move)
             theBoard.makeMove(move)
         else:

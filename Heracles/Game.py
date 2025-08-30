@@ -117,6 +117,9 @@ class Phase(Enum):  # todo: numbers
     USE_ANCESTOR = 111
     TITAN_1 = 112
     TITAN_2 = 113
+    LEFT_HAND_ROLL_1_1 = 114 # roll die 1, action 1
+    LEFT_HAND_ROLL_1_2 = 115 # roll die 1, action 2
+    LEFT_HAND_ROLL_2 = 116 # roll die 2
 
 
 class Move(Enum):
@@ -156,6 +159,7 @@ class Move(Enum):
     CHOOSE_FACES = 34  # choose faces to place face up
     RIGHTHAND_SPEND = 35  # gain 1 vp per gold spent
     CHOOSE_RESOURCE = 36
+    MERCHANT_UPGRADE = 37
 
 
 class BoardState:
@@ -701,6 +705,22 @@ class BoardState:
                     self.satyrs = False
                     self.phase = self.returnPhase
                     self.makeReturnMove(move[1])
+                elif self.returnPhase == Phase.LEFT_HAND_ROLL_1_1 or self.returnPhase == Phase.LEFT_HAND_ROLL_1_2:
+                    self.blessingPlayer = (self.blessingPlayer + 1) % len(self.players)
+                    while self.players[self.blessingPlayer].location == 0:
+                        self.blessingPlayer = (self.blessingPlayer + 1) % len(self.players)
+                        if self.blessingPlayer == self.activePlayer:
+                            break
+                    if self.blessingPlayer == self.activePlayer: # everyone ousted
+                        if self.returnPhase == Phase.LEFT_HAND_ROLL_1_1:
+                            self.phase = Phase.EXTRA_TURN_DECISION
+                        else:
+                            self.phase = Phase.END_TURN
+                        self.makeReturnMove(move[1])
+                    else:
+                        self.players[self.blessingPlayer].checkBears()
+                        self.players[self.blessingPlayer].location = 0
+                        self.phase = self.returnPhase
                 else:
                     self.phase = self.returnPhase
                     self.makeReturnMove(move[1])
@@ -1054,8 +1074,13 @@ class BoardState:
                     self.phase = Phase.CHOOSE_REINF_EFFECT
                     self.makeMove((Move.PASS, move[1], ()))
             case Phase.RESOLVE_MERCHANT_REINF:
-                self.phase = Phase.CHOOSE_REINF_EFFECT
-                self.makeMove((Move.PASS, move[1], ()))  # todo: effect
+                if move[0] == Move.MERCHANT_UPGRADE:
+                    self.players[self.activePlayer].gainVP(move[2][0])
+                    if len(move[2]) > 1:
+                        self.temple[Data.getPool(move[2][3])].remove(move[2][3])
+                        self.players[self.activePlayer].upgradeFace(move[2][1], move[2][2], move[2][3])
+                    self.phase = Phase.CHOOSE_REINF_EFFECT
+                    self.makeMove((Move.PASS, move[1], ()))
             case Phase.RESOLVE_LIGHT_REINF:
                 if move[0] == Move.USE_LIGHT:
                     if move[2][0]:
@@ -1290,7 +1315,8 @@ class BoardState:
                     self.advanceActivePlayer(move[1])
             case Phase.TRIDENT_1:
                 if move[0] == Move.BUY_FACES:
-                    if move[2][0] == Data.DieFace.REDSHIELD or move[2][0] == Data.DieFace.REDSHIELD or move[2][0] == Data.DieFace.REDSHIELD or move[2][0] == Data.DieFace.REDSHIELD:
+                    if move[2][0] == Data.DieFace.REDSHIELD or move[2][0] == Data.DieFace.REDSHIELD or move[2][
+                        0] == Data.DieFace.REDSHIELD or move[2][0] == Data.DieFace.REDSHIELD:
                         self.shields.remove(move[2][0])
                     elif Data.getPool(move[2][0]) != -1:
                         self.temple[Data.getPool(move[2][0])].remove(move[2][0])
@@ -1304,7 +1330,8 @@ class BoardState:
                     self.makeMove((Move.PASS, move[1], ()))
             case Phase.TRIDENT_2:
                 if move[0] == Move.BUY_FACES:
-                    if move[2][0] == Data.DieFace.REDSHIELD or move[2][0] == Data.DieFace.REDSHIELD or move[2][0] == Data.DieFace.REDSHIELD or move[2][0] == Data.DieFace.REDSHIELD:
+                    if move[2][0] == Data.DieFace.REDSHIELD or move[2][0] == Data.DieFace.REDSHIELD or move[2][
+                        0] == Data.DieFace.REDSHIELD or move[2][0] == Data.DieFace.REDSHIELD:
                         self.shields.remove(move[2][0])
                     elif Data.getPool(move[2][0]) != -1:
                         self.temple[Data.getPool(move[2][0])].remove(move[2][0])
@@ -1407,6 +1434,29 @@ class BoardState:
                 elif move[0] == Move.PASS:
                     self.phase = Phase.TURN_START
                     self.advanceActivePlayer(move[1])
+            case Phase.LEFT_HAND_ROLL_1_1 | Phase.LEFT_HAND_ROLL_1_2:
+                if move[0] == Move.ROLL:
+                    self.players[self.blessingPlayer].die1.setToFace(move[2][0])
+                    self.returnPhase = self.phase
+                    self.phase = Phase.LEFT_HAND_ROLL_2
+                elif move[0] == Move.RANDOM_ROLL:
+                    self.players[self.blessingPlayer].die1.roll()
+                    self.returnPhase = self.phase
+                    self.phase = Phase.LEFT_HAND_ROLL_2
+            case Phase.LEFT_HAND_ROLL_2:
+                if move[0] == Move.ROLL:
+                    self.players[self.blessingPlayer].die2.setToFace(move[2][0])
+                    self.players[self.activePlayer].die1ResultBuffer = self.players[self.blessingPlayer].getDie1UpFace()
+                    self.players[self.activePlayer].die2ResultBuffer = self.players[self.blessingPlayer].getDie2UpFace()
+                    self.blessingPlayer = self.activePlayer
+                    self.phase = Phase.MIRROR_1_CHOICE
+                    self.makeMove((Move.PASS, move[1], ()))
+                elif move[0] == Move.RANDOM_ROLL:
+                    self.players[self.blessingPlayer].die2.roll()
+                    self.players[self.activePlayer].die1ResultBuffer = self.players[self.blessingPlayer].getDie1UpFace()
+                    self.players[self.activePlayer].die2ResultBuffer = self.players[self.blessingPlayer].getDie2UpFace()
+                    self.blessingPlayer = self.activePlayer
+                    self.makeMove((Move.PASS, move[1], ()))
             case Phase.END_TURN:
                 self.phase = Phase.TURN_START
                 self.advanceActivePlayer(move[1])
@@ -1423,9 +1473,9 @@ class BoardState:
                 return self.getSpendMoonOptions(player)
         ret = ((Move.PASS, self.activePlayer, ()),)
         match self.phase:
-            case Phase.ROLL_DIE_1 | Phase.BLESSING_ROLL_DIE_1 | Phase.TWINS_REROLL_1 | Phase.WIND_ROLL_DIE_1:
+            case Phase.ROLL_DIE_1 | Phase.BLESSING_ROLL_DIE_1 | Phase.TWINS_REROLL_1 | Phase.WIND_ROLL_DIE_1 | Phase.LEFT_HAND_ROLL_1_1 | Phase.LEFT_HAND_ROLL_1_2:
                 ret = self.generateRollDieOptions(self.blessingPlayer, self.players[self.blessingPlayer].die1)
-            case Phase.ROLL_DIE_2 | Phase.BLESSING_ROLL_DIE_2 | Phase.TWINS_REROLL_2 | Phase.WIND_ROLL_DIE_2:
+            case Phase.ROLL_DIE_2 | Phase.BLESSING_ROLL_DIE_2 | Phase.TWINS_REROLL_2 | Phase.WIND_ROLL_DIE_2 | Phase.LEFT_HAND_ROLL_2:
                 ret = self.generateRollDieOptions(self.blessingPlayer, self.players[self.blessingPlayer].die2)
             case Phase.USE_TWINS_CHOICE | Phase.MINOR_TWINS_CHOICE:
                 ret = ((Move.USE_TWINS, self.blessingPlayer, (True,)), (Move.USE_TWINS, self.blessingPlayer, (False,)))
@@ -1524,7 +1574,7 @@ class BoardState:
             case Phase.RESOLVE_TREE_REINF:
                 ret = self.getHammerScepterChoices(self.activePlayer)
             case Phase.RESOLVE_MERCHANT_REINF:
-                pass  # todo
+                ret = self.generateMerchantChoices(self.players[self.activePlayer])
             case Phase.RESOLVE_LIGHT_REINF:
                 if self.players[self.activePlayer].getEffectiveGold() >= 3:
                     ret = self.generateLightChoices()
@@ -2024,6 +2074,72 @@ class BoardState:
             return self.getHammerChoices(player)
         return self.getScepterChoices(player)
 
+    def generateMerchantChoices(self, player):
+        ret = []
+        levels = player.getMerchantCount()
+        faces = set(player.die1.faces)
+        for face in faces:
+            level = Data.getLevel(face)
+            if level == 7:
+                continue
+            upgrade = 1
+            while upgrade <= levels:
+                pool = self.getUpgradePool(level + upgrade)
+                for upgradeFace in pool:
+                    ret.append(
+                        (Move.MERCHANT_UPGRADE, player.playerID, (2 * (levels - upgrade), True, face, upgradeFace)))
+                upgrade += 1
+        faces = set(player.die2.faces)
+        for face in faces:
+            level = Data.getLevel(face)
+            if level == 7:
+                continue
+            upgrade = 1
+            while upgrade <= levels:
+                pool = self.getUpgradePool(level + upgrade)
+                for upgradeFace in pool:
+                    ret.append(
+                        (Move.MERCHANT_UPGRADE, player.playerID, (2 * (levels - upgrade), False, face, upgradeFace)))
+                upgrade += 1
+        ret.append((Move.MERCHANT_UPGRADE, player.playerID, (2 * levels,)))
+        return tuple(ret)
+
+    def getUpgradePool(self, level):
+        ret = []
+        match level:
+            case 1:
+                if self.temple[0]:
+                    ret.append(self.temple[0][0])
+                if self.temple[1]:
+                    ret.append(self.temple[1][0])
+            case 2:
+                if self.temple[2]:
+                    ret.append(self.temple[2][0])
+                if self.temple[3]:
+                    ret.append(self.temple[3][0])
+            case 3:
+                for face in self.temple[4]:
+                    ret.append(face)
+            case 4:
+                if self.temple[5]:
+                    ret.append(self.temple[5][0])
+            case 5:
+                if self.temple[6]:
+                    ret.append(self.temple[6][0])
+            case 6:
+                if self.temple[7]:
+                    ret.append(self.temple[7][0])
+                if self.temple[8]:
+                    ret.append(self.temple[8][0])
+            case 7:
+                if self.temple[9]:
+                    ret.append(self.temple[9][0])
+            case _:
+                return tuple()
+        if not ret:
+            return self.getUpgradePool(level + 1)
+        return tuple(ret)
+
     def getHammerChoices(self, player):
         hammerLeft = self.players[player].getMaxHammer() - self.players[player].hammerTrack
         goldToSpend = self.players[player].goldToGain
@@ -2258,7 +2374,17 @@ class BoardState:
                 else:
                     self.phase = Phase.TRIDENT_2
             case "LEFTHAND_INST":
-                self.makeMove((Move.PASS, self.activePlayer, ()))  # todo
+                for player in self.players:
+                    if player.location != 0 and player.playerID != self.activePlayer:
+                        # another player will be ousted, so activate bears for active player
+                        self.players[self.activePlayer].checkBears()
+                        break
+                self.players[self.activePlayer].location = 0
+                self.blessingPlayer = self.activePlayer # active player will always need to be ousted so start there
+                if self.phase == Phase.ACTIVE_PLAYER_PERFORM_FEAT_1:
+                    self.phase = Phase.LEFT_HAND_ROLL_1_1
+                else:
+                    self.phase = Phase.LEFT_HAND_ROLL_1_2
             case "FIRE_INST":
                 self.eternalFire = True
                 self.phase = Phase.TURN_START
@@ -2474,7 +2600,7 @@ class BoardState:
             self.addFeat(i, feats[random.randrange(len(feats))])
             i += 1
         self.shields = [Data.DieFace.REDSHIELD, Data.DieFace.YELLOWSHIELD, Data.DieFace.GREENSHIELD,
-                        Data.DieFace.BLUESHIELD] # always need these in case of abyssal trident
+                        Data.DieFace.BLUESHIELD]  # always need these in case of abyssal trident
 
     def addFeat(self, island, feat):
         if feat == Data.HeroicFeat.TENACIOUS_BOAR:
@@ -3119,6 +3245,16 @@ class Player:
         self.unforgedFaces.remove(forgeInfo[1])
         self.numForged += 1
 
+    def upgradeFace(self, die1, oldFace, newFace):
+        if die1:
+            die = self.die1
+        else:
+            die = self.die2
+        die.faces.remove(oldFace)
+        die.faces.append(newFace)
+        die.upFace = 5
+        self.numForged += 1
+
     def forgeBoarMisfortuneFace(self, forgeInfo):
         if forgeInfo[0] == 1:
             die = self.die1
@@ -3236,7 +3372,16 @@ class Player:
         for feat in self.feats:
             effect = Data.getEffect(feat)
             if "REINF" in effect:
+                if feat == Data.HeroicFeat.THE_MERCHANT and effect in self.unusedReinfEffects:
+                    continue  # only resolve merchant once
                 self.unusedReinfEffects.append(effect)
+
+    def getMerchantCount(self):
+        ret = 0
+        for feat in self.feats:
+            if feat == Data.HeroicFeat.THE_MERCHANT:
+                ret += 1
+        return ret
 
     def getReinfOptions(self):
         ret = []
