@@ -117,9 +117,9 @@ class Phase(Enum):  # todo: numbers
     USE_ANCESTOR = 111
     TITAN_1 = 112
     TITAN_2 = 113
-    LEFT_HAND_ROLL_1_1 = 114 # roll die 1, action 1
-    LEFT_HAND_ROLL_1_2 = 115 # roll die 1, action 2
-    LEFT_HAND_ROLL_2 = 116 # roll die 2
+    LEFT_HAND_ROLL_1_1 = 114  # roll die 1, action 1
+    LEFT_HAND_ROLL_1_2 = 115  # roll die 1, action 2
+    LEFT_HAND_ROLL_2 = 116  # roll die 2
 
 
 class Move(Enum):
@@ -267,15 +267,15 @@ class BoardState:
         if move[0] == Move.USE_TRITON_TOKEN:
             match move[2][0]:
                 case "sun":
-                    self.players[move[1]].gainSun(2)
+                    self.players[move[1]].gainSun(2, False)
                 case "moon":
-                    self.players[move[1]].gainMoon(2)
+                    self.players[move[1]].gainMoon(2, False)
                 case "gold":
-                    self.players[move[1]].gainGold(6)
+                    self.players[move[1]].gainGold(6, False)
             self.players[move[1]].tritonTokens -= 1
             return
         if move[0] == Move.USE_COMPANION:
-            self.players[move[1]].gainSun(move[2][0])
+            self.players[move[1]].gainSun(move[2][0], False)
             self.players[move[1]].gainVP(move[2][0])
             self.players[move[1]].companions.remove(move[2][0])
             return
@@ -349,7 +349,7 @@ class BoardState:
             case Phase.USE_TWINS_CHOICE:  # call populateTwins() before entering this state for the first time
                 if move[0] == Move.USE_TWINS:
                     if move[2][0]:
-                        self.players[self.blessingPlayer].gainGold(-3)
+                        self.players[self.blessingPlayer].gainGold(-3, False)
                         self.players[self.blessingPlayer].twinsToUse -= 1
                         self.phase = Phase.TWINS_REROLL_CHOICE
                     else:
@@ -404,7 +404,7 @@ class BoardState:
                     if move[2][0] == "vp":
                         self.players[self.blessingPlayer].gainVP(1)
                     else:
-                        self.players[self.blessingPlayer].gainMoon(1)
+                        self.players[self.blessingPlayer].gainMoon(1, False)
                     self.phase = Phase.USE_TWINS_CHOICE
                     self.makeMove((Move.PASS, move[1], ()))
             case Phase.USE_CERBERUS_CHOICE:
@@ -489,7 +489,8 @@ class BoardState:
                 self.makeMove((Move.PASS, move[1], ()))
             case Phase.RESOLVE_MAZE_MOVES:
                 # todo: make maze moves, hammer option, just go to next phase until implemented
-                if self.players[self.blessingPlayer].shipsToResolve == 0 and self.players[self.blessingPlayer].times3ShipsToResolve == 0:
+                if self.players[self.blessingPlayer].shipsToResolve == 0 and self.players[
+                    self.blessingPlayer].times3ShipsToResolve == 0:
                     self.phase = Phase.BOAR_CHOICE_1
                     self.makeMove((Move.PASS, move[1], ()))
                 else:
@@ -512,13 +513,15 @@ class BoardState:
                         self.players[self.blessingPlayer].times3ShipsToResolve -= 1
                     else:
                         self.players[self.blessingPlayer].shipsToResolve -= 1
-                    if self.players[self.blessingPlayer].shipsToResolve == 0 and self.players[self.blessingPlayer].times3ShipsToResolve == 0:
+                    if self.players[self.blessingPlayer].shipsToResolve == 0 and self.players[
+                        self.blessingPlayer].times3ShipsToResolve == 0:
                         self.phase = Phase.BOAR_CHOICE_1
                         self.makeMove((Move.PASS, move[1], ()))
             case Phase.RESOLVE_SHIPS_FORGE:
                 if move[0] == Move.FORGE_FACE:
                     self.players[self.blessingPlayer].forgeFace(move[2])
-                    if self.players[self.blessingPlayer].shipsToResolve > 0 or self.players[self.blessingPlayer].times3ShipsToResolve > 0:
+                    if self.players[self.blessingPlayer].shipsToResolve > 0 or self.players[
+                        self.blessingPlayer].times3ShipsToResolve > 0:
                         self.phase = Phase.RESOLVE_SHIPS
                     else:
                         self.phase = Phase.BOAR_CHOICE_1
@@ -527,9 +530,9 @@ class BoardState:
                 if move[0] == Move.BOAR_CHOICE:
                     match move[2][0]:
                         case "sun":
-                            self.players[move[1]].gainSun(1)
+                            self.players[move[1]].gainSun(1, False)
                         case "moon":
-                            self.players[move[1]].gainMoon(1)
+                            self.players[move[1]].gainMoon(1, False)
                         case "vp":
                             self.players[move[1]].gainVP(3)
                     self.phase = Phase.BOAR_CHOICE_2
@@ -541,9 +544,9 @@ class BoardState:
                 if move[0] == Move.BOAR_CHOICE:
                     match move[2][0]:
                         case "sun":
-                            self.players[move[1]].gainSun(1)
+                            self.players[move[1]].gainSun(1, False)
                         case "moon":
-                            self.players[move[1]].gainMoon(1)
+                            self.players[move[1]].gainMoon(1, False)
                         case "vp":
                             self.players[move[1]].gainVP(3)
                     self.phase = Phase.MISFORTUNE_1
@@ -719,7 +722,7 @@ class BoardState:
                         self.blessingPlayer = (self.blessingPlayer + 1) % len(self.players)
                         if self.blessingPlayer == self.activePlayer:
                             break
-                    if self.blessingPlayer == self.activePlayer: # everyone ousted
+                    if self.blessingPlayer == self.activePlayer:  # everyone ousted
                         if self.returnPhase == Phase.LEFT_HAND_ROLL_1_1:
                             self.phase = Phase.EXTRA_TURN_DECISION
                         else:
@@ -777,7 +780,7 @@ class BoardState:
             case Phase.MINOR_TWINS_CHOICE:
                 if move[0] == Move.USE_TWINS:
                     if move[2][0]:
-                        self.players[self.blessingPlayer].gainGold(-3)
+                        self.players[self.blessingPlayer].gainGold(-3, False)
                         self.players[self.blessingPlayer].twinsToUse -= 1
                         self.phase = Phase.MINOR_TWINS_REROLL
                     else:
@@ -815,7 +818,7 @@ class BoardState:
                     if move[2][0] == "vp":
                         self.players[self.blessingPlayer].gainVP(1)
                     else:
-                        self.players[self.blessingPlayer].gainMoon(1)
+                        self.players[self.blessingPlayer].gainMoon(1, False)
                     self.phase = Phase.MINOR_TWINS_CHOICE
                     self.makeMove((Move.PASS, move[1], ()))
             case Phase.MINOR_USE_CERBERUS:
@@ -925,9 +928,9 @@ class BoardState:
                 if move[0] == Move.BOAR_CHOICE:
                     match move[2][0]:
                         case "sun":
-                            self.players[move[1]].gainSun(1)
+                            self.players[move[1]].gainSun(1, False)
                         case "moon":
-                            self.players[move[1]].gainMoon(1)
+                            self.players[move[1]].gainMoon(1, False)
                         case "vp":
                             self.players[move[1]].gainVP(3)
                     self.phase = Phase.MINOR_MISFORTUNE
@@ -1042,7 +1045,7 @@ class BoardState:
             case Phase.RESOLVE_ELDER_REINF:
                 if move[0] == Move.USE_ELDER:
                     if move[2][0]:
-                        self.players[self.activePlayer].gainGold(-3)
+                        self.players[self.activePlayer].gainGold(-3, False)
                         self.players[self.activePlayer].gainVP(4)
                     self.phase = Phase.CHOOSE_REINF_EFFECT
                     self.makeMove(move)
@@ -1050,11 +1053,11 @@ class BoardState:
                 if move[0] == Move.OWL_CHOICE:
                     match move[2][0]:
                         case "gold":
-                            self.players[self.activePlayer].gainGold(1)
+                            self.players[self.activePlayer].gainGold(1, False)
                         case "sun":
-                            self.players[self.activePlayer].gainSun(1)
+                            self.players[self.activePlayer].gainSun(1, False)
                         case "moon":
-                            self.players[self.activePlayer].gainMoon(1)
+                            self.players[self.activePlayer].gainMoon(1, False)
                     if self.players[self.activePlayer].goldToGain == 0:
                         self.phase = Phase.CHOOSE_REINF_EFFECT
                         self.makeMove((Move.PASS, move[1], ()))
@@ -1069,7 +1072,7 @@ class BoardState:
             case Phase.RESOLVE_TREE_REINF:
                 if move[0] == Move.PASS:
                     if self.players[self.activePlayer].gold < 8:  # note: this only checks hero inventory reserve
-                        self.players[self.activePlayer].gainGold(3)
+                        self.players[self.activePlayer].gainGold(3, False)
                         self.players[self.activePlayer].gainVP(1)
                     else:
                         self.players[self.activePlayer].gainVP(2)
@@ -1091,7 +1094,7 @@ class BoardState:
             case Phase.RESOLVE_LIGHT_REINF:
                 if move[0] == Move.USE_LIGHT:
                     if move[2][0]:
-                        self.players[self.activePlayer].gainGold(-3)
+                        self.players[self.activePlayer].gainGold(-3, False)
                         self.players[self.activePlayer].die1ResultBuffer = move[2][1]
                         self.players[self.activePlayer].dieChoice = True
                         self.blessingPlayer = self.activePlayer
@@ -1126,7 +1129,7 @@ class BoardState:
             case Phase.EXTRA_TURN_DECISION:
                 if move[0] == Move.TAKE_EXTRA_TURN:
                     if move[2][0]:
-                        self.players[self.activePlayer].gainSun(-2)
+                        self.players[self.activePlayer].gainSun(-2, False)
                         self.phase = Phase.ACTIVE_PLAYER_CHOICE_2
                     else:
                         self.phase = Phase.TURN_START
@@ -1360,13 +1363,13 @@ class BoardState:
                     self.makeMove((Move.PASS, move[1], ()))
             case Phase.RIGHTHAND_1:
                 if move[0] == Move.RIGHTHAND_SPEND:
-                    self.players[self.activePlayer].gainGold(-move[2][0])
+                    self.players[self.activePlayer].gainGold(-move[2][0], False)
                     self.players[self.activePlayer].gainVP(move[2][0])
                     self.phase = Phase.EXTRA_TURN_DECISION
                     self.makeMove((Move.PASS, move[1], ()))
             case Phase.RIGHTHAND_2:
                 if move[0] == Move.RIGHTHAND_SPEND:
-                    self.players[self.activePlayer].gainGold(-move[2][0])
+                    self.players[self.activePlayer].gainGold(-move[2][0], False)
                     self.players[self.activePlayer].gainVP(move[2][0])
                     self.phase = Phase.TURN_START
                     self.advanceActivePlayer(move[1])
@@ -1603,6 +1606,9 @@ class BoardState:
                 else:
                     ret = self.getHammerScepterChoices(self.activePlayer)
             case Phase.EXTRA_TURN_DECISION:
+                if self.players[self.activePlayer].getEffectiveSun() < 2:
+                    self.makeMove((Move.PASS, self.activePlayer, ()))
+                    return self.getOptions()
                 ret = (
                     (Move.TAKE_EXTRA_TURN, self.activePlayer, (True,)),
                     (Move.TAKE_EXTRA_TURN, self.activePlayer, (False,)))
@@ -1860,13 +1866,8 @@ class BoardState:
                             if moon >= 6:
                                 if self.islands[8]:
                                     ret.append((Move.PERFORM_FEAT, self.activePlayer, (self.islands[8][0],)))
-        if self.islands[7] and sun >= 5:
-            if self.players[self.activePlayer].sun >= 5:
-                if moon >= 5:
-                    ret.append((Move.PERFORM_FEAT, self.activePlayer, (self.islands[7][0],)))
-            elif self.players[
-                self.activePlayer].moon + sun - 5 >= 5:  # sun - 5 is the extra from sceptres and ancient shards since sun < 5
-                ret.append((Move.PERFORM_FEAT, self.activePlayer, (self.islands[7][0],)))
+        if self.islands[7] and self.players[self.activePlayer].canBuy55Feat():
+            ret.append((Move.PERFORM_FEAT, self.activePlayer, (self.islands[7][0],)))
         ret.append((Move.PASS, self.activePlayer, ()))
         return tuple(ret)
 
@@ -2019,9 +2020,10 @@ class BoardState:
         while i <= player.getScepterSunMoon() and i <= player.sunToSpend:
             j = 0  # counts ancient shards
             while j <= player.ancientShards and i + j <= player.sunToSpend:
-                if i + j + player.sun >= player.sunToSpend:
-                    ret.append((Move.SPEND_SUN, player.playerID,
-                            (i, j)))  # spend i from scepters, j ancient shards, and spend the rest from main reserve
+                if i + j + player.sun >= player.sunToSpend and (
+                        player.moonToSpend == 0 or player.canBuy55FeatAfterSunSpend(i, j)):
+                    ret.append((Move.SPEND_SUN, player.playerID, (
+                    i, j)))  # spend i from scepters, j ancient shards, and spend the rest from main reserve
                 j += 1
             i += 1
         return tuple(ret)
@@ -2034,7 +2036,9 @@ class BoardState:
             while j <= player.ancientShards and i + j <= player.moonToSpend:
                 if i + j + player.moon >= player.moonToSpend:
                     ret.append((Move.SPEND_MOON, player.playerID,
-                            (i, j)))  # spend i from scepters, j ancient shards, and spend the rest from main reserve
+                                (
+                                    i,
+                                    j)))  # spend i from scepters, j ancient shards, and spend the rest from main reserve
                 j += 1
             i += 1
         return tuple(ret)
@@ -2241,8 +2245,8 @@ class BoardState:
                     # this can open up space for gold, but happens after this, so delay the gold gain
                     self.players[self.activePlayer].goldToGain = 3
                 else:
-                    self.players[self.activePlayer].gainGold(3)
-                self.players[self.activePlayer].gainMoon(3)
+                    self.players[self.activePlayer].gainGold(3, False)
+                self.players[self.activePlayer].gainMoon(3, False)
                 if self.players[self.activePlayer].goldToGain == 0:
                     self.makeMove((Move.PASS, self.activePlayer, ()))
             case "SHIP_INST":
@@ -2353,7 +2357,7 @@ class BoardState:
             case "HAMMER_INST":
                 self.makeMove((Move.PASS, self.activePlayer, ()))  # handled elsewhere
             case "NYMPH_INST":
-                self.players[self.activePlayer].gainGold(4)
+                self.players[self.activePlayer].gainGold(4, False)
                 if self.phase == Phase.ACTIVE_PLAYER_PERFORM_FEAT_1 or self.phase == Phase.TITAN_1:
                     self.phase = Phase.NYMPH_1
                 else:
@@ -2392,7 +2396,7 @@ class BoardState:
                         self.players[self.activePlayer].checkBears()
                         break
                 self.players[self.activePlayer].location = 0
-                self.blessingPlayer = self.activePlayer # active player will always need to be ousted so start there
+                self.blessingPlayer = self.activePlayer  # active player will always need to be ousted so start there
                 if self.phase == Phase.ACTIVE_PLAYER_PERFORM_FEAT_1:
                     self.phase = Phase.LEFT_HAND_ROLL_1_1
                 else:
@@ -2429,11 +2433,11 @@ class BoardState:
                     if player.playerID == self.activePlayer:
                         continue
                     sunLost += min(1, player.sun)
-                    player.gainSun(-1)
+                    player.gainSun(-1, True)  # should only come from reserve
                     moonLost += min(1, player.moon)
-                    player.gainMoon(-1)
-                self.players[self.activePlayer].gainSun(sunLost)
-                self.players[self.activePlayer].gainMoon(moonLost)
+                    player.gainMoon(-1, True)  # should only come from reserve
+                self.players[self.activePlayer].gainSun(sunLost, False)
+                self.players[self.activePlayer].gainMoon(moonLost, False)
                 self.makeMove((Move.PASS, self.activePlayer, ()))
             case "MISTS_INST":
                 minGold = self.players[0].gold
@@ -2593,10 +2597,10 @@ class BoardState:
 
     def setup(self):
         self.selectRandomFeats()
-        self.players[0].gainGold(3)
-        self.players[1].gainGold(2)
+        self.players[0].gainGold(3, False)
+        self.players[1].gainGold(2, False)
         if len(self.players) > 2:
-            self.players[2].gainGold(1)
+            self.players[2].gainGold(1, False)
         if len(self.players) == 2:
             for pool in self.temple:
                 if Data.DieFace.GOLD6 in pool:
@@ -2764,10 +2768,10 @@ class Player:
             return self.mirrorChoice2
         return self.die2ResultBuffer
 
-    def gainGold(self, amount):
+    def gainGold(self, amount, reserveOnly):
         if (self.canAddHammer() or self.canAddScepter()) and amount > 0:
             self.goldToGain += amount
-        elif amount < 0 < self.getScepterGold():
+        elif amount < 0 < self.getScepterGold() and not reserveOnly:
             self.goldToSpend -= amount
         else:
             self.gold = max(min(self.gold + amount, self.maxGold), 0)
@@ -2783,8 +2787,8 @@ class Player:
         self.gold = max(self.gold - (self.goldToSpend - scepter), 0)
         self.goldToSpend = 0
 
-    def gainSun(self, amount):
-        if amount < 0 and (self.ancientShards > 0 or self.getScepterSunMoon() > 0):
+    def gainSun(self, amount, reserveOnly):
+        if amount < 0 and (self.ancientShards > 0 or self.getScepterSunMoon() > 0) and not reserveOnly:
             self.sunToSpend -= amount
         else:
             self.sun = max(min(self.sun + amount, self.maxSun), 0)
@@ -2793,13 +2797,13 @@ class Player:
         toSpend = scepter
         if scepter > 1:
             i = len(self.scepters) - 1
-            while i >= 0 and toSpend >= 0 and toSpend != 1:
+            while i >= 0 and toSpend > 0 and toSpend != 1:
                 if self.scepters[i] == 6:
                     self.scepters[i] = 0
                     toSpend -= 2
                 i -= 1
         i = len(self.scepters) - 1
-        while i >= 0 and toSpend >= 0:
+        while i >= 0 and toSpend > 0:
             if self.scepters[i] > 3:
                 self.scepters[i] = 0
                 toSpend -= 1
@@ -2809,8 +2813,8 @@ class Player:
         self.sun = max(self.sun - (self.sunToSpend - scepter - ancientShard), 0)
         self.sunToSpend = 0
 
-    def gainMoon(self, amount):
-        if amount < 0 and (self.ancientShards > 0 or self.getScepterSunMoon() > 0):
+    def gainMoon(self, amount, reserveOnly):
+        if amount < 0 and (self.ancientShards > 0 or self.getScepterSunMoon() > 0) and not reserveOnly:
             self.moonToSpend -= amount
         else:
             self.moon = max(min(self.moon + amount, self.maxMoon), 0)
@@ -2819,13 +2823,13 @@ class Player:
         toSpend = scepter
         if scepter > 1:
             i = len(self.scepters) - 1
-            while i >= 0 and toSpend >= 0 and toSpend != 1:
+            while i >= 0 and toSpend > 0 and toSpend != 1:
                 if self.scepters[i] == 6:
                     self.scepters[i] = 0
                     toSpend -= 2
                 i -= 1
         i = len(self.scepters) - 1
-        while i >= 0 and toSpend >= 0:
+        while i >= 0 and toSpend > 0:
             if self.scepters[i] > 3:
                 self.scepters[i] = 0
                 toSpend -= 1
@@ -2969,30 +2973,73 @@ class Player:
             if feat == Data.HeroicFeat.THE_TWINS:
                 self.twinsToUse += 1
 
+    def canBuy55Feat(self):
+        ancientShardsLeft = self.ancientShards
+        scepter1 = 0  # number of scepters that can spend for 1 sun/moon
+        scepter2 = 0  # number of scepters that can spend for 2 sun/moon
+        for scepter in self.scepters:
+            if scepter == 6:
+                scepter2 += 1
+            elif scepter > 3:
+                scepter1 += 1
+        sun = self.sun
+        while sun < 5:
+            if scepter1 == 0 and scepter2 == 0 and ancientShardsLeft == 0:
+                break
+            if sun == 4 and scepter1 > 0:
+                scepter1 -= 1
+                sun += 1
+            else:
+                if scepter2 > 0:
+                    scepter2 -= 1
+                    sun += 2
+                elif ancientShardsLeft > 0:
+                    ancientShardsLeft -= 1
+                    sun += 1
+                else:
+                    scepter1 -= 1
+                    sun += 1
+        moon = self.moon + ancientShardsLeft + scepter1 + scepter2 * 2
+        return sun >= 5 and moon >= 5
+
+    def canBuy55FeatAfterSunSpend(self, scepter, ancientShard):
+        scepter1 = 0  # number of scepters that can spend for 1 sun/moon
+        scepter2 = 0  # number of scepters that can spend for 2 sun/moon
+        for scept in self.scepters:
+            if scept == 6:
+                scepter2 += 1
+            elif scept > 3:
+                scepter1 += 1
+        scepterLeft = scepter2 * 2 + scepter1
+        scepterSpent = 0
+        while scepterSpent < scepter:
+            if scepterSpent - scepter == 1 and scepter1 > 0:
+                scepter1 -= 1
+                scepterLeft -= 1
+                scepterSpent += 1
+            elif scepter2 > 0:
+                scepter2 -= 1
+                scepterLeft -= 2
+                scepterSpent += 2
+            else:
+                scepter1 -= 1
+                scepterLeft -= 1
+                scepterSpent += 1
+        return self.moon + self.ancientShards - ancientShard + scepterLeft >= 5
+
     def setBuffers(self):
         self.die1ResultBuffer = self.die1.getUpFace()
         self.die2ResultBuffer = self.die2.getUpFace()
 
-    def gainResource(self, type, amt):
-        match type:
-            case "gold":
-                self.gainGold(amt)
-            case "sun":
-                self.gainSun(amt)
-            case "moon":
-                self.gainMoon(amt)
-            case "vp":
-                self.gainVP(amt)
-
     def gainWindResources(self, face, resourceType):
         if face == Data.DieFace.REDSHIELD:
-            self.gainSun(2)
+            self.gainSun(2, False)
             return
         if face == Data.DieFace.BLUESHIELD:
-            self.gainMoon(2)
+            self.gainMoon(2, False)
             return
         if face == Data.DieFace.YELLOWSHIELD:
-            self.gainGold(3)
+            self.gainGold(3, False)
             return
         if face == Data.DieFace.GREENSHIELD:
             self.gainVP(3)
@@ -3005,11 +3052,11 @@ class Player:
             return
         match resourceType:
             case 0:
-                self.gainGold(Data.getResourceValues(face)[0])
+                self.gainGold(Data.getResourceValues(face)[0], False)
             case 1:
-                self.gainSun(Data.getResourceValues(face)[1])
+                self.gainSun(Data.getResourceValues(face)[1], False)
             case 2:
-                self.gainMoon(Data.getResourceValues(face)[2])
+                self.gainMoon(Data.getResourceValues(face)[2], False)
             case 3:
                 self.gainVP(Data.getResourceValues(face)[3])
             case 4:
@@ -3029,11 +3076,11 @@ class Player:
                     if cyclops and self.sentinel1Choice:
                         self.gainVP(gains[0])
                     else:
-                        self.gainGold(gains[0])
+                        self.gainGold(gains[0], False)
                 case 1:
-                    self.gainSun(gains[1])
+                    self.gainSun(gains[1], False)
                 case 2:
-                    self.gainMoon(gains[2])
+                    self.gainMoon(gains[2], False)
                 case 3:
                     self.gainVP(gains[3])
                 case 4:
@@ -3044,24 +3091,24 @@ class Player:
             if cyclops and self.sentinel1Choice:
                 self.gainVP(gains[0])
             else:
-                self.gainGold(gains[0])
-            self.gainSun(gains[1])
-            self.gainMoon(gains[2])
+                self.gainGold(gains[0], False)
+            self.gainSun(gains[1], False)
+            self.gainMoon(gains[2], False)
             self.gainVP(gains[3])
             self.gainAncientShards(gains[4])
             self.gainLoyalty(gains[5])
         match face:
             case Data.DieFace.REDSHIELD:
-                self.gainSun(2)
+                self.gainSun(2, False)
             case Data.DieFace.BLUESHIELD:
-                self.gainMoon(2)
+                self.gainMoon(2, False)
             case Data.DieFace.GREENSHIELD:
                 self.gainVP(3)
             case Data.DieFace.YELLOWSHIELD:
                 if cyclops and self.sentinel1Choice:
                     self.gainVP(3)
                 else:
-                    self.gainGold(3)
+                    self.gainGold(3, False)
             case Data.DieFace.REDCHAOS:
                 self.gainAncientShards(2)
             case Data.DieFace.BLUECHAOS:
@@ -3104,19 +3151,19 @@ class Player:
         if Data.getIsOr(die1):
             match self.orChoice1:
                 case 0:
-                    self.gainGold(die1gains[0] * mult)
+                    self.gainGold(die1gains[0] * mult, minotaur)
                     gains1 = (die1gains[0], 0, 0, 0)
                 case 1:
                     if sentinel and self.sentinel1Choice:
                         self.gainVP(die1gains[1] * mult * 2)
                     else:
-                        self.gainSun(die1gains[1] * mult)
+                        self.gainSun(die1gains[1] * mult, minotaur)
                     gains1 = (0, die1gains[1], 0, 0)
                 case 2:
                     if sentinel and self.sentinel1Choice:
                         self.gainVP(die1gains[2] * mult * 2)
                     else:
-                        self.gainMoon(die1gains[2] * mult)
+                        self.gainMoon(die1gains[2] * mult, minotaur)
                     gains1 = (0, 0, die1gains[2], 0)
                 case 3:
                     self.gainVP(die1gains[3])
@@ -3127,31 +3174,31 @@ class Player:
                     self.gainLoyalty(die1gains[5] * mult)
         else:
             gains1 = die1gains
-            self.gainGold(die1gains[0] * mult)
+            self.gainGold(die1gains[0] * mult, minotaur)
             if sentinel and self.sentinel1Choice:
                 self.gainVP(die1gains[1] * mult * 2 + die1gains[2] * mult * 2)
             else:
-                self.gainSun(die1gains[1] * mult)
-                self.gainMoon(die1gains[2] * mult)
+                self.gainSun(die1gains[1] * mult, minotaur)
+                self.gainMoon(die1gains[2] * mult, minotaur)
             self.gainVP(die1gains[3] * mult)
             self.gainAncientShards(die1gains[4] * mult)
             self.gainLoyalty(die1gains[5] * mult)
         if Data.getIsOr(die2):
             match self.orChoice2:
                 case 0:
-                    self.gainGold(die2gains[0] * mult)
+                    self.gainGold(die2gains[0] * mult, minotaur)
                     gains2 = (die2gains[0], 0, 0, 0)
                 case 1:
                     if sentinel and self.sentinel2Choice:
                         self.gainVP(die2gains[1] * mult * 2)
                     else:
-                        self.gainSun(die2gains[1] * mult)
+                        self.gainSun(die2gains[1] * mult, minotaur)
                     gains2 = (0, die2gains[1], 0, 0)
                 case 2:
                     if sentinel and self.sentinel2Choice:
                         self.gainVP(die2gains[2] * mult * 2)
                     else:
-                        self.gainMoon(die2gains[2] * mult)
+                        self.gainMoon(die2gains[2] * mult, minotaur)
                     gains2 = (0, 0, die2gains[2], 0)
                 case 3:
                     self.gainVP(die2gains[3] * mult)
@@ -3162,12 +3209,12 @@ class Player:
                     self.gainLoyalty(die2gains[5] * mult)
         else:
             gains2 = die2gains
-            self.gainGold(die2gains[0] * mult)
+            self.gainGold(die2gains[0] * mult, minotaur)
             if sentinel and self.sentinel2Choice:
                 self.gainVP(die2gains[1] * mult * 2 + die2gains[2] * mult * 2)
             else:
-                self.gainSun(die2gains[1] * mult)
-                self.gainMoon(die2gains[2] * mult)
+                self.gainSun(die2gains[1] * mult, minotaur)
+                self.gainMoon(die2gains[2] * mult, minotaur)
             self.gainVP(die2gains[3] * mult)
             self.gainAncientShards(die2gains[4] * mult)
             self.gainLoyalty(die2gains[5] * mult)
@@ -3177,7 +3224,7 @@ class Player:
                     if sentinel and self.sentinel1Choice:
                         self.gainVP(4 * mult)
                     else:
-                        self.gainSun(2 * mult)
+                        self.gainSun(2 * mult, minotaur)
                 else:
                     self.gainVP(5 * mult)
             case Data.DieFace.BLUESHIELD:
@@ -3185,7 +3232,7 @@ class Player:
                     if sentinel and self.sentinel1Choice:
                         self.gainVP(4 * mult)
                     else:
-                        self.gainMoon(2 * mult)
+                        self.gainMoon(2 * mult, minotaur)
                 else:
                     self.gainVP(5 * mult)
             case Data.DieFace.GREENSHIELD:
@@ -3195,7 +3242,7 @@ class Player:
                     self.gainVP(5 * mult)
             case Data.DieFace.YELLOWSHIELD:
                 if gains2[0] == 0:
-                    self.gainGold(3 * mult)
+                    self.gainGold(3 * mult, minotaur)
                 else:
                     self.gainVP(5 * mult)
             case Data.DieFace.REDCHAOS:
@@ -3220,7 +3267,7 @@ class Player:
                     if sentinel and self.sentinel2Choice:
                         self.gainVP(4 * mult)
                     else:
-                        self.gainSun(2 * mult)
+                        self.gainSun(2 * mult, minotaur)
                 else:
                     self.gainVP(5 * mult)
             case Data.DieFace.BLUESHIELD:
@@ -3228,7 +3275,7 @@ class Player:
                     if sentinel and self.sentinel2Choice:
                         self.gainVP(4 * mult)
                     else:
-                        self.gainMoon(2 * mult)
+                        self.gainMoon(2 * mult, minotaur)
                 else:
                     self.gainVP(5 * mult)
             case Data.DieFace.GREENSHIELD:
@@ -3238,7 +3285,7 @@ class Player:
                     self.gainVP(5 * mult)
             case Data.DieFace.YELLOWSHIELD:
                 if gains1[0] == 0:
-                    self.gainGold(3 * mult)
+                    self.gainGold(3 * mult, minotaur)
                 else:
                     self.gainVP(5 * mult)
             case Data.DieFace.REDCHAOS:
@@ -3259,11 +3306,11 @@ class Player:
                     self.gainVP(3 * mult)
 
     def buyFace(self, face):
-        self.gainGold(-Data.faceCosts[face])
+        self.gainGold(-Data.faceCosts[face], False)
         self.unforgedFaces.append(face)
 
     def buyFaceShip(self, face, bonusGold):
-        self.gainGold(-(Data.faceCosts[face] - bonusGold))
+        self.gainGold(-(Data.faceCosts[face] - bonusGold), False)
         self.unforgedFaces.append(face)
 
     def forgeFace(self, forgeInfo):
@@ -3318,8 +3365,8 @@ class Player:
         return False
 
     def performFeat(self, feat):
-        self.gainSun(-Data.getSunCost(feat))
-        self.gainMoon(-Data.getMoonCost(feat))
+        self.gainSun(-Data.getSunCost(feat), False)
+        self.gainMoon(-Data.getMoonCost(feat), False)
         self.feats.append(feat)
         self.gainVP(Data.getPoints(feat))
 

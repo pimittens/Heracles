@@ -2,7 +2,7 @@ import random
 import Game
 import MCTS
 
-players = [Game.Player(0, False), Game.Player(1, False)]
+players = [Game.Player(0, True), Game.Player(1, True)]
 theBoard = Game.BoardState(players, True)
 undoState = theBoard.copyState()
 theBoard.printBoardState()
@@ -193,9 +193,11 @@ def printOptions(options, boardState):
                     print(f"{i}: Use the effect of The Merchant to gain {option[2][0]} vp")
                 else:
                     if option[2][1]:
-                        print(f"{i}: Use the effect of The Merchant to gain {option[2][0]} vp and upgrade the face {option[2][2]} on die 1 to the face {option[2][3]}")
+                        print(
+                            f"{i}: Use the effect of The Merchant to gain {option[2][0]} vp and upgrade the face {option[2][2]} on die 1 to the face {option[2][3]}")
                     else:
-                        print(f"{i}: Use the effect of The Merchant to gain {option[2][0]} vp and upgrade the face {option[2][2]} on die 2 to the face {option[2][3]}")
+                        print(
+                            f"{i}: Use the effect of The Merchant to gain {option[2][0]} vp and upgrade the face {option[2][2]} on die 2 to the face {option[2][3]}")
             case _:
                 print(f"{i}: Unhandled move type {option[0]}")
 
