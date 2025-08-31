@@ -489,28 +489,36 @@ class BoardState:
                 self.makeMove((Move.PASS, move[1], ()))
             case Phase.RESOLVE_MAZE_MOVES:
                 # todo: make maze moves, hammer option, just go to next phase until implemented
-                if self.players[self.blessingPlayer].shipsToResolve == 0:
+                if self.players[self.blessingPlayer].shipsToResolve == 0 and self.players[self.blessingPlayer].times3ShipsToResolve == 0:
                     self.phase = Phase.BOAR_CHOICE_1
                     self.makeMove((Move.PASS, move[1], ()))
                 else:
                     self.phase = Phase.RESOLVE_SHIPS
-                    self.makeMove((Move.PASS, move[1], ()))
             case Phase.RESOLVE_SHIPS:
                 if move[0] == Move.BUY_FACES:
-                    self.players[self.blessingPlayer].shipsToResolve -= 1
-                    for face in move[2]:
-                        self.temple[Data.getPool(face)].remove(face)
-                        self.players[self.blessingPlayer].buyFaceShip(face)
+                    if self.players[self.blessingPlayer].times3ShipsToResolve > 0:
+                        self.players[self.blessingPlayer].times3ShipsToResolve -= 1
+                        for face in move[2]:
+                            self.temple[Data.getPool(face)].remove(face)
+                            self.players[self.blessingPlayer].buyFaceShip(face, 6)
+                    else:
+                        self.players[self.blessingPlayer].shipsToResolve -= 1
+                        for face in move[2]:
+                            self.temple[Data.getPool(face)].remove(face)
+                            self.players[self.blessingPlayer].buyFaceShip(face, 2)
                     self.phase = Phase.RESOLVE_SHIPS_FORGE
                 elif move[0] == Move.PASS:
-                    self.players[self.blessingPlayer].shipsToResolve -= 1
-                    if self.players[self.blessingPlayer].shipsToResolve == 0:
+                    if self.players[self.blessingPlayer].times3ShipsToResolve > 0:
+                        self.players[self.blessingPlayer].times3ShipsToResolve -= 1
+                    else:
+                        self.players[self.blessingPlayer].shipsToResolve -= 1
+                    if self.players[self.blessingPlayer].shipsToResolve == 0 and self.players[self.blessingPlayer].times3ShipsToResolve == 0:
                         self.phase = Phase.BOAR_CHOICE_1
                         self.makeMove((Move.PASS, move[1], ()))
             case Phase.RESOLVE_SHIPS_FORGE:
                 if move[0] == Move.FORGE_FACE:
                     self.players[self.blessingPlayer].forgeFace(move[2])
-                    if self.players[self.blessingPlayer].shipsToResolve > 0:
+                    if self.players[self.blessingPlayer].shipsToResolve > 0 or self.players[self.blessingPlayer].times3ShipsToResolve > 0:
                         self.phase = Phase.RESOLVE_SHIPS
                     else:
                         self.phase = Phase.BOAR_CHOICE_1
@@ -893,7 +901,6 @@ class BoardState:
                     self.makeMove((Move.PASS, move[1], ()))
                 else:
                     self.phase = Phase.MINOR_RESOLVE_SHIPS
-                    self.makeMove((Move.PASS, move[1], ()))
             case Phase.MINOR_RESOLVE_SHIPS:
                 if move[0] == Move.BUY_FACES:
                     self.players[self.blessingPlayer].shipsToResolve -= 1
@@ -1589,7 +1596,7 @@ class BoardState:
                 if self.players[self.activePlayer].unforgedFaces:
                     ret = self.generateForgeFace(self.activePlayer)
                 else:
-                    ret = self.generateBuyFaces(self.players[self.activePlayer].gold)
+                    ret = self.generateBuyFaces(self.players[self.activePlayer].getEffectiveGold())
             case Phase.ACTIVE_PLAYER_PERFORM_FEAT_1 | Phase.ACTIVE_PLAYER_PERFORM_FEAT_2:
                 if self.players[self.activePlayer].goldToGain == 0:
                     ret = self.generatePerformFeats()
@@ -1621,7 +1628,10 @@ class BoardState:
             case Phase.FORGE_HELMET_FACE_1 | Phase.FORGE_HELMET_FACE_2:
                 ret = self.generateForgeFace(self.activePlayer)
             case Phase.RESOLVE_SHIPS | Phase.MINOR_RESOLVE_SHIPS:
-                ret = self.generateBuyFace(self.blessingPlayer, 2)
+                if self.players[self.blessingPlayer].times3ShipsToResolve > 0:
+                    ret = self.generateBuyFace(self.blessingPlayer, 6)
+                else:
+                    ret = self.generateBuyFace(self.blessingPlayer, 2)
             case Phase.RESOLVE_SHIPS_FORGE | Phase.MINOR_RESOLVE_SHIPS_FORGE:
                 ret = self.generateForgeFace(self.blessingPlayer)
             case Phase.MISFORTUNE_1_RESOLVE_SHIPS | Phase.MISFORTUNE_2_RESOLVE_SHIPS | Phase.MINOR_MISFORTUNE_SHIPS:
@@ -1996,7 +2006,7 @@ class BoardState:
 
     def getSpendGoldOptions(self, player):
         ret = []
-        i = 0
+        i = player.goldToSpend - player.gold
         while i <= player.getScepterGold() and i <= player.goldToSpend:
             ret.append((Move.SPEND_GOLD, player.playerID,
                         (i,)))  # spend this amount from scepters, spend the rest from main reserve
@@ -2009,7 +2019,8 @@ class BoardState:
         while i <= player.getScepterSunMoon() and i <= player.sunToSpend:
             j = 0  # counts ancient shards
             while j <= player.ancientShards and i + j <= player.sunToSpend:
-                ret.append((Move.SPEND_SUN, player.playerID,
+                if i + j + player.sun >= player.sunToSpend:
+                    ret.append((Move.SPEND_SUN, player.playerID,
                             (i, j)))  # spend i from scepters, j ancient shards, and spend the rest from main reserve
                 j += 1
             i += 1
@@ -2021,7 +2032,8 @@ class BoardState:
         while i <= player.getScepterSunMoon() and i <= player.moonToSpend:
             j = 0  # counts ancient shards
             while j <= player.ancientShards and i + j <= player.moonToSpend:
-                ret.append((Move.SPEND_MOON, player.playerID,
+                if i + j + player.moon >= player.moonToSpend:
+                    ret.append((Move.SPEND_MOON, player.playerID,
                             (i, j)))  # spend i from scepters, j ancient shards, and spend the rest from main reserve
                 j += 1
             i += 1
@@ -2156,7 +2168,7 @@ class BoardState:
         scepterSpace = self.players[player].getScepterSpace()
         goldToSpend = self.players[player].goldToGain
         ret = []
-        i = max(goldToSpend - scepterSpace, 0)
+        i = max(goldToSpend - (self.players[player].maxGold - self.players[player].gold), 0)
         while i <= scepterSpace and i <= goldToSpend:
             ret.append((Move.CHOOSE_ADD_HAMMER_SCEPTER, player, (i,)))  # spend i gold on scepter, remainder is gained
             i += 1
@@ -2596,6 +2608,18 @@ class BoardState:
     def selectRandomFeats(self):
         i = 0
         while i < 15:
+            if i == 0:
+                self.addFeat(i, Data.HeroicFeat.THE_MERCHANT)
+                i += 1
+                continue
+            if i == 2:
+                self.addFeat(i, Data.HeroicFeat.CELESTIAL_SHIP)
+                i += 1
+                continue
+            if i == 14:
+                self.addFeat(i, Data.HeroicFeat.THE_BLACKSMITHS_SCEPTER)
+                i += 1
+                continue
             feats = Data.getFeatsByPosition(i)
             self.addFeat(i, feats[random.randrange(len(feats))])
             i += 1
@@ -2667,6 +2691,7 @@ class Player:
         self.mazePosition = 0
         self.mazeMoves = 0
         self.shipsToResolve = 0
+        self.times3ShipsToResolve = 0
         self.celestialRolls = 0
         self.hammerTrack = 0
         self.goldToGain = 0  # can choose to spend on hammers or scepters
@@ -2709,6 +2734,7 @@ class Player:
         ret.mazePosition = self.mazePosition
         ret.mazeMoves = self.mazeMoves
         ret.shipsToResolve = self.shipsToResolve
+        ret.times3ShipsToResolve = self.times3ShipsToResolve
         ret.celestialRolls = self.celestialRolls
         ret.hammerTrack = self.hammerTrack
         ret.goldToGain = self.goldToGain
@@ -2742,7 +2768,7 @@ class Player:
         if (self.canAddHammer() or self.canAddScepter()) and amount > 0:
             self.goldToGain += amount
         elif amount < 0 < self.getScepterGold():
-            self.goldToSpend += amount
+            self.goldToSpend -= amount
         else:
             self.gold = max(min(self.gold + amount, self.maxGold), 0)
 
@@ -2759,7 +2785,7 @@ class Player:
 
     def gainSun(self, amount):
         if amount < 0 and (self.ancientShards > 0 or self.getScepterSunMoon() > 0):
-            self.sunToSpend += amount
+            self.sunToSpend -= amount
         else:
             self.sun = max(min(self.sun + amount, self.maxSun), 0)
 
@@ -2785,7 +2811,7 @@ class Player:
 
     def gainMoon(self, amount):
         if amount < 0 and (self.ancientShards > 0 or self.getScepterSunMoon() > 0):
-            self.moonToSpend += amount
+            self.moonToSpend -= amount
         else:
             self.moon = max(min(self.moon + amount, self.maxMoon), 0)
 
@@ -2914,7 +2940,7 @@ class Player:
             self.addScepter(amount)
         else:
             self.addHammer(amount)
-        self.gainGold(self.goldToGain - amount)
+        self.gold = min(self.gold + self.goldToGain - amount, self.maxGold)
         self.goldToGain = 0
 
     def die1IsBoar(self):
@@ -3055,9 +3081,15 @@ class Player:
             mult *= -1
         else:
             if die1 == Data.DieFace.SHIP:
-                self.shipsToResolve += 1
+                if mult == 3:
+                    self.times3ShipsToResolve += 1
+                else:
+                    self.shipsToResolve += 1
             if die2 == Data.DieFace.SHIP:
-                self.shipsToResolve += 1
+                if mult == 3:
+                    self.times3ShipsToResolve += 1
+                else:
+                    self.shipsToResolve += 1
         if die1 == Data.DieFace.MAZERED or die1 == Data.DieFace.MAZEBLUE:
             self.mazeMoves += 1
         if die2 == Data.DieFace.MAZERED or die2 == Data.DieFace.MAZEBLUE:
@@ -3230,8 +3262,8 @@ class Player:
         self.gainGold(-Data.faceCosts[face])
         self.unforgedFaces.append(face)
 
-    def buyFaceShip(self, face):
-        self.gainGold(-(Data.faceCosts[face] - 2))
+    def buyFaceShip(self, face, bonusGold):
+        self.gainGold(-(Data.faceCosts[face] - bonusGold))
         self.unforgedFaces.append(face)
 
     def forgeFace(self, forgeInfo):
@@ -3413,6 +3445,7 @@ class Player:
         print("Unforged Faces:")
         for face in self.unforgedFaces:
             print(face)
+        print(f"Scepter gold: {self.getScepterGold()}")
 
 
 class Die:
