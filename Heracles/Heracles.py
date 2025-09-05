@@ -198,9 +198,20 @@ def printOptions(options, boardState):
                     else:
                         print(
                             f"{i}: Use the effect of The Merchant to gain {option[2][0]} vp and upgrade the face {option[2][2]} on die 2 to the face {option[2][3]}")
+            case Game.Move.CHOOSE_MAZE_ORDER:
+                if option[2][0]:
+                    print(f"{i}: Roll celestial die then do maze moves")
+                else:
+                    print(f"{i}: Do maze moves then roll celestial die")
+            case Game.Move.CHOOSE_CELESTIAL_DIE_OR:
+                if option[2][0] == 0:
+                    type = "3 gold"
+                if option[2][0] == 1:
+                    type = "1 sun"
+                else:
+                    type = "1 moon"
             case _:
-                print(f"{i}: Unhandled move type {option[0]}")
-
+                print(f"{i}: Use the effect of the celestial die to gain {type}")
         i += 1
 
 

@@ -113,10 +113,17 @@ class DieFace(Enum):
     GOLD3ANCIENTSHARD1 = 42
     VP1GOLD2LOYALTY1 = 43
     BOAR = 44
+    CELESTIAL12GOLD = 45
+    CELESTIAL5VP = 46
+    CELESTIAL3VPAND3GOLD1SUN1MOONOR = 47
+    CELESTIALMIRROR = 48
+    CELESTIALGODDESS = 49
+    CELESTIALUPGRADE = 50
 
 
 facesData = tuple(json.loads(open("Faces.json").read()))
 featsData = tuple(json.loads(open("Feats.json").read()))
+mazeData = tuple(json.loads(open("MazeSpaces.json").read()))
 
 
 def getLevel(face):
@@ -287,3 +294,28 @@ def getTotalGoldCost(faces):
     for face in faces:
         ret += faceCosts[face]
     return ret
+
+
+# maze stuff
+
+def isIntersection(position):
+    # return position == 0 or position == 1 or position == 3 or position == 5 or position == 15 or position == 18
+    return len(mazeData[position]["next"]) > 1
+
+
+def isReverseIntersection(position):
+    # return position == 8 or position == 9 or position == 10 or position == 12
+    return len(mazeData[position]["prev"]) > 1
+
+
+def isTreasureHall(position):
+    # return position == 7 or position == 12 or position == 20
+    return mazeData[position]["effect"] == "TREASUREHALL"
+
+
+def getMazeMoveOptions(position):
+    return mazeData[position]["next"]
+
+
+def getReverseMazeMoveOptions(position):
+    return mazeData[position]["prev"]

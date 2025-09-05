@@ -482,5 +482,71 @@
     "loyalty" : 1,
     "isOr" : false,
     "level" : 0
+  },
+  {
+    "name" : "CELESTIAL12GOLD",
+    "gold" : 12,
+    "sun" : 0,
+    "moon" : 0,
+    "vp" : 0,
+    "ancientshard" : 0,
+    "loyalty" : 0,
+    "isOr" : false,
+    "level" : 0
+  },
+  {
+    "name" : "CELESTIAL5VP",
+    "gold" : 0,
+    "sun" : 0,
+    "moon" : 0,
+    "vp" : 5,
+    "ancientshard" : 0,
+    "loyalty" : 0,
+    "isOr" : false,
+    "level" : 0
+  },
+  {
+    "name" : "CELESTIAL3VPAND3GOLD1SUN1MOONOR",
+    "gold" : 3,
+    "sun" : 1,
+    "moon" : 1,
+    "vp" : 3,
+    "ancientshard" : 0,
+    "loyalty" : 0,
+    "isOr" : true,
+    "level" : 0
+  },
+  {
+    "name" : "CELESTIALMIRROR",
+    "gold" : 0,
+    "sun" : 0,
+    "moon" : 0,
+    "vp" : 0,
+    "ancientshard" : 0,
+    "loyalty" : 0,
+    "isOr" : false,
+    "level" : 0
+  },
+  {
+    "name" : "CELESTIALGODDESS",
+    "gold" : 0,
+    "sun" : 0,
+    "moon" : 0,
+    "vp" : 0,
+    "ancientshard" : 0,
+    "loyalty" : 0,
+    "isOr" : false,
+    "level" : 0
+  },
+  {
+    "name" : "CELESTIALUPGRADE",
+    "gold" : 0,
+    "sun" : 0,
+    "moon" : 0,
+    "vp" : 0,
+    "ancientshard" : 0,
+    "loyalty" : 0,
+    "isOr" : false,
+    "level" : 0
   }
 ]

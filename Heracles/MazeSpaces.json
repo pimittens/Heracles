@@ -1,0 +1,218 @@
+[
+  {
+    "space" : 0,
+    "next" : [1, 9, 13],
+    "prev" : [],
+    "effect" : "NONE"
+  },
+  {
+    "space" : 1,
+    "next" : [2, 9],
+    "prev" : [0],
+    "effect" : "SUN1"
+  },
+  {
+    "space" : 2,
+    "next" : [3],
+    "prev" : [2],
+    "effect" : "VP3"
+  },
+  {
+    "space" : 3,
+    "next" : [4, 10],
+    "prev" : [2],
+    "effect" : "GOLD6VP3OR"
+  },
+  {
+    "space" : 4,
+    "next" : [5],
+    "prev" : [3],
+    "effect" : "VP5"
+  },
+  {
+    "space" : 5,
+    "next" : [6, 12],
+    "prev" : [4],
+    "effect" : "VP3SUN1MOON1"
+  },
+  {
+    "space" : 6,
+    "next" : [7],
+    "prev" : [5],
+    "effect" : "VP2STEAL"
+  },
+  {
+    "space" : 7,
+    "next" : [8],
+    "prev" : [6],
+    "effect" : "TREASUREHALL"
+  },
+  {
+    "space" : 8,
+    "next" : [23],
+    "prev" : [7, 12, 22],
+    "effect" : "VP3"
+  },
+  {
+    "space" : 9,
+    "next" : [10],
+    "prev" : [0, 1],
+    "effect" : "CELESTIALDIE1"
+  },
+  {
+    "space" : 10,
+    "next" : [11],
+    "prev" : [3, 9, 15],
+    "effect" : "FACEBUYDISCOUNT2"
+  },
+  {
+    "space" : 11,
+    "next" : [12],
+    "prev" : [10],
+    "effect" : "GOLD6"
+  },
+  {
+    "space" : 12,
+    "next" : [8],
+    "prev" : [5, 11, 18],
+    "effect" : "TREASUREHALL"
+  },
+  {
+    "space" : 13,
+    "next" : [14],
+    "prev" : [0],
+    "effect" : "MOON1"
+  },
+  {
+    "space" : 14,
+    "next" : [15],
+    "prev" : [13],
+    "effect" : "GOLD3SUN1MOON1OR"
+  },
+  {
+    "space" : 15,
+    "next" : [10, 16],
+    "prev" : [14],
+    "effect" : "CELESTIALDIE1"
+  },
+  {
+    "space" : 16,
+    "next" : [17],
+    "prev" : [15],
+    "effect" : "GOLD3SUN1MOON1OR"
+  },
+  {
+    "space" : 17,
+    "next" : [18],
+    "prev" : [16],
+    "effect" : "FACEBUY"
+  },
+  {
+    "space" : 18,
+    "next" : [12, 19],
+    "prev" : [17],
+    "effect" : "CELESTIALDIE1"
+  },
+  {
+    "space" : 19,
+    "next" : [20],
+    "prev" : [18],
+    "effect" : "MOON2VP3OR"
+  },
+  {
+    "space" : 20,
+    "next" : [21],
+    "prev" : [19],
+    "effect" : "TREASUREHALL"
+  },
+  {
+    "space" : 21,
+    "next" : [22],
+    "prev" : [20],
+    "effect" : "SUN2MOON2OR"
+  },
+  {
+    "space" : 22,
+    "next" : [8],
+    "prev" : [21],
+    "effect" : "CELESTIALDIE2"
+  },
+  {
+    "space" : 23,
+    "next" : [24],
+    "prev" : [8],
+    "effect" : "FACEBUY"
+  },
+  {
+    "space" : 24,
+    "next" : [25],
+    "prev" : [23],
+    "effect" : "CELESTIALDIE1"
+  },
+  {
+    "space" : 25,
+    "next" : [26],
+    "prev" : [24],
+    "effect" : "GOLD3SUN1MOON1OR"
+  },
+  {
+    "space" : 26,
+    "next" : [27],
+    "prev" : [25],
+    "effect" : "6GOLDFOR6VP"
+  },
+  {
+    "space" : 27,
+    "next" : [28],
+    "prev" : [26],
+    "effect" : "CELESTIALDIE2"
+  },
+  {
+    "space" : 28,
+    "next" : [29],
+    "prev" : [27],
+    "effect" : "2MOONFOR8VP"
+  },
+  {
+    "space" : 29,
+    "next" : [30],
+    "prev" : [28],
+    "effect" : "CELESTIALDIE1"
+  },
+  {
+    "space" : 30,
+    "next" : [31],
+    "prev" : [29],
+    "effect" : "NONE"
+  },
+  {
+    "space" : 31,
+    "next" : [32],
+    "prev" : [30],
+    "effect" : "NONE"
+  },
+  {
+    "space" : 32,
+    "next" : [33],
+    "prev" : [31],
+    "effect" : "1VPPERFORGE"
+  },
+  {
+    "space" : 33,
+    "next" : [34],
+    "prev" : [32],
+    "effect" : "NONE"
+  },
+  {
+    "space" : 34,
+    "next" : [35],
+    "prev" : [33],
+    "effect" : "NONE"
+  },
+  {
+    "space" : 35,
+    "next" : [],
+    "prev" : [34],
+    "effect" : "GODDESS"
+  }
+]

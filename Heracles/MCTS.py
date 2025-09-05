@@ -287,6 +287,9 @@ def rollout(state):
     currentState = state.copyState()
     while not currentState.isOver():
         possibleMoves = currentState.getOptions()
+        if not possibleMoves:
+            print(currentState.phase)
+            print(possibleMoves)
         move = random.choice(possibleMoves)
         currentState.makeMove(move)
     return currentState.getWinners()
