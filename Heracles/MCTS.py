@@ -254,7 +254,7 @@ def mcts(rootState, numSims):
     for node in root.children:
         print(
             f"Move: {node.move}, visits:{node.visits}, win probability: {node.points / node.visits}, lastPlayer: {node.state.lastPlayer}")
-    print(f"time elapsed: {(time.time() - startTime) / 60} minutes")
+    print(f"time elapsed: {time.time() - startTime} seconds")
     return root.mostVisitedChild().move
 
 
@@ -279,7 +279,7 @@ def mctsWithHeuristic(rootState, numSims):  # todo
     for node in root.children:
         print(
             f"Move: {node.move}, visits:{node.visits}, win probability: {node.points / node.visits}, lastPlayer: {node.state.lastPlayer}")
-    print(f"time elapsed: {(time.time() - startTime) / 60} minutes")
+    print(f"time elapsed: {time.time() - startTime} seconds")
     return root.mostVisitedChild().move
 
 
@@ -287,9 +287,6 @@ def rollout(state):
     currentState = state.copyState()
     while not currentState.isOver():
         possibleMoves = currentState.getOptions()
-        if not possibleMoves:
-            print(currentState.phase)
-            print(possibleMoves)
         move = random.choice(possibleMoves)
         currentState.makeMove(move)
     return currentState.getWinners()

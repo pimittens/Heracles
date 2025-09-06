@@ -2213,8 +2213,6 @@ class BoardState:
         for face1 in die1Faces:
             for face2 in die2Faces:
                 ret.append((Move.CHOOSE_FACES, player.playerID, (face1, face2)))
-        print(ret)
-        print(f"die 1: {die1Faces}, die 2: {die2Faces}")
         return tuple(ret)
 
     def generateRightHandChoice(self, player):
@@ -3316,7 +3314,7 @@ class Player:
         scepterLeft = scepter2 * 2 + scepter1
         scepterSpent = 0
         while scepterSpent < scepter:
-            if scepterSpent - scepter == 1 and scepter1 > 0:
+            if scepter - scepterSpent == 1 and scepter1 > 0:
                 scepter1 -= 1
                 scepterLeft -= 1
                 scepterSpent += 1
