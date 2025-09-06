@@ -1016,7 +1016,7 @@ class BoardState:
                 if (self.players[self.blessingPlayer].dieChoice and not Data.isMisfortuneFace(
                         self.players[self.blessingPlayer].die1ResultBuffer)) or (
                         not self.players[self.blessingPlayer].dieChoice and not Data.isMisfortuneFace(self.players[
-                    self.blessingPlayer].die2ResultBuffer)):
+                                                                                                          self.blessingPlayer].die2ResultBuffer)):
                     self.phase = Phase.MINOR_CERBERUS_DECISION
                     self.makeMove((Move.PASS, move[1], ()))
                 else:
@@ -1576,7 +1576,7 @@ class BoardState:
                 else:
                     match self.players[self.celestialPlayer].celestialResultBuffer:
                         case Data.DieFace.CELESTIAL12GOLD:
-                            self.players[self.celestialPlayer].gainGold(12)
+                            self.players[self.celestialPlayer].gainGold(12, False)
                         case Data.DieFace.CELESTIAL5VP:
                             self.players[self.celestialPlayer].gainVP(5)
                         case Data.DieFace.CELESTIAL3VPAND3GOLD1SUN1MOONOR:
@@ -1599,11 +1599,11 @@ class BoardState:
                     self.makeMove((Move.PASS, move[1], ()))
                 elif move[0] == Move.CHOOSE_CELESTIAL_DIE_OR:
                     if move[2][0] == 0:
-                        self.players[self.celestialPlayer].gainGold(3)
+                        self.players[self.celestialPlayer].gainGold(3, False)
                     elif move[2][0] == 1:
-                        self.players[self.celestialPlayer].gainSun(1)
+                        self.players[self.celestialPlayer].gainSun(1, False)
                     elif move[2][0] == 2:
-                        self.players[self.celestialPlayer].gainMoon(1)
+                        self.players[self.celestialPlayer].gainMoon(1, False)
                     if self.players[self.celestialPlayer].goldToGain == 0:
                         self.phase = Phase.ROLL_CELESTIAL_DIE
                         self.makeMove((Move.PASS, move[1], ()))
@@ -1619,7 +1619,8 @@ class BoardState:
             case Phase.CELESTIAL_CHOOSE_MIRROR:
                 if move[0] == Move.CELESTIAL_MIRROR_CHOICE:
                     self.players[self.celestialPlayer].celestialResultBuffer = move[2][0]
-                    self.phase = Phase.CELESTIAL_RESOLVE_DIE_MIRROR
+                    self.phase = Phase.CELESTIAL_RESOLVE_DIE_OR
+                    self.makeMove((Move.PASS, move[1], ()))
             case Phase.CELESTIAL_CHOOSE_GODDESS:
                 if move[0] == Move.CELESTIAL_GODDESS:
                     if move[2][0]:
@@ -1628,6 +1629,7 @@ class BoardState:
                         self.players[self.celestialPlayer].die2.setToFace(move[2][1])
                     self.players[self.celestialPlayer].celestialResultBuffer = move[2][1]
                     self.phase = Phase.CELESTIAL_RESOLVE_DIE_MIRROR
+                    self.makeMove((Move.PASS, move[1], ()))
             case Phase.CELESTIAL_RESOLVE_DIE_MIRROR:
                 if move[0] == Move.MIRROR_CHOICE:
                     self.players[self.celestialPlayer].celestialResultBuffer = move[2][0]
@@ -1647,27 +1649,35 @@ class BoardState:
             case Phase.CELESTIAL_RESOLVE_DIE_EFFECT:
                 if move[0] == Move.CHOOSE_ADD_HAMMER_SCEPTER:
                     self.players[self.celestialPlayer].useHammerOrScepter(move[2][0])
-                    self.phase = Phase.CELESTIAL_RESOLVE_SHIPS
+                    if self.players[self.celestialPlayer].shipsToResolve > 0:
+                        self.phase = Phase.CELESTIAL_RESOLVE_SHIPS
+                    else:
+                        self.phase = Phase.CELESTIAL_BOAR_CHOICE
+                        self.makeMove((Move.PASS, move[1], ()))
                 else:
                     self.players[self.celestialPlayer].gainCelestialDieEffects()
                     if self.players[self.celestialPlayer].goldToGain == 0:
-                        self.phase = Phase.CELESTIAL_RESOLVE_SHIPS
+                        if self.players[self.celestialPlayer].shipsToResolve > 0:
+                            self.phase = Phase.CELESTIAL_RESOLVE_SHIPS
+                        else:
+                            self.phase = Phase.CELESTIAL_BOAR_CHOICE
+                            self.makeMove((Move.PASS, move[1], ()))
             case Phase.CELESTIAL_RESOLVE_SHIPS:
                 if move[0] == Move.BUY_FACES:
-                    self.players[self.blessingPlayer].shipsToResolve -= 1
+                    self.players[self.celestialPlayer].shipsToResolve -= 1
                     for face in move[2]:
                         self.temple[Data.getPool(face)].remove(face)
-                        self.players[self.blessingPlayer].buyFaceShip(face, 2)
+                        self.players[self.celestialPlayer].buyFaceShip(face, 2)
                     self.phase = Phase.CELESTIAL_RESOLVE_SHIPS_FORGE
                 elif move[0] == Move.PASS:
-                    self.players[self.blessingPlayer].shipsToResolve -= 1
-                    if self.players[self.blessingPlayer].shipsToResolve == 0:
+                    self.players[self.celestialPlayer].shipsToResolve -= 1
+                    if self.players[self.celestialPlayer].shipsToResolve == 0:
                         self.phase = Phase.CELESTIAL_BOAR_CHOICE
                         self.makeMove((Move.PASS, move[1], ()))
             case Phase.CELESTIAL_RESOLVE_SHIPS_FORGE:
                 if move[0] == Move.FORGE_FACE:
-                    self.players[self.blessingPlayer].forgeFace(move[2])
-                    if self.players[self.blessingPlayer].shipsToResolve > 0:
+                    self.players[self.celestialPlayer].forgeFace(move[2])
+                    if self.players[self.celestialPlayer].shipsToResolve > 0:
                         self.phase = Phase.CELESTIAL_RESOLVE_SHIPS
                     else:
                         self.phase = Phase.CELESTIAL_BOAR_CHOICE
@@ -1683,7 +1693,7 @@ class BoardState:
                             self.players[move[1]].gainVP(3)
                     self.phase = Phase.CELESTIAL_MISFORTUNE
                     self.makeMove((Move.PASS, move[1], ()))
-                elif not self.players[self.blessingPlayer].celestialIsBoar():
+                elif not self.players[self.celestialPlayer].celestialIsBoar():
                     self.phase = Phase.CELESTIAL_MISFORTUNE
                     self.makeMove((Move.PASS, move[1], ()))
             case Phase.CELESTIAL_MISFORTUNE:
@@ -1710,13 +1720,13 @@ class BoardState:
                 ret = self.generateRollDieOptions(self.blessingPlayer, self.players[self.blessingPlayer].die1)
             case Phase.ROLL_DIE_2 | Phase.BLESSING_ROLL_DIE_2 | Phase.TWINS_REROLL_2 | Phase.WIND_ROLL_DIE_2 | Phase.LEFT_HAND_ROLL_2:
                 ret = self.generateRollDieOptions(self.blessingPlayer, self.players[self.blessingPlayer].die2)
-            case Phase.USE_TWINS_CHOICE | Phase.MINOR_TWINS_CHOICE:
+            case Phase.USE_TWINS_CHOICE | Phase.MINOR_TWINS_CHOICE | Phase.CELESTIAL_USE_TWINS_CHOICE:
                 ret = ((Move.USE_TWINS, self.blessingPlayer, (True,)), (Move.USE_TWINS, self.blessingPlayer, (False,)))
             case Phase.TWINS_REROLL_CHOICE:
                 ret = (
                     (Move.TWINS_CHOOSE_DIE, self.blessingPlayer, (True,)),
                     (Move.TWINS_CHOOSE_DIE, self.blessingPlayer, (False,)))
-            case Phase.TWINS_RESOURCE_CHOICE | Phase.MINOR_TWINS_RESOURCE:
+            case Phase.TWINS_RESOURCE_CHOICE | Phase.MINOR_TWINS_RESOURCE | Phase.CELESTIAL_TWINS_RESOURCE_CHOICE:
                 ret = ((Move.TWINS_CHOOSE_RESOURCE, self.blessingPlayer, ("vp",)),
                        (Move.TWINS_CHOOSE_RESOURCE, self.blessingPlayer, ("moon",)))
             case Phase.USE_CERBERUS_CHOICE | Phase.MINOR_USE_CERBERUS:
@@ -1742,9 +1752,9 @@ class BoardState:
                 ret = self.getMazeMoveChoices(self.blessingPlayer)  # todo
             case Phase.MAZE_EFFECT:
                 ret = self.getMazeEffectChoices(self.blessingPlayer)  # todo
-            case Phase.ROLL_CELESTIAL_DIE:
+            case Phase.ROLL_CELESTIAL_DIE | Phase.CELESTIAL_TWINS_REROLL:
                 ret = self.generateCelestialDieDecision(self.celestialPlayer)
-            case Phase.CELESTIAL_RESOLVE_EFFECT:
+            case Phase.CELESTIAL_RESOLVE_EFFECT | Phase.CELESTIAL_RESOLVE_DIE_EFFECT:
                 ret = self.getHammerScepterChoices(self.celestialPlayer)
             case Phase.CELESTIAL_CHOOSE_OR:
                 if self.players[self.celestialPlayer].goldToGain > 0:
@@ -1759,6 +1769,14 @@ class BoardState:
                 ret = self.getCelestialMirrorChoices(self.celestialPlayer)
             case Phase.CELESTIAL_CHOOSE_GODDESS:
                 ret = self.getCelestialGoddessChoices(self.players[self.celestialPlayer])
+            case Phase.CELESTIAL_RESOLVE_DIE_MIRROR:
+                ret = self.getMirrorChoices(self.celestialPlayer)
+            case Phase.CELESTIAL_RESOLVE_DIE_OR:
+                ret = self.players[self.celestialPlayer].getCelestialDieOptions()
+            case Phase.CELESTIAL_RESOLVE_SHIPS:
+                ret = self.generateBuyFace(self.celestialPlayer, 2)
+            case Phase.CELESTIAL_RESOLVE_SHIPS_FORGE:
+                ret = self.generateForgeFace(self.celestialPlayer)
             case Phase.CELESTIAL_BOAR_CHOICE:
                 ret = self.generateBoarChoice(self.players[self.celestialPlayer].celestialResultBuffer)
             case Phase.DIE_1_CHOOSE_OR:
@@ -2374,9 +2392,9 @@ class BoardState:
         ret = []
         for player in self.players:
             if player.getDie1UpFace() != Data.DieFace.MIRROR:
-                ret.append((Move.MIRROR_CHOICE, playerID, (player.getDie1UpFace(),)))
+                ret.append((Move.CELESTIAL_MIRROR_CHOICE, playerID, (player.getDie1UpFace(),)))
             if player.getDie2UpFace() != Data.DieFace.MIRROR:
-                ret.append((Move.MIRROR_CHOICE, playerID, (player.getDie2UpFace(),)))
+                ret.append((Move.CELESTIAL_MIRROR_CHOICE, playerID, (player.getDie2UpFace(),)))
         ret = set(ret)  # remove duplicates
         return tuple(ret)
 
@@ -2766,7 +2784,13 @@ class BoardState:
                 self.blessingPlayer = self.activePlayer
                 self.phase = Phase.WIND_ROLL_DIE_1
             case "DIE_INST":
-                self.makeMove((Move.PASS, self.activePlayer, ()))  # todo
+                self.players[self.activePlayer].celestialRolls += 1
+                self.celestialPlayer = self.activePlayer
+                if self.phase == Phase.ACTIVE_PLAYER_PERFORM_FEAT_1:
+                    self.celestialReturnPhase = Phase.EXTRA_TURN_DECISION
+                else:
+                    self.celestialReturnPhase = Phase.END_TURN
+                self.phase = Phase.ROLL_CELESTIAL_DIE
             case "COMPANION_INST_REINF":
                 self.players[self.activePlayer].companions.append(0)
                 self.makeMove((Move.PASS, self.activePlayer, ()))
@@ -2912,20 +2936,12 @@ class BoardState:
     def selectRandomFeats(self):
         i = 0
         while i < 15:
-            if i == 0:
-                self.addFeat(i, Data.HeroicFeat.THE_MERCHANT)
-                i += 1
-                continue
             if i == 2:
                 self.addFeat(i, Data.HeroicFeat.CELESTIAL_SHIP)
                 i += 1
                 continue
-            if i == 14:
-                self.addFeat(i, Data.HeroicFeat.THE_BLACKSMITHS_SCEPTER)
-                i += 1
-                continue
-            if i == 7:
-                self.addFeat(i, Data.HeroicFeat.THE_GODDESS)
+            if i == 11:
+                self.addFeat(i, Data.HeroicFeat.THE_CELESTIAL_DIE)
                 i += 1
                 continue
             feats = Data.getFeatsByPosition(i)
@@ -3731,6 +3747,23 @@ class Player:
         else:
             face = self.getDie2Result()
         resources = Data.getResourceValues(face)
+        ret = []
+        if resources[0] > 0:
+            ret.append((Move.CHOOSE_DIE_OR, self.playerID, (0,)))
+        if resources[1] > 0:
+            ret.append((Move.CHOOSE_DIE_OR, self.playerID, (1,)))
+        if resources[2] > 0:
+            ret.append((Move.CHOOSE_DIE_OR, self.playerID, (2,)))
+        if resources[3] > 0:
+            ret.append((Move.CHOOSE_DIE_OR, self.playerID, (3,)))
+        if resources[4] > 0:
+            ret.append((Move.CHOOSE_DIE_OR, self.playerID, (4,)))
+        if resources[5] > 0:
+            ret.append((Move.CHOOSE_DIE_OR, self.playerID, (5,)))
+        return tuple(ret)
+
+    def getCelestialDieOptions(self):
+        resources = Data.getResourceValues(self.celestialResultBuffer)
         ret = []
         if resources[0] > 0:
             ret.append((Move.CHOOSE_DIE_OR, self.playerID, (0,)))
