@@ -121,6 +121,12 @@ class DieFace(Enum):
     CELESTIALUPGRADE = 50
 
 
+class Treasure(Enum):
+    VP_TREASURE = 0
+    SUN_TREASURE = 1
+    MOON_TREASURE = 2
+
+
 facesData = tuple(json.loads(open("Faces.json").read()))
 featsData = tuple(json.loads(open("Feats.json").read()))
 mazeData = tuple(json.loads(open("MazeSpaces.json").read()))
@@ -306,6 +312,22 @@ def isIntersection(position):
 def isReverseIntersection(position):
     # return position == 8 or position == 9 or position == 10 or position == 12
     return len(mazeData[position]["prev"]) > 1
+
+
+def getMazeEffect(position):
+    return mazeData[position]["effect"]
+
+
+def getMazeOrEffects(position):
+    match getMazeEffect(position):
+        case "GOLD6VP3OR":
+            return (6, 0, 0, 3)
+        case "GOLD3SUN1MOON1OR":
+            return (3, 1, 1, 0)
+        case "MOON2VP3OR":
+            return (0, 0, 2, 3)
+        case "SUN2MOON2OR":
+            return (0, 2, 2, 0)
 
 
 def isTreasureHall(position):

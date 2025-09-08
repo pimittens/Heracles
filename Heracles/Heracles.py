@@ -2,8 +2,8 @@ import random
 import Game
 import MCTS
 
-players = [Game.Player(0, True), Game.Player(1, True)]
-theBoard = Game.BoardState(players, True)
+players = [Game.Player(0, True, 0), Game.Player(1, True, 0)]
+theBoard = Game.BoardState(players, True, 0)
 undoState = theBoard.copyState()
 theBoard.printBoardState()
 
@@ -210,6 +210,18 @@ def printOptions(options, boardState):
                     type = "1 sun"
                 else:
                     type = "1 moon"
+            case Game.Move.CHOOSE_TREASURE_HALL:
+                print(
+                    f"{i}: Choose the treasure hall {move[2][0]}")
+            case Game.Move.MAZE_SPEND:
+                if option[2][0]:
+                    if boardState.phase == Game.Phase.MAZE_EFFECT_SPEND_GOLD:
+                        print(f"{i}: Spend 6 gold to gain 6 vp")
+                    else:
+                        print(f"{i}: Spend 2 moon to gain 8 vp")
+                else:
+                    print(f"{i}: Do not spend")
+            case Game.Move.MAZE
             case _:
                 print(f"{i}: Use the effect of the celestial die to gain {type}")
         i += 1
