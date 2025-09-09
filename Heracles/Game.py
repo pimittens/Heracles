@@ -136,6 +136,13 @@ class Phase(Enum):  # todo: numbers
     MAZE_EFFECT_SPEND_MOON = 139
     MAZE_EFFECT_GODDESS = 140
     MAZE_EFFECT_TREASUREHALL = 141
+    MAZE_MIRROR_1 = 142
+    MAZE_MIRROR_2 = 143
+    MAZE_DIE_1_CHOOSE_OR = 144
+    MAZE_DIE_2_CHOOSE_OR = 145
+    MAZE_APPLY_DICE_EFFECTS = 146
+    MAZE_BOAR_CHOICE_1 = 147
+    MAZE_BOAR_CHOICE_2 = 148
 
 
 class Move(Enum):
@@ -182,7 +189,7 @@ class Move(Enum):
     CELESTIAL_MIRROR_CHOICE = 41
     CELESTIAL_GODDESS = 42
     MAZE_MOVE = 43
-    CHOOSE_TREASURE_HALL= 44
+    CHOOSE_TREASURE_HALL = 44
     MAZE_SPEND = 45
     CHOOSE_MAZE_OR = 46
 
@@ -227,6 +234,7 @@ class BoardState:
         self.returnPhase = Phase.TURN_START  # phase to return to after resolving dice effects
         self.celestialPlayer = 0  # player rolling the celestial die
         self.celestialReturnPhase = Phase.TURN_START  # where to return after rolling celestial die
+        self.mazeReturnPhase = Phase.TURN_START  # where to return after resolving maze moves
         if initialState:
             self.setup()
             self.makeMove((Move.PASS, 0, ()))
@@ -260,6 +268,7 @@ class BoardState:
         ret.lastPlayer = self.lastPlayer
         ret.celestialPlayer = self.celestialPlayer
         ret.celestialReturnPhase = self.celestialReturnPhase
+        ret.mazeReturnPhase = self.mazeReturnPhase
         return ret
 
     """def copyLoggingState(self):
@@ -518,43 +527,46 @@ class BoardState:
             case Phase.CHOOSE_MAZE_ORDER:
                 if move[0] == Move.CHOOSE_MAZE_ORDER:
                     if move[2][0]:
-                        self.celestialReturnPhase = Phase.RESOLVE_MAZE_MOVES
+                        self.celestialReturnPhase = Phase.CHOOSE_MAZE_ORDER
                         self.celestialPlayer = self.blessingPlayer
                         self.phase = Phase.ROLL_CELESTIAL_DIE
                     else:
                         self.phase = Phase.RESOLVE_MAZE_MOVES
+                        self.mazeReturnPhase = Phase.CHOOSE_MAZE_ORDER
                         self.makeMove((Move.PASS, move[1], ()))
                 elif move[0] == Move.PASS:
                     if self.players[self.blessingPlayer].mazeMoves == 0 or self.players[
                         self.blessingPlayer].celestialRolls == 0:
                         if self.players[self.blessingPlayer].celestialRolls == 0:
-                            self.phase = Phase.RESOLVE_MAZE_MOVES
-                            self.makeMove((Move.PASS, move[1], ()))
+                            if self.players[self.blessingPlayer].mazeMoves == 0 or self.players[self.blessingPlayer].mazePosition == 35:
+                                if self.players[self.blessingPlayer].shipsToResolve == 0 and self.players[
+                                    self.blessingPlayer].times3ShipsToResolve == 0:
+                                    self.phase = Phase.BOAR_CHOICE_1
+                                    self.makeMove((Move.PASS, move[1], ()))
+                                else:
+                                    self.phase = Phase.RESOLVE_SHIPS
+                            else:
+                                self.phase = Phase.RESOLVE_MAZE_MOVES
+                                self.mazeReturnPhase = Phase.CHOOSE_MAZE_ORDER
+                                self.makeMove((Move.PASS, move[1], ()))
                         else:
-                            self.celestialReturnPhase = Phase.RESOLVE_MAZE_MOVES
+                            self.celestialReturnPhase = Phase.CHOOSE_MAZE_ORDER
                             self.celestialPlayer = self.blessingPlayer
                             self.phase = Phase.ROLL_CELESTIAL_DIE
             case Phase.RESOLVE_MAZE_MOVES:
                 if move[0] == Move.MAZE_MOVE:
                     self.players[self.blessingPlayer].mazePosition = move[2][0]
+                    self.players[self.blessingPlayer].mazeMoves -= 1
                     self.phase = Phase.MAZE_EFFECT
                     self.makeMove((Move.PASS, move[1], ()))
                 elif self.players[self.blessingPlayer].mazeMoves == 0 or self.players[
                     self.blessingPlayer].mazePosition == 35:
-                    if self.players[self.blessingPlayer].celestialRolls == 0:
-                        if self.players[self.blessingPlayer].shipsToResolve == 0 and self.players[
-                            self.blessingPlayer].times3ShipsToResolve == 0:
-                            self.phase = Phase.BOAR_CHOICE_1
-                            self.makeMove((Move.PASS, move[1], ()))
-                        else:
-                            self.phase = Phase.RESOLVE_SHIPS
-                    else:
-                        self.celestialReturnPhase = Phase.RESOLVE_MAZE_MOVES
-                        self.celestialPlayer = self.blessingPlayer
-                        self.phase = Phase.ROLL_CELESTIAL_DIE
+                    self.phase = self.mazeReturnPhase
+                    self.makeMove((Move.PASS, move[1], ()))
                 elif len(Data.getMazeMoveOptions(self.players[self.blessingPlayer].mazePosition)) == 1:
                     self.players[self.blessingPlayer].mazePosition = \
                         Data.getMazeMoveOptions(self.players[self.blessingPlayer].mazePosition)[0]
+                    self.players[self.blessingPlayer].mazeMoves -= 1
                     self.phase = Phase.MAZE_EFFECT
                     self.makeMove((Move.PASS, move[1], ()))
             case Phase.MAZE_EFFECT:
@@ -566,11 +578,11 @@ class BoardState:
                     resources = Data.getMazeOrEffects(self.players[self.blessingPlayer].mazePosition)
                     match move[2][0]:
                         case 0:
-                            self.players[self.blessingPlayer].gainGold(resources[0])
+                            self.players[self.blessingPlayer].gainGold(resources[0], False)
                         case 1:
-                            self.players[self.blessingPlayer].gainSun(resources[1])
+                            self.players[self.blessingPlayer].gainSun(resources[1], False)
                         case 2:
-                            self.players[self.blessingPlayer].gainMoon(resources[2])
+                            self.players[self.blessingPlayer].gainMoon(resources[2], False)
                         case 3:
                             self.players[self.blessingPlayer].gainVP(resources[3])
                     if self.players[self.blessingPlayer].goldToGain == 0:
@@ -623,7 +635,82 @@ class BoardState:
                     self.phase = Phase.RESOLVE_MAZE_MOVES
                     self.makeMove((Move.PASS, move[1], ()))
             case Phase.MAZE_EFFECT_GODDESS:
-                # todo
+                if move[0] == Move.CHOOSE_FACES:
+                    self.players[self.blessingPlayer].die1.setToFace(move[2][0])
+                    self.players[self.blessingPlayer].die2.setToFace(move[2][1])
+                    self.players[self.blessingPlayer].setMazeBuffers()
+                    self.phase = Phase.MAZE_MIRROR_1
+                    self.makeMove((Move.PASS, move[1], ()))
+            case Phase.MAZE_MIRROR_1:
+                if move[0] == Move.MIRROR_CHOICE:
+                    self.players[self.blessingPlayer].mirrorMazeChoice1 = move[2][0]
+                    self.phase = Phase.MAZE_MIRROR_2
+                    self.makeMove((Move.PASS, move[1], ()))
+                elif self.players[self.blessingPlayer].die1MazeResultBuffer != Data.DieFace.MIRROR:
+                    self.phase = Phase.MAZE_MIRROR_2
+                    self.makeMove((Move.PASS, move[1], ()))
+            case Phase.MAZE_MIRROR_2:
+                if move[0] == Move.MIRROR_CHOICE:
+                    self.players[self.blessingPlayer].mirrorMazeChoice2 = move[2][0]
+                    self.phase = Phase.MAZE_DIE_1_CHOOSE_OR
+                    self.makeMove((Move.PASS, move[1], ()))
+                elif self.players[self.blessingPlayer].die2MazeResultBuffer != Data.DieFace.MIRROR:
+                    self.phase = Phase.MAZE_DIE_1_CHOOSE_OR
+                    self.makeMove((Move.PASS, move[1], ()))
+            case Phase.MAZE_DIE_1_CHOOSE_OR:
+                if move[0] == Move.CHOOSE_DIE_OR:
+                    self.players[self.blessingPlayer].orMazeChoice1 = move[2][0]
+                    self.phase = Phase.MAZE_DIE_2_CHOOSE_OR
+                    self.makeMove((Move.PASS, move[1], ()))
+                elif not Data.getIsOr(self.players[self.blessingPlayer].getMazeDie1Result()):
+                    self.phase = Phase.MAZE_DIE_2_CHOOSE_OR
+                    self.makeMove((Move.PASS, move[1], ()))
+            case Phase.MAZE_DIE_2_CHOOSE_OR:
+                if move[0] == Move.CHOOSE_DIE_OR:
+                    self.players[self.blessingPlayer].orMazeChoice2 = move[2][0]
+                    self.phase = Phase.MAZE_APPLY_DICE_EFFECTS
+                    self.makeMove((Move.PASS, move[1], ()))
+                elif not Data.getIsOr(self.players[self.blessingPlayer].getMazeDie2Result()):
+                    self.phase = Phase.MAZE_APPLY_DICE_EFFECTS
+                    self.makeMove((Move.PASS, move[1], ()))
+            case Phase.MAZE_APPLY_DICE_EFFECTS:
+                if move[0] == Move.CHOOSE_ADD_HAMMER_SCEPTER:
+                    self.players[self.blessingPlayer].useHammerOrScepter(move[2][0])
+                    self.phase = Phase.MAZE_BOAR_CHOICE_1
+                    self.makeMove((Move.PASS, move[1], ()))
+                else:
+                    self.players[self.blessingPlayer].gainMazeDiceEffects()
+                    if self.players[self.blessingPlayer].goldToGain == 0:
+                        self.phase = Phase.MAZE_BOAR_CHOICE_1
+                        self.makeMove((Move.PASS, move[1], ()))
+            case Phase.MAZE_BOAR_CHOICE_1:
+                if move[0] == Move.BOAR_CHOICE:
+                    match move[2][0]:
+                        case "sun":
+                            self.players[move[1]].gainSun(1, False)
+                        case "moon":
+                            self.players[move[1]].gainMoon(1, False)
+                        case "vp":
+                            self.players[move[1]].gainVP(3)
+                    self.phase = Phase.MAZE_BOAR_CHOICE_2
+                    self.makeMove((Move.PASS, move[1], ()))
+                elif not self.players[self.blessingPlayer].die1MazeIsBoar():
+                    self.phase = Phase.MAZE_BOAR_CHOICE_2
+                    self.makeMove((Move.PASS, move[1], ()))
+            case Phase.MAZE_BOAR_CHOICE_2:
+                if move[0] == Move.BOAR_CHOICE:
+                    match move[2][0]:
+                        case "sun":
+                            self.players[move[1]].gainSun(1, False)
+                        case "moon":
+                            self.players[move[1]].gainMoon(1, False)
+                        case "vp":
+                            self.players[move[1]].gainVP(3)
+                    self.phase = Phase.RESOLVE_MAZE_MOVES
+                    self.makeMove((Move.PASS, move[1], ()))
+                elif not self.players[self.blessingPlayer].die2MazeIsBoar():
+                    self.phase = Phase.RESOLVE_MAZE_MOVES
+                    self.makeMove((Move.PASS, move[1], ()))
             case Phase.MAZE_EFFECT_TREASUREHALL:
                 if move[0] == Move.CHOOSE_TREASURE_HALL:
                     for treasure in self.treasures:
@@ -1047,8 +1134,11 @@ class BoardState:
                         self.phase = Phase.MINOR_MAZE_MOVES
                         self.makeMove((Move.PASS, move[1], ()))
             case Phase.MINOR_MAZE_MOVES:
-                # todo: implement maze
-                if self.players[self.blessingPlayer].shipsToResolve == 0:
+                if self.players[self.blessingPlayer].mazeMoves > 0 and  self.players[self.blessingPlayer].mazePosition != 35:
+                    self.phase = Phase.RESOLVE_MAZE_MOVES
+                    self.mazeReturnPhase = Phase.MINOR_MAZE_MOVES
+                    self.makeMove((Move.PASS, move[1], ()))
+                elif self.players[self.blessingPlayer].shipsToResolve == 0:
                     self.phase = Phase.MINOR_BOAR_CHOICE
                     self.makeMove((Move.PASS, move[1], ()))
                 else:
@@ -1668,7 +1758,7 @@ class BoardState:
             case Phase.CELESTIAL_CHOOSE_UPGRADE:
                 if move[0] == Move.CELESTIAL_UPGRADE:
                     self.temple[Data.getPool(move[2][2])].remove(move[2][2])
-                    self.players[self.activePlayer].upgradeFace(move[2][0], move[2][1], move[2][2])
+                    self.players[self.celestialPlayer].upgradeFace(move[2][0], move[2][1], move[2][2])
                     self.phase = Phase.ROLL_CELESTIAL_DIE
                     self.makeMove((Move.PASS, move[1], ()))
                 elif move[0] == Move.PASS:
@@ -1801,6 +1891,8 @@ class BoardState:
                     ret = self.getMirrorChoices(self.players[self.activePlayer].orChoice2 // 2)
                 else:
                     ret = self.getMirrorChoices(self.blessingPlayer)
+            case Phase.MAZE_MIRROR_1 | Phase.MAZE_MIRROR_2:
+                ret = self.getMirrorChoices(self.blessingPlayer)
             case Phase.MINOR_MIRROR_CHOICE:
                 ret = self.getMirrorChoices(self.blessingPlayer)
             case Phase.CHOOSE_MAZE_ORDER:
@@ -1809,19 +1901,22 @@ class BoardState:
             case Phase.RESOLVE_MAZE_MOVES:
                 ret = self.getMazeMoveChoices(self.players[self.blessingPlayer])
             case Phase.MAZE_EFFECT_SPEND_GOLD | Phase.MAZE_EFFECT_SPEND_MOON:
-                ret = ((Move.MAZE_SPEND, self.blessingPlayer, (True,)), (Move.MAZE_SPEND, self.blessingPlayer, (False,)))
+                ret = (
+                    (Move.MAZE_SPEND, self.blessingPlayer, (True,)), (Move.MAZE_SPEND, self.blessingPlayer, (False,)))
             case Phase.MAZE_EFFECT:
                 if self.players[self.blessingPlayer].goldToGain > 0:
                     ret = self.getHammerScepterChoices(self.blessingPlayer)
                 else:
                     ret = self.getMazeEffectOrChoices(self.players[self.blessingPlayer])
             case Phase.MAZE_EFFECT_FACE_BUY:
-                if self.players[self.blessingPlayer].facesToForge:
+                if self.players[self.blessingPlayer].unforgedFaces:
                     ret = self.generateForgeFace(self.blessingPlayer)
                 elif Data.getMazeEffect(self.players[self.blessingPlayer].mazePosition) == "FACEBUY":
                     ret = self.generateBuyFace(self.blessingPlayer, 0)
                 else:
                     ret = self.generateBuyFace(self.blessingPlayer, 2)
+            case Phase.MAZE_EFFECT_GODDESS:
+                ret = self.generateGoddessChoice(self.players[self.blessingPlayer])
             case Phase.MAZE_EFFECT_TREASUREHALL:
                 ret = []
                 for treasure in self.treasures:
@@ -1859,12 +1954,20 @@ class BoardState:
                 ret = self.players[self.blessingPlayer].getDieOptions(True)
             case Phase.DIE_2_CHOOSE_OR:
                 ret = self.players[self.blessingPlayer].getDieOptions(False)
-            case Phase.APPLY_DICE_EFFECTS:
+            case Phase.MAZE_DIE_1_CHOOSE_OR:
+                ret = self.players[self.blessingPlayer].getMazeDieOptions(True)
+            case Phase.MAZE_DIE_2_CHOOSE_OR:
+                ret = self.players[self.blessingPlayer].getMazeDieOptions(False)
+            case Phase.APPLY_DICE_EFFECTS | Phase.MAZE_APPLY_DICE_EFFECTS:
                 ret = self.getHammerScepterChoices(self.blessingPlayer)
             case Phase.BOAR_CHOICE_1 | Phase.MISFORTUNE_2_BOAR_CHOICE:
                 ret = self.generateBoarChoice(self.players[self.blessingPlayer].getDie1Result())
             case Phase.BOAR_CHOICE_2 | Phase.MISFORTUNE_1_BOAR_CHOICE:
                 ret = self.generateBoarChoice(self.players[self.blessingPlayer].getDie2Result())
+            case Phase.MAZE_BOAR_CHOICE_1:
+                ret = self.generateBoarChoice(self.players[self.blessingPlayer].getMazeDie1Result())
+            case Phase.MAZE_BOAR_CHOICE_2:
+                ret = self.generateBoarChoice(self.players[self.blessingPlayer].getMazeDie2Result())
             case Phase.MISFORTUNE_1:
                 ret = self.generateMisfortune1Choice()
             case Phase.MISFORTUNE_1_CHOOSE_OR | Phase.MINOR_MISFORTUNE_1_OR:
@@ -2548,7 +2651,7 @@ class BoardState:
 
     def getMazeMoveChoices(self, player):
         ret = []
-        options = Data.getMazeMoveOptions(player)
+        options = Data.getMazeMoveOptions(player.mazePosition)
         for move in options:
             ret.append((Move.MAZE_MOVE, player.playerID, (move,)))
         return tuple(ret)
@@ -2668,7 +2771,7 @@ class BoardState:
                 player.celestialRolls += 2
                 return True
             case "GOLD6":
-                player.gainGold(6)
+                player.gainGold(6, False)
                 return player.goldToGain == 0
             case "1VPPERFORGE":
                 player.gainVP(player.numForged)
@@ -3113,6 +3216,10 @@ class BoardState:
     def selectRandomFeats(self):
         i = 0
         while i < 15:
+            if i == 11:
+                self.addFeat(i, Data.HeroicFeat.SATYRS)
+                i += 1
+                continue
             if i == 2 and self.module == 1:
                 self.addFeat(i, Data.HeroicFeat.THE_SUN_GOLEM)
                 i += 1
@@ -3189,6 +3296,7 @@ class BoardState:
 
 class Player:
     def __init__(self, playerID, ai, module):
+        self.module = module
         self.playerID = playerID
         self.ai = ai
         self.maxGold = 12
@@ -3204,12 +3312,18 @@ class Player:
         self.tritonTokens = 0
         self.die1ResultBuffer = None
         self.die2ResultBuffer = None
+        self.die1MazeResultBuffer = None
+        self.die2MazeResultBuffer = None
         self.celestialResultBuffer = None
         self.celestialOrChoice = 0
         self.mirrorChoice1 = None
         self.mirrorChoice2 = None
+        self.mirrorMazeChoice1 = None
+        self.mirrorMazeChoice2 = None
         self.orChoice1 = 0
         self.orChoice2 = 0
+        self.orMazeChoice1 = 0
+        self.orMazeChoice2 = 0
         self.dieChoice = True
         self.sentinel1Choice = False
         self.sentinel2Choice = False
@@ -3235,7 +3349,7 @@ class Player:
         self.moonToSpend = 0
 
     def copyPlayer(self):
-        ret = Player(self.playerID, self.ai, 0)
+        ret = Player(self.playerID, self.ai, self.module)
         ret.maxGold = self.maxGold
         ret.maxSun = self.maxSun
         ret.maxMoon = self.maxMoon
@@ -3249,12 +3363,18 @@ class Player:
         ret.tritonTokens = self.tritonTokens
         ret.die1ResultBuffer = self.die1ResultBuffer
         ret.die2ResultBuffer = self.die2ResultBuffer
+        ret.die1MazeResultBuffer = self.die1MazeResultBuffer
+        ret.die2MazeResultBuffer = self.die2MazeResultBuffer
         ret.celestialResultBuffer = self.celestialResultBuffer
         ret.celestialOrChoice = self.celestialOrChoice
         ret.mirrorChoice1 = self.mirrorChoice1
         ret.mirrorChoice2 = self.mirrorChoice2
+        ret.mirrorMazeChoice1 = self.mirrorMazeChoice1
+        ret.mirrorMazeChoice2 = self.mirrorMazeChoice2
         ret.orChoice1 = self.orChoice1
         ret.orChoice2 = self.orChoice2
+        ret.orMazeChoice1 = self.orMazeChoice1
+        ret.orMazeChoice2 = self.orMazeChoice2
         ret.dieChoice = self.dieChoice
         ret.sentinel1Choice = self.sentinel2Choice
         ret.sentinel2Choice = self.sentinel2Choice
@@ -3300,6 +3420,16 @@ class Player:
         if self.die2ResultBuffer == Data.DieFace.MIRROR:
             return self.mirrorChoice2
         return self.die2ResultBuffer
+
+    def getMazeDie1Result(self):
+        if self.die1MazeResultBuffer == Data.DieFace.MIRROR:
+            return self.mirrorMazeChoice1
+        return self.die1MazeResultBuffer
+
+    def getMazeDie2Result(self):
+        if self.die2MazeResultBuffer == Data.DieFace.MIRROR:
+            return self.mirrorMazeChoice2
+        return self.die2MazeResultBuffer
 
     def gainGold(self, amount, reserveOnly):
         if (self.canAddHammer() or self.canAddScepter()) and amount > 0:
@@ -3490,6 +3620,16 @@ class Player:
             return Data.isBoarFace(self.mirrorChoice2)
         return Data.isBoarFace(self.die2ResultBuffer)
 
+    def die1MazeIsBoar(self):
+        if self.die1MazeResultBuffer == Data.DieFace.MIRROR:
+            return Data.isBoarFace(self.mirrorMazeChoice1)
+        return Data.isBoarFace(self.die1MazeResultBuffer)
+
+    def die2MazeIsBoar(self):
+        if self.die2MazeResultBuffer == Data.DieFace.MIRROR:
+            return Data.isBoarFace(self.mirrorMazeChoice2)
+        return Data.isBoarFace(self.die2MazeResultBuffer)
+
     def celestialIsBoar(self):
         return Data.isBoarFace(self.celestialResultBuffer)
 
@@ -3556,6 +3696,10 @@ class Player:
     def setBuffers(self):
         self.die1ResultBuffer = self.die1.getUpFace()
         self.die2ResultBuffer = self.die2.getUpFace()
+
+    def setMazeBuffers(self):
+        self.die1MazeResultBuffer = self.die1.getUpFace()
+        self.die2MazeResultBuffer = self.die2.getUpFace()
 
     def gainWindResources(self, face, resourceType):
         if face == Data.DieFace.REDSHIELD:
@@ -3694,8 +3838,12 @@ class Player:
                 self.mazeMoves += 1
 
     def gainDiceEffects(self, minotaur, sentinel):
-        die1 = self.getDie1Result()
-        die2 = self.getDie2Result()
+        self.gainDiceEffectsInternal(self.getDie1Result(), self.getDie2Result(), minotaur, sentinel)
+
+    def gainMazeDiceEffects(self):
+        self.gainDiceEffectsInternal(self.getMazeDie1Result(), self.getMazeDie2Result(), False, False)
+
+    def gainDiceEffectsInternal(self, die1, die2, minotaur, sentinel):
         mult = 1
         if die1 == Data.DieFace.TIMES3 or die2 == Data.DieFace.TIMES3:
             mult = 3
@@ -3713,7 +3861,7 @@ class Player:
                 else:
                     self.shipsToResolve += 1
         if die1 == Data.DieFace.MAZERED or die1 == Data.DieFace.MAZEBLUE:
-            self.mazeMoves += 1
+            self.mazeMoves += 1 # note: minotaur and x3 can't be used with goddess maze module so mult doesn't matter
         if die2 == Data.DieFace.MAZERED or die2 == Data.DieFace.MAZEBLUE:
             self.mazeMoves += 1
         if (die1 == Data.DieFace.MAZERED and die2 == Data.DieFace.MAZEBLUE) or (
@@ -3971,6 +4119,28 @@ class Player:
             ret.append((Move.CHOOSE_DIE_OR, self.playerID, (5,)))
         return tuple(ret)
 
+    def getMazeDieOptions(self, die1):
+        # True for die 1, False for die 2
+        if die1:
+            face = self.getMazeDie1Result()
+        else:
+            face = self.getMazeDie2Result()
+        resources = Data.getResourceValues(face)
+        ret = []
+        if resources[0] > 0:
+            ret.append((Move.CHOOSE_DIE_OR, self.playerID, (0,)))
+        if resources[1] > 0:
+            ret.append((Move.CHOOSE_DIE_OR, self.playerID, (1,)))
+        if resources[2] > 0:
+            ret.append((Move.CHOOSE_DIE_OR, self.playerID, (2,)))
+        if resources[3] > 0:
+            ret.append((Move.CHOOSE_DIE_OR, self.playerID, (3,)))
+        if resources[4] > 0:
+            ret.append((Move.CHOOSE_DIE_OR, self.playerID, (4,)))
+        if resources[5] > 0:
+            ret.append((Move.CHOOSE_DIE_OR, self.playerID, (5,)))
+        return tuple(ret)
+
     def getCelestialDieOptions(self):
         resources = Data.getResourceValues(self.celestialResultBuffer)
         ret = []
@@ -4127,10 +4297,10 @@ def createLightDie(module):
 
 def createDarkDie(module):
     if module == 1:
-        Die(Data.DieFace.GOLD1, Data.DieFace.GOLD1, Data.DieFace.GOLD1, Data.DieFace.GOLD1, Data.DieFace.VP2,
+        return Die(Data.DieFace.GOLD1, Data.DieFace.GOLD1, Data.DieFace.GOLD1, Data.DieFace.GOLD1, Data.DieFace.VP2,
             Data.DieFace.MAZEBLUE)
     if module == 2:
-        Die(Data.DieFace.GOLD1, Data.DieFace.GOLD1, Data.DieFace.GOLD1, Data.DieFace.GOLD1, Data.DieFace.VP1LOYALTY1,
+        return Die(Data.DieFace.GOLD1, Data.DieFace.GOLD1, Data.DieFace.GOLD1, Data.DieFace.GOLD1, Data.DieFace.VP1LOYALTY1,
             Data.DieFace.MOON1)
     return Die(Data.DieFace.GOLD1, Data.DieFace.GOLD1, Data.DieFace.GOLD1, Data.DieFace.GOLD1, Data.DieFace.VP2,
                Data.DieFace.MOON1)

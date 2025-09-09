@@ -2,8 +2,9 @@ import random
 import Game
 import MCTS
 
-players = [Game.Player(0, True, 0), Game.Player(1, True, 0)]
-theBoard = Game.BoardState(players, True, 0)
+module = 1 # 0 is no module, 1 is goddess maze, 2 is titans
+players = [Game.Player(0, True, module), Game.Player(1, True, module)]
+theBoard = Game.BoardState(players, True, module)
 undoState = theBoard.copyState()
 theBoard.printBoardState()
 
@@ -206,13 +207,15 @@ def printOptions(options, boardState):
             case Game.Move.CHOOSE_CELESTIAL_DIE_OR:
                 if option[2][0] == 0:
                     type = "3 gold"
-                if option[2][0] == 1:
+                elif option[2][0] == 1:
                     type = "1 sun"
                 else:
                     type = "1 moon"
+                print(f"{i}: Use the effect of the celestial die to gain {type}")
             case Game.Move.CHOOSE_TREASURE_HALL:
-                print(
-                    f"{i}: Choose the treasure hall {move[2][0]}")
+                print(f"{i}: Choose the treasure hall {move[2][0]}")
+            case Game.Move.MAZE_MOVE:
+                print(f"{i}: Move to space {option[2][0]} in the maze")
             case Game.Move.MAZE_SPEND:
                 if option[2][0]:
                     if boardState.phase == Game.Phase.MAZE_EFFECT_SPEND_GOLD:
@@ -221,9 +224,18 @@ def printOptions(options, boardState):
                         print(f"{i}: Spend 2 moon to gain 8 vp")
                 else:
                     print(f"{i}: Do not spend")
-            case Game.Move.MAZE
+            case Game.Move.CHOOSE_MAZE_OR:
+                resource = "gold"
+                match option[2][0]:
+                    case 1:
+                        resource = "sun"
+                    case 2:
+                        resource = "moon"
+                    case 3:
+                        resource = "vp"
+                print(f"{i}: Gain {resource} from the effect of a maze space")
             case _:
-                print(f"{i}: Use the effect of the celestial die to gain {type}")
+                print(f"{i}: Unhandled move type {option[0]}")
         i += 1
 
 
