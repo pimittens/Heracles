@@ -3861,9 +3861,9 @@ class Player:
                 else:
                     self.shipsToResolve += 1
         if die1 == Data.DieFace.MAZERED or die1 == Data.DieFace.MAZEBLUE:
-            self.mazeMoves += 1 # note: minotaur and x3 can't be used with goddess maze module so mult doesn't matter
+            self.mazeMoves += mult # note: minotaur and can't be used with goddess maze module so mult won't be negative
         if die2 == Data.DieFace.MAZERED or die2 == Data.DieFace.MAZEBLUE:
-            self.mazeMoves += 1
+            self.mazeMoves += mult
         if (die1 == Data.DieFace.MAZERED and die2 == Data.DieFace.MAZEBLUE) or (
                 die2 == Data.DieFace.MAZERED and die1 == Data.DieFace.MAZEBLUE):
             self.celestialRolls += 1
