@@ -597,13 +597,30 @@ class BoardState:
                             case "FACEBUY" | "FACEBUYDISCOUNT2":
                                 self.phase = Phase.MAZE_EFFECT_FACE_BUY
                             case "6GOLDFOR6VP":
-                                self.phase = Phase.MAZE_EFFECT_SPEND_GOLD
+                                if self.players[self.blessingPlayer].getEffectiveGold() > 5:
+                                    self.phase = Phase.MAZE_EFFECT_SPEND_GOLD
+                                else:
+                                    self.phase = Phase.RESOLVE_MAZE_MOVES
+                                    self.makeMove((Move.PASS, move[1], ()))
                             case "2MOONFOR8VP":
-                                self.phase = Phase.MAZE_EFFECT_SPEND_MOON
+                                if self.players[self.blessingPlayer].getEffectiveMoon() > 1:
+                                    self.phase = Phase.MAZE_EFFECT_SPEND_MOON
+                                else:
+                                    self.phase = Phase.RESOLVE_MAZE_MOVES
+                                    self.makeMove((Move.PASS, move[1], ()))
                             case "GODDESS":
                                 self.phase = Phase.MAZE_EFFECT_GODDESS
                             case "TREASUREHALL":
-                                self.phase = Phase.MAZE_EFFECT_TREASUREHALL
+                                hasTreasure = False
+                                for treasure in self.treasures:
+                                    if treasure[1] == self.players[self.blessingPlayer].mazePosition:
+                                        hasTreasure = True
+                                        self.gainSmallTreasureEffect(treasure[0], self.players[self.blessingPlayer])
+                                if hasTreasure:
+                                    self.phase = Phase.RESOLVE_MAZE_MOVES
+                                    self.makeMove((Move.PASS, move[1], ()))
+                                else:
+                                    self.phase = Phase.MAZE_EFFECT_TREASUREHALL
             case Phase.MAZE_EFFECT_FACE_BUY:
                 if move[0] == Move.FORGE_FACE:
                     self.players[self.blessingPlayer].forgeFace(move[2])
@@ -2805,6 +2822,15 @@ class BoardState:
             case Data.Treasure.MOON_TREASURE:
                 player.gainMoon(4, False)
 
+    def gainSmallTreasureEffect(self, treasure, player):
+        match treasure:
+            case Data.Treasure.VP_TREASURE:
+                player.gainVP(2)
+            case Data.Treasure.SUN_TREASURE:
+                player.gainSun(1, False)
+            case Data.Treasure.MOON_TREASURE:
+                player.gainMoon(1, False)
+
     def selectReinfState(self, effect):
         match effect:
             case "ELDER_REINF":
@@ -3216,10 +3242,6 @@ class BoardState:
     def selectRandomFeats(self):
         i = 0
         while i < 15:
-            if i == 11:
-                self.addFeat(i, Data.HeroicFeat.SATYRS)
-                i += 1
-                continue
             if i == 2 and self.module == 1:
                 self.addFeat(i, Data.HeroicFeat.THE_SUN_GOLEM)
                 i += 1
@@ -4245,6 +4267,7 @@ class Player:
             print("Location: portal")
         else:
             print(f"Location: Island {self.location}")
+        print(f"Maze location: {self.mazePosition}")
         print(f"Hammer: {self.hammerTrack} / {self.getMaxHammer()}")
         for companion in self.companions:
             print(f"Companion: {companion}")
