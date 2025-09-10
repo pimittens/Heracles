@@ -557,7 +557,10 @@ class BoardState:
             case Phase.RESOLVE_MAZE_MOVES:
                 if move[0] == Move.MAZE_MOVE:
                     self.players[self.blessingPlayer].mazePosition = move[2][0]
-                    self.players[self.blessingPlayer].mazeMoves -= 1
+                    if self.players[self.blessingPlayer].mazeMoves > 0:
+                        self.players[self.blessingPlayer].mazeMoves -= 1
+                    else:
+                        self.players[self.blessingPlayer].mazeMoves += 1
                     self.phase = Phase.MAZE_EFFECT
                     self.makeMove((Move.PASS, move[1], ()))
                 elif self.players[self.blessingPlayer].mazeMoves == 0 or self.players[
@@ -572,10 +575,18 @@ class BoardState:
                         self.celestialReturnPhase = Phase.RESOLVE_MAZE_MOVES
                         self.celestialPlayer = self.blessingPlayer
                         self.phase = Phase.ROLL_CELESTIAL_DIE
-                elif len(Data.getMazeMoveOptions(self.players[self.blessingPlayer].mazePosition)) == 1:
+                elif self.players[self.blessingPlayer].mazeMoves > 0 and len(
+                        Data.getMazeMoveOptions(self.players[self.blessingPlayer].mazePosition)) == 1:
                     self.players[self.blessingPlayer].mazePosition = \
                         Data.getMazeMoveOptions(self.players[self.blessingPlayer].mazePosition)[0]
                     self.players[self.blessingPlayer].mazeMoves -= 1
+                    self.phase = Phase.MAZE_EFFECT
+                    self.makeMove((Move.PASS, move[1], ()))
+                elif self.players[self.blessingPlayer].mazeMoves < 0 and len(
+                        Data.getReverseMazeMoveOptions(self.players[self.blessingPlayer].mazePosition)) == 1:
+                    self.players[self.blessingPlayer].mazePosition = \
+                        Data.getReverseMazeMoveOptions(self.players[self.blessingPlayer].mazePosition)[0]
+                    self.players[self.blessingPlayer].mazeMoves += 1
                     self.phase = Phase.MAZE_EFFECT
                     self.makeMove((Move.PASS, move[1], ()))
             case Phase.MAZE_EFFECT:
