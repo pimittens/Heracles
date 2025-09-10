@@ -2021,7 +2021,7 @@ class BoardState:
                 ret = self.generateMisfortune2Choice()
             case Phase.MISFORTUNE_2_CHOOSE_OR | Phase.MINOR_MISFORTUNE_2_OR:
                 ret = self.players[self.misfortunePlayer].getDieOptions(True)
-            case Phase.MISFORTUNE_2_APPLY_EFFECTS | Phase.MISFORTUNE_2_APPLY_EFFECTS:
+            case Phase.MISFORTUNE_1_APPLY_EFFECTS | Phase.MISFORTUNE_2_APPLY_EFFECTS:
                 ret = self.getHammerScepterChoices(self.misfortunePlayer)
             case Phase.DIE_1_CHOOSE_SENTINEL | Phase.DIE_2_CHOOSE_SENTINEL:
                 ret = (Move.CHOOSE_USE_SENTINEL, self.blessingPlayer, (True,)), (
@@ -2110,7 +2110,7 @@ class BoardState:
                     ret = self.generateForgeFace(self.activePlayer)
                 else:
                     ret = self.generateChooseChaos()
-            case Phase.CHOOSE_DOGGED_FACE_1 | Phase.CHOOSE_DOGGED_FACE_1:
+            case Phase.CHOOSE_DOGGED_FACE_1 | Phase.CHOOSE_DOGGED_FACE_2:
                 if self.players[self.activePlayer].unforgedFaces:
                     ret = self.generateForgeFace(self.activePlayer)
                 else:

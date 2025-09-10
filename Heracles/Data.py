@@ -213,6 +213,8 @@ def getPosition(feat):
             return f["position"]
     if feat == HeroicFeat.TENACIOUS_BOAR_RED or feat == HeroicFeat.TENACIOUS_BOAR_BLUE or feat == HeroicFeat.TENACIOUS_BOAR_YELLOW or feat == HeroicFeat.TENACIOUS_BOAR_GREEN:
         return 11
+    if feat == HeroicFeat.MIRROR_OF_MISFORTUNE_RED or feat == HeroicFeat.MIRROR_OF_MISFORTUNE_BLUE or feat == HeroicFeat.MIRROR_OF_MISFORTUNE_YELLOW or feat == HeroicFeat.MIRROR_OF_MISFORTUNE_GREEN:
+        return 5
     return -1
 
 
