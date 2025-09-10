@@ -343,3 +343,47 @@ def getMazeMoveOptions(position):
 
 def getReverseMazeMoveOptions(position):
     return mazeData[position]["prev"]
+
+# loyalty track stuff
+
+def getPoints(trackSpace):
+    if trackSpace < 0:
+        if trackSpace == -14:
+            return -25
+        return -getPoints(-trackSpace) # the points are symmetric except for the 14/-14 spaces
+    if trackSpace < 4:
+        return trackSpace
+    if 3 < trackSpace < 8:
+        return trackSpace + 1
+    if 7 < trackSpace < 11:
+        return 10 + 2 * (trackSpace - 8)
+    if trackSpace == 11 or trackSpace == 12:
+        return 17
+    if trackSpace == 13 or trackSpace == 14:
+        return 20
+    return 25
+
+def getEffectLevel(trackSpace):
+    if -4 < trackSpace < 4:
+        return 0
+    if 3 < trackSpace < 7:
+        return 1
+    if 6 < trackSpace < 10:
+        return 2
+    if trackSpace > 9:
+        return 3
+    if -8 < trackSpace < -3:
+        return -1
+    return -2
+
+def getNext(trackSpace):
+    if trackSpace == 15:
+        return 15
+    return trackSpace + 1
+
+def getPrev(trackSpace):
+    if trackSpace == -15:
+        return -15
+    if trackSpace == 15 or trackSpace == 13 or trackSpace == -10 or trackSpace == -13:
+        return trackSpace - 2
+    return trackSpace - 1
