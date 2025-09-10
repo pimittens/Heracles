@@ -538,7 +538,8 @@ class BoardState:
                     if self.players[self.blessingPlayer].mazeMoves == 0 or self.players[
                         self.blessingPlayer].celestialRolls == 0:
                         if self.players[self.blessingPlayer].celestialRolls == 0:
-                            if self.players[self.blessingPlayer].mazeMoves == 0 or self.players[self.blessingPlayer].mazePosition == 35:
+                            if self.players[self.blessingPlayer].mazeMoves == 0 or self.players[
+                                self.blessingPlayer].mazePosition == 35:
                                 if self.players[self.blessingPlayer].shipsToResolve == 0 and self.players[
                                     self.blessingPlayer].times3ShipsToResolve == 0:
                                     self.phase = Phase.BOAR_CHOICE_1
@@ -560,9 +561,17 @@ class BoardState:
                     self.phase = Phase.MAZE_EFFECT
                     self.makeMove((Move.PASS, move[1], ()))
                 elif self.players[self.blessingPlayer].mazeMoves == 0 or self.players[
-                    self.blessingPlayer].mazePosition == 35:
-                    self.phase = self.mazeReturnPhase
-                    self.makeMove((Move.PASS, move[1], ()))
+                    self.blessingPlayer].mazePosition == 35 or (
+                        self.players[self.blessingPlayer].mazePosition == 0 and self.players[
+                    self.blessingPlayer].mazeMoves < 0):
+                    self.players[self.blessingPlayer].mazeMoves = 0
+                    if self.players[self.blessingPlayer].celestialRolls == 0:
+                        self.phase = self.mazeReturnPhase
+                        self.makeMove((Move.PASS, move[1], ()))
+                    else:
+                        self.celestialReturnPhase = Phase.RESOLVE_MAZE_MOVES
+                        self.celestialPlayer = self.blessingPlayer
+                        self.phase = Phase.ROLL_CELESTIAL_DIE
                 elif len(Data.getMazeMoveOptions(self.players[self.blessingPlayer].mazePosition)) == 1:
                     self.players[self.blessingPlayer].mazePosition = \
                         Data.getMazeMoveOptions(self.players[self.blessingPlayer].mazePosition)[0]
@@ -1151,7 +1160,8 @@ class BoardState:
                         self.phase = Phase.MINOR_MAZE_MOVES
                         self.makeMove((Move.PASS, move[1], ()))
             case Phase.MINOR_MAZE_MOVES:
-                if self.players[self.blessingPlayer].mazeMoves > 0 and  self.players[self.blessingPlayer].mazePosition != 35:
+                if self.players[self.blessingPlayer].mazeMoves > 0 and self.players[
+                    self.blessingPlayer].mazePosition != 35:
                     self.phase = Phase.RESOLVE_MAZE_MOVES
                     self.mazeReturnPhase = Phase.MINOR_MAZE_MOVES
                     self.makeMove((Move.PASS, move[1], ()))
@@ -1698,8 +1708,15 @@ class BoardState:
                     self.phase = Phase.CELESTIAL_USE_TWINS_CHOICE
                     self.makeMove((Move.PASS, move[1], ()))
                 elif move[0] == Move.PASS and self.players[self.celestialPlayer].celestialRolls == 0:
-                    self.phase = self.celestialReturnPhase
-                    self.makeMove((Move.PASS, move[1], ()))
+                    if self.players[self.celestialPlayer].mazeMoves == 0:
+                        self.phase = self.celestialReturnPhase
+                        self.makeMove((Move.PASS, move[1], ()))
+                    else:
+                        self.phase = Phase.RESOLVE_MAZE_MOVES
+                        if self.celestialReturnPhase != Phase.RESOLVE_MAZE_MOVES:
+                            self.mazeReturnPhase = self.celestialReturnPhase
+                        self.blessingPlayer = self.celestialPlayer
+                        self.makeMove((Move.PASS, move[1], ()))
             case Phase.CELESTIAL_USE_TWINS_CHOICE:  # call populateTwins() before entering this state for the first time
                 if move[0] == Move.USE_TWINS:
                     if move[2][0]:
@@ -2668,7 +2685,10 @@ class BoardState:
 
     def getMazeMoveChoices(self, player):
         ret = []
-        options = Data.getMazeMoveOptions(player.mazePosition)
+        if player.mazeMoves > 0:
+            options = Data.getMazeMoveOptions(player.mazePosition)
+        else:
+            options = Data.getReverseMazeMoveOptions(player.mazePosition)
         for move in options:
             ret.append((Move.MAZE_MOVE, player.playerID, (move,)))
         return tuple(ret)
@@ -3099,7 +3119,14 @@ class BoardState:
                 else:
                     self.phase = Phase.FORGE_FEAT_FACE_2
             case "GREATGOLEM_INST":
-                self.makeMove((Move.PASS, self.activePlayer, ()))  # todo
+                self.players[self.activePlayer].mazeMoves = 2
+                self.blessingPlayer = self.activePlayer
+                self.phase = Phase.RESOLVE_MAZE_MOVES
+                if self.phase == Phase.ACTIVE_PLAYER_PERFORM_FEAT_1:
+                    self.mazeReturnPhase = Phase.EXTRA_TURN_DECISION
+                else:
+                    self.mazeReturnPhase = Phase.END_TURN
+                self.makeMove((Move.PASS, self.activePlayer, ()))
             case "SUNGOLEM_INST":
                 self.players[self.activePlayer].unforgedFaces.append(Data.DieFace.MAZERED)
                 if self.phase == Phase.ACTIVE_PLAYER_PERFORM_FEAT_1:
@@ -3107,7 +3134,14 @@ class BoardState:
                 else:
                     self.phase = Phase.FORGE_FEAT_FACE_2
             case "TIMEGOLEM_INST":
-                self.makeMove((Move.PASS, self.activePlayer, ()))  # todo
+                self.players[self.activePlayer].mazeMoves = -2
+                self.blessingPlayer = self.activePlayer
+                self.phase = Phase.RESOLVE_MAZE_MOVES
+                if self.phase == Phase.ACTIVE_PLAYER_PERFORM_FEAT_1:
+                    self.mazeReturnPhase = Phase.EXTRA_TURN_DECISION
+                else:
+                    self.mazeReturnPhase = Phase.END_TURN
+                self.makeMove((Move.PASS, self.activePlayer, ()))
             case "MEMORY_INST_AUTO":
                 self.makeMove((Move.PASS, self.activePlayer, ()))  # todo
             case "CHAOS_INST":
@@ -3883,7 +3917,7 @@ class Player:
                 else:
                     self.shipsToResolve += 1
         if die1 == Data.DieFace.MAZERED or die1 == Data.DieFace.MAZEBLUE:
-            self.mazeMoves += mult # note: minotaur and can't be used with goddess maze module so mult won't be negative
+            self.mazeMoves += mult  # note: minotaur and can't be used with goddess maze module so mult won't be negative
         if die2 == Data.DieFace.MAZERED or die2 == Data.DieFace.MAZEBLUE:
             self.mazeMoves += mult
         if (die1 == Data.DieFace.MAZERED and die2 == Data.DieFace.MAZEBLUE) or (
@@ -4321,9 +4355,10 @@ def createLightDie(module):
 def createDarkDie(module):
     if module == 1:
         return Die(Data.DieFace.GOLD1, Data.DieFace.GOLD1, Data.DieFace.GOLD1, Data.DieFace.GOLD1, Data.DieFace.VP2,
-            Data.DieFace.MAZEBLUE)
+                   Data.DieFace.MAZEBLUE)
     if module == 2:
-        return Die(Data.DieFace.GOLD1, Data.DieFace.GOLD1, Data.DieFace.GOLD1, Data.DieFace.GOLD1, Data.DieFace.VP1LOYALTY1,
-            Data.DieFace.MOON1)
+        return Die(Data.DieFace.GOLD1, Data.DieFace.GOLD1, Data.DieFace.GOLD1, Data.DieFace.GOLD1,
+                   Data.DieFace.VP1LOYALTY1,
+                   Data.DieFace.MOON1)
     return Die(Data.DieFace.GOLD1, Data.DieFace.GOLD1, Data.DieFace.GOLD1, Data.DieFace.GOLD1, Data.DieFace.VP2,
                Data.DieFace.MOON1)

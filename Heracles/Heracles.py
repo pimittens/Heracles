@@ -2,8 +2,8 @@ import random
 import Game
 import MCTS
 
-module = 1 # 0 is no module, 1 is goddess maze, 2 is titans
-players = [Game.Player(0, True, module), Game.Player(1, True, module)]
+module = 1  # 0 is no module, 1 is goddess maze, 2 is titans
+players = [Game.Player(0, False, module), Game.Player(1, False, module)]
 theBoard = Game.BoardState(players, True, module)
 undoState = theBoard.copyState()
 theBoard.printBoardState()
@@ -213,7 +213,7 @@ def printOptions(options, boardState):
                     type = "1 moon"
                 print(f"{i}: Use the effect of the celestial die to gain {type}")
             case Game.Move.CHOOSE_TREASURE_HALL:
-                print(f"{i}: Choose the treasure hall {move[2][0]}")
+                print(f"{i}: Choose the treasure hall {option[2][0]}")
             case Game.Move.MAZE_MOVE:
                 print(f"{i}: Move to space {option[2][0]} in the maze")
             case Game.Move.MAZE_SPEND:
@@ -234,6 +234,22 @@ def printOptions(options, boardState):
                     case 3:
                         resource = "vp"
                 print(f"{i}: Gain {resource} from the effect of a maze space")
+            case Game.Move.CELESTIAL_UPGRADE:
+                if option[2][0]:
+                    print(
+                        f"{i}: Use the effect of The Celestial Die to upgrade the face {option[2][1]} on die 1 to the face {option[2][2]}")
+                else:
+                    print(
+                        f"{i}: Use the effect of The Celestial Die to upgrade the face {option[2][1]} on die 2 to the face {option[2][2]}")
+            case Game.Move.CELESTIAL_GODDESS:
+                if option[2][0]:
+                    print(
+                        f"{i}: Use the effect of The Celestial Die to set die 1 to the face {option[2][1]} and gain its effect")
+                else:
+                    print(
+                        f"{i}: Use the effect of The Celestial Die to set die 2 to the face {option[2][1]} and gain its effect")
+            case Game.Move.CELESTIAL_MIRROR_CHOICE:
+                print(f"{i}: Use the effect of The Celestial Die to gain the effect of the die face {option[2][0]}")
             case _:
                 print(f"{i}: Unhandled move type {option[0]}")
         i += 1
