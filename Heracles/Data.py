@@ -346,11 +346,11 @@ def getReverseMazeMoveOptions(position):
 
 # loyalty track stuff
 
-def getPoints(trackSpace):
+def getAllegiancePoints(trackSpace):
     if trackSpace < 0:
         if trackSpace == -14:
             return -25
-        return -getPoints(-trackSpace) # the points are symmetric except for the 14/-14 spaces
+        return -getAllegiancePoints(-trackSpace) # the points are symmetric except for the 14/-14 spaces
     if trackSpace < 4:
         return trackSpace
     if 3 < trackSpace < 8:

@@ -2,8 +2,8 @@ import random
 import Game
 import MCTS
 
-module = 1  # 0 is no module, 1 is goddess maze, 2 is titans
-players = [Game.Player(0, False, module), Game.Player(1, False, module)]
+module = 2  # 0 is no module, 1 is goddess maze, 2 is titans
+players = [Game.Player(0, True, module), Game.Player(1, True, module)]
 theBoard = Game.BoardState(players, True, module)
 undoState = theBoard.copyState()
 theBoard.printBoardState()
@@ -250,6 +250,16 @@ def printOptions(options, boardState):
                         f"{i}: Use the effect of The Celestial Die to set die 2 to the face {option[2][1]} and gain its effect")
             case Game.Move.CELESTIAL_MIRROR_CHOICE:
                 print(f"{i}: Use the effect of The Celestial Die to gain the effect of the die face {option[2][0]}")
+            case Game.Move.CHOOSE_MEMORY:
+                if option[2][0]:
+                    token1 = "ancient shard"
+                else:
+                    token1 = "loyalty"
+                if option[2][1]:
+                    token2 = "ancient shard"
+                else:
+                    token2 = "loyalty"
+                print(f"{i}: Place a(n) {token1} memory token on island {option[2][1]} and a {token2} memory token on island {option[2][3]}")
             case _:
                 print(f"{i}: Unhandled move type {option[0]}")
         i += 1

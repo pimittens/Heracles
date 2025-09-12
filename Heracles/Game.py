@@ -143,6 +143,9 @@ class Phase(Enum):  # todo: numbers
     MAZE_APPLY_DICE_EFFECTS = 146
     MAZE_BOAR_CHOICE_1 = 147
     MAZE_BOAR_CHOICE_2 = 148
+    RESOLVE_ORACLE_REINF = 149
+    CHOOSE_MEMORY_1 = 150
+    CHOOSE_MEMORY_2 = 151
 
 
 class Move(Enum):
@@ -192,6 +195,7 @@ class Move(Enum):
     CHOOSE_TREASURE_HALL = 44
     MAZE_SPEND = 45
     CHOOSE_MAZE_OR = 46
+    CHOOSE_MEMORY = 47
 
 
 class BoardState:
@@ -235,6 +239,9 @@ class BoardState:
         self.celestialPlayer = 0  # player rolling the celestial die
         self.celestialReturnPhase = Phase.TURN_START  # where to return after rolling celestial die
         self.mazeReturnPhase = Phase.TURN_START  # where to return after resolving maze moves
+        self.blessing = False # true when resolving a major/minor blessing
+        self.oracle = False
+        self.memories = []
         if initialState:
             self.setup()
             self.makeMove((Move.PASS, 0, ()))
@@ -269,6 +276,9 @@ class BoardState:
         ret.celestialPlayer = self.celestialPlayer
         ret.celestialReturnPhase = self.celestialReturnPhase
         ret.mazeReturnPhase = self.mazeReturnPhase
+        ret.blessing = self.blessing
+        ret.oracle = self.oracle
+        ret.memories = copy.deepcopy(self.memories)
         return ret
 
     """def copyLoggingState(self):
@@ -323,6 +333,7 @@ class BoardState:
         match self.phase:
             case Phase.TURN_START:
                 self.blessingPlayer = self.activePlayer
+                self.blessing = True
                 self.phase = Phase.ROLL_DIE_1
                 self.returnPhase = Phase.USE_TWINS_CHOICE
                 if len(self.players) == 2:
@@ -520,7 +531,7 @@ class BoardState:
                     self.phase = Phase.CHOOSE_MAZE_ORDER
                     self.makeMove((Move.PASS, move[1], ()))
                 else:
-                    self.players[self.blessingPlayer].gainDiceEffects(self.minotaur, self.sentinel)
+                    self.players[self.blessingPlayer].gainDiceEffects(self.minotaur, self.sentinel, self.blessing)
                     if self.players[self.blessingPlayer].goldToGain == 0:
                         self.phase = Phase.CHOOSE_MAZE_ORDER
                         self.makeMove((Move.PASS, move[1], ()))
@@ -841,7 +852,7 @@ class BoardState:
                         self.phase = Phase.MISFORTUNE_1_RESOLVE_SHIPS
                         self.makeMove((Move.PASS, move[1], ()))
                 else:
-                    self.players[self.misfortunePlayer].gainDiceEffects(False, False)
+                    self.players[self.misfortunePlayer].gainDiceEffects(False, False, False)
                     if self.players[self.misfortunePlayer].goldToGain == 0:
                         if self.players[self.misfortunePlayer].shipsToResolve == 0:
                             self.phase = Phase.MISFORTUNE_1_BOAR_CHOICE
@@ -909,7 +920,7 @@ class BoardState:
                         self.phase = Phase.MISFORTUNE_2_RESOLVE_SHIPS
                         self.makeMove((Move.PASS, move[1], ()))
                 else:
-                    self.players[self.misfortunePlayer].gainDiceEffects(False, False)
+                    self.players[self.misfortunePlayer].gainDiceEffects(False, False, False)
                     if self.players[self.misfortunePlayer].goldToGain == 0:
                         if self.players[self.misfortunePlayer].shipsToResolve == 0:
                             self.phase = Phase.MISFORTUNE_2_BOAR_CHOICE
@@ -967,6 +978,7 @@ class BoardState:
                             self.players[self.activePlayer].populateReinfEffects()
                             self.phase = Phase.CHOOSE_REINF_EFFECT
                             self.eternalFire = False
+                            self.blessing = False
                             self.makeMove((Move.PASS, move[1], ()))
                     else:
                         self.players[self.blessingPlayer].populateTwins()
@@ -1166,7 +1178,10 @@ class BoardState:
                     self.phase = Phase.MINOR_MAZE_MOVES
                     self.makeMove((Move.PASS, move[1], ()))
                 else:
-                    self.players[self.blessingPlayer].gainMinorBlessingEffect(self.cyclops)
+                    if self.players[self.blessingPlayer].gainMinorBlessingEffect(self.cyclops, self.blessing):
+                        for player in self.players:
+                            if player.playerID != self.blessingPlayer:
+                                player.allegiance = Data.getPrev(player.allegiance)
                     if self.players[self.blessingPlayer].goldToGain == 0:
                         self.phase = Phase.MINOR_MAZE_MOVES
                         self.makeMove((Move.PASS, move[1], ()))
@@ -1260,7 +1275,7 @@ class BoardState:
                         self.phase = Phase.MINOR_MISFORTUNE_SHIPS
                         self.makeMove((Move.PASS, move[1], ()))
                 else:
-                    self.players[self.misfortunePlayer].gainDiceEffects(False, False)
+                    self.players[self.misfortunePlayer].gainDiceEffects(False, False, False)
                     if self.players[self.misfortunePlayer].goldToGain == 0:
                         if self.players[self.misfortunePlayer].shipsToResolve == 0:
                             self.phase = Phase.MINOR_CERBERUS_DECISION
@@ -1294,6 +1309,7 @@ class BoardState:
                     self.phase = Phase.MINOR_MIRROR_CHOICE
                     self.makeMove((Move.PASS, move[1], ()))
                 else:
+                    self.blessing = False
                     self.phase = self.returnPhase
                     self.makeMove((Move.PASS, move[1], ()))
             case Phase.CHOOSE_REINF_EFFECT:
@@ -1329,6 +1345,7 @@ class BoardState:
             case Phase.RESOLVE_HIND_REINF:
                 self.phase = Phase.MINOR_CHOOSE_DIE
                 self.blessingPlayer = self.activePlayer
+                self.blessing = True
                 self.returnPhase = Phase.CHOOSE_REINF_EFFECT
             case Phase.RESOLVE_TREE_REINF:
                 if move[0] == Move.PASS:
@@ -1377,6 +1394,12 @@ class BoardState:
                             self.players[self.activePlayer].gainLoyalty(1)
                     self.phase = Phase.CHOOSE_REINF_EFFECT
                     self.makeMove((Move.PASS, move[1], ()))
+            case Phase.RESOLVE_ORACLE_REINF:
+                self.phase = Phase.MINOR_CHOOSE_DIE
+                self.oracle = True
+                self.blessingPlayer = self.activePlayer
+                self.blessing = True
+                self.returnPhase = Phase.CHOOSE_REINF_EFFECT
             case Phase.ACTIVE_PLAYER_CHOICE_1:
                 if move[0] == Move.CHOOSE_BUY_FACES:
                     self.phase = Phase.ACTIVE_PLAYER_BUY_FACES_1
@@ -1437,6 +1460,9 @@ class BoardState:
                     if ousted:
                         self.islandChoice = Data.getPosition(move[2][0])
                     else:
+                        if Data.getEffectLevel(self.players[self.activePlayer].allegiance) < 0:
+                            self.checkRebellionEffects(self.players[self.activePlayer], move[2][0])
+                        self.checkMemories(move[2][0], self.activePlayer)
                         self.islands[Data.getPosition(move[2][0])].remove(move[2][0])
                         self.players[self.activePlayer].performFeat(move[2][0])
                         effect = Data.getEffect(move[2][0])
@@ -1446,6 +1472,9 @@ class BoardState:
                             self.makeMove((Move.PASS, move[1], ()))
                 elif move[0] == Move.RETURN_TO_FEAT:
                     feat = self.islands[self.islandChoice][0]
+                    if Data.getEffectLevel(self.players[self.activePlayer].allegiance) < 0:
+                        self.checkRebellionEffects(self.players[self.activePlayer], feat)
+                    self.checkMemories(feat, self.activePlayer)
                     self.islands[self.islandChoice].remove(feat)
                     self.players[self.activePlayer].performFeat(feat)
                     effect = Data.getEffect(feat)
@@ -1473,6 +1502,9 @@ class BoardState:
                     if ousted:
                         self.islandChoice = Data.getPosition(move[2][0])
                     else:
+                        if Data.getEffectLevel(self.players[self.activePlayer].allegiance) < 0:
+                            self.checkRebellionEffects(self.players[self.activePlayer], move[2][0])
+                        self.checkMemories(move[2][0], self.activePlayer)
                         self.islands[Data.getPosition(move[2][0])].remove(move[2][0])
                         self.players[self.activePlayer].performFeat(move[2][0])
                         effect = Data.getEffect(move[2][0])
@@ -1482,6 +1514,9 @@ class BoardState:
                             self.makeMove((Move.PASS, move[1], ()))
                 elif move[0] == Move.RETURN_TO_FEAT:
                     feat = self.islands[self.islandChoice][0]
+                    if Data.getEffectLevel(self.players[self.activePlayer].allegiance) < 0:
+                        self.checkRebellionEffects(self.players[self.activePlayer], feat)
+                        self.checkMemories(feat, self.activePlayer)
                     self.islands[self.islandChoice].remove(feat)
                     self.players[self.activePlayer].performFeat(feat)
                     effect = Data.getEffect(feat)
@@ -1650,11 +1685,18 @@ class BoardState:
                 elif move[0] == Move.FORGE_FACE:
                     self.players[self.activePlayer].forgeFace(move[2])
                     self.players[self.activePlayer].dieChoice = move[2][0]
+                    self.blessingPlayer = self.activePlayer
+                    self.blessing = True
                     self.phase = Phase.MINOR_ROLL_DIE
                 elif move[0] == Move.PASS:
+                    self.blessingPlayer = self.activePlayer
+                    self.blessing = True
                     self.phase = Phase.MINOR_CHOOSE_DIE
             case Phase.TITAN_1:
                 if move[0] == Move.PERFORM_FEAT:
+                    if Data.getEffectLevel(self.players[self.activePlayer].allegiance) < 0:
+                        self.checkRebellionEffects(self.players[self.activePlayer], move[2][0])
+                    self.checkMemories(move[2][0], self.activePlayer)
                     self.islands[Data.getPosition(move[2][0])].remove(move[2][0])
                     self.players[self.activePlayer].performFreeFeat(move[2][0])
                     effect = Data.getEffect(move[2][0])
@@ -1671,6 +1713,9 @@ class BoardState:
                     self.makeMove((Move.PASS, move[1], ()))
             case Phase.TITAN_2:
                 if move[0] == Move.PERFORM_FEAT:
+                    if Data.getEffectLevel(self.players[self.activePlayer].allegiance) < 0:
+                        self.checkRebellionEffects(self.players[self.activePlayer], move[2][0])
+                    self.checkMemories(move[2][0], self.activePlayer)
                     self.islands[Data.getPosition(move[2][0])].remove(move[2][0])
                     self.players[self.activePlayer].performFreeFeat(move[2][0])
                     effect = Data.getEffect(move[2][0])
@@ -1708,6 +1753,18 @@ class BoardState:
                     self.players[self.activePlayer].die2ResultBuffer = self.players[self.blessingPlayer].getDie2UpFace()
                     self.blessingPlayer = self.activePlayer
                     self.makeMove((Move.PASS, move[1], ()))
+            case Phase.CHOOSE_MEMORY_1:
+                if move[0] == Move.CHOOSE_MEMORY:
+                    self.memories.append((move[2][0], move[2][1], self.activePlayer))
+                    self.memories.append((move[2][2], move[2][3], self.activePlayer))
+                    self.phase = Phase.EXTRA_TURN_DECISION
+                    self.makeMove((Move.PASS, move[1], ()))
+            case Phase.CHOOSE_MEMORY_2:
+                if move[0] == Move.CHOOSE_MEMORY:
+                    self.memories.append((move[2][0], move[2][1], self.activePlayer))
+                    self.memories.append((move[2][2], move[2][3], self.activePlayer))
+                    self.phase = Phase.TURN_START
+                    self.advanceActivePlayer(move[1])
             case Phase.ROLL_CELESTIAL_DIE:
                 if move[0] == Move.ROLL or move[0] == Move.RANDOM_ROLL:
                     self.players[self.celestialPlayer].celestialRolls -= 1
@@ -2015,11 +2072,11 @@ class BoardState:
                 ret = self.generateBoarChoice(self.players[self.blessingPlayer].getMazeDie2Result())
             case Phase.MISFORTUNE_1:
                 ret = self.generateMisfortune1Choice()
-            case Phase.MISFORTUNE_1_CHOOSE_OR | Phase.MINOR_MISFORTUNE_1_OR:
+            case Phase.MISFORTUNE_1_CHOOSE_OR | Phase.MINOR_MISFORTUNE_2_OR:
                 ret = self.players[self.misfortunePlayer].getDieOptions(False)
             case Phase.MISFORTUNE_2:
                 ret = self.generateMisfortune2Choice()
-            case Phase.MISFORTUNE_2_CHOOSE_OR | Phase.MINOR_MISFORTUNE_2_OR:
+            case Phase.MISFORTUNE_2_CHOOSE_OR | Phase.MINOR_MISFORTUNE_1_OR:
                 ret = self.players[self.misfortunePlayer].getDieOptions(True)
             case Phase.MISFORTUNE_1_APPLY_EFFECTS | Phase.MISFORTUNE_2_APPLY_EFFECTS:
                 ret = self.getHammerScepterChoices(self.misfortunePlayer)
@@ -2171,6 +2228,8 @@ class BoardState:
                     ret = self.generateTitanChoice(self.activePlayer)
                 else:
                     ret = self.getHammerScepterChoices(self.activePlayer)
+            case Phase.CHOOSE_MEMORY_1 | Phase.CHOOSE_MEMORY_2:
+                ret = self.generateMemoryChoices(self.activePlayer)
         if ret[0][1] == self.activePlayer and self.players[self.activePlayer].tritonTokens >= 1:
             ret = list(ret)
             ret.append((Move.USE_TRITON_TOKEN, self.activePlayer, ("gold",)))
@@ -2441,6 +2500,7 @@ class BoardState:
         ret = []
         for face in self.dogged:
             ret.append((Move.BUY_FACES, self.activePlayer, (face,)))
+        ret = set(ret) # remove duplicates
         return tuple(ret)
 
     def generateGoddessChoice(self, player):
@@ -2584,6 +2644,23 @@ class BoardState:
         if self.players[player].canAddHammer():
             return self.getHammerChoices(player)
         return self.getScepterChoices(player)
+
+    def generateMemoryChoices(self, playerID):
+        ret = []
+        i = 1
+        while i < 8:
+            j = 1
+            while j < 8:
+                if i == j:
+                    continue
+                ret.append((Move.CHOOSE_MEMORY, playerID, (True, i, True, j)))
+                ret.append((Move.CHOOSE_MEMORY, playerID, (True, i, False, j)))
+                ret.append((Move.CHOOSE_MEMORY, playerID, (False, i, True, j)))
+                ret.append((Move.CHOOSE_MEMORY, playerID, (False, i, False, j)))
+                j += 1
+            i += 1
+        return tuple(ret)
+
 
     def getCelestialUpgradeChoices(self, player):
         ret = []
@@ -2878,6 +2955,8 @@ class BoardState:
                 self.phase = Phase.RESOLVE_LIGHT_REINF
             case "COMPANION_INST_REINF":
                 self.phase = Phase.RESOLVE_COMPANION_REINF
+            case "ORACLE_REINF":
+                self.phase = Phase.RESOLVE_ORACLE_REINF
             case "GUARDIAN_REINF":
                 self.phase = Phase.RESOLVE_GUARDIAN_REINF
 
@@ -2928,6 +3007,8 @@ class BoardState:
                     self.returnPhase = Phase.EXTRA_TURN_DECISION
                 else:
                     self.returnPhase = Phase.END_TURN
+                self.blessing = True
+                self.blessingPlayer = self.activePlayer
                 self.phase = Phase.MINOR_CHOOSE_DIE
             case "SPHINX_INST":
                 self.extraRolls = 3
@@ -2935,6 +3016,8 @@ class BoardState:
                     self.returnPhase = Phase.EXTRA_TURN_DECISION
                 else:
                     self.returnPhase = Phase.END_TURN
+                self.blessing = True
+                self.blessingPlayer = self.activePlayer
                 self.phase = Phase.MINOR_CHOOSE_DIE
             case "TYPHON_INST":
                 self.players[self.activePlayer].gainVP(self.players[self.activePlayer].numForged)
@@ -2946,6 +3029,8 @@ class BoardState:
                     self.returnPhase = Phase.EXTRA_TURN_DECISION
                 else:
                     self.returnPhase = Phase.END_TURN
+                self.blessing = True
+                self.blessingPlayer = self.activePlayer
                 self.phase = Phase.BLESSING_ROLL_DIE_1
             case "CANCER_INST":
                 self.extraRolls = 1
@@ -2953,6 +3038,8 @@ class BoardState:
                     self.returnPhase = Phase.EXTRA_TURN_DECISION
                 else:
                     self.returnPhase = Phase.END_TURN
+                self.blessing = True
+                self.blessingPlayer = self.activePlayer
                 self.phase = Phase.BLESSING_ROLL_DIE_1
             case "HELMET_INST":
                 self.players[self.activePlayer].unforgedFaces.append(Data.DieFace.TIMES3)
@@ -3154,7 +3241,10 @@ class BoardState:
                     self.mazeReturnPhase = Phase.END_TURN
                 self.makeMove((Move.PASS, self.activePlayer, ()))
             case "MEMORY_INST_AUTO":
-                self.makeMove((Move.PASS, self.activePlayer, ()))  # todo
+                if self.phase == Phase.ACTIVE_PLAYER_PERFORM_FEAT_1:
+                    self.mazeReturnPhase = Phase.CHOOSE_MEMORY_1
+                else:
+                    self.mazeReturnPhase = Phase.CHOOSE_MEMORY_2
             case "CHAOS_INST":
                 if self.phase == Phase.ACTIVE_PLAYER_PERFORM_FEAT_1:
                     self.phase = Phase.CHOOSE_CHAOS_FACE_1
@@ -3190,10 +3280,51 @@ class BoardState:
                 else:
                     self.phase = Phase.CHOOSE_BOAR_MISFORTUNE_PLAYER_2
 
+    def checkRebellionEffects(self, player, feat):
+        featPerformed = False
+        for pl in self.players:
+            if pl.playerID == player.playerID:
+                continue
+            if feat in pl.feats:
+                featPerformed = True
+                break
+        if featPerformed:
+            if not feat in player.feats:
+                if Data.getEffectLevel(player.allegiance) == -2:
+                    player.gainVP(3)
+                else: # -1
+                    player.gainVP(2)
+        else:
+            if Data.getEffectLevel(player.allegiance) == -2:
+                player.gainVP(5)
+            else: # -1
+                player.gainVP(3)
+
+    def checkMemories(self, feat, playerID):
+        island = Data.getIsland(feat)
+        while True:
+            found = False
+            for memory in self.memories:
+                if memory[2] == playerID and memory[1] == island:
+                    found = True
+                    next = memory
+                    break
+            if found:
+                self.memories.remove(next)
+                if next[0]:
+                    self.players[playerID].gainAncientShard(2)
+                    self.players[playerID].gainMoon(1, False)
+                else:
+                    self.players[playerID].gainLoyalty(2)
+                    self.players[playerID].gainSun(1, False)
+            else:
+                break
+
     def oust(self, player, actionNum):
         player.location = 0
         self.phase = Phase.BLESSING_ROLL_DIE_1
         self.blessingPlayer = player.playerID
+        self.blessing = True
         if actionNum == 1:
             self.returnPhase = Phase.ACTIVE_PLAYER_PERFORM_FEAT_1
         else:
@@ -3206,7 +3337,10 @@ class BoardState:
         if self.activePlayer >= len(self.players):
             self.activePlayer = 0
             self.round += 1
-        if not self.isOver():
+        if self.isOver():
+            for player in self.players:
+                player.gainVP(Data.getAllegiancePoints(player.allegiance))
+        else:
             self.makeMove((Move.PASS, prevPlayer, ()))
 
     def getWinners(self):
@@ -3606,10 +3740,16 @@ class Player:
 
     def gainAncientShards(self, amount):
         self.ancientShards = max(min(self.ancientShards + amount, 6), 0)
-        # todo: advance on loyalty track
+        i = 0
+        while i < amount:
+            self.allegiance = Data.getPrev(self.allegiance)
+            i += 1
 
     def gainLoyalty(self, amount):
-        pass  # todo: advance on loyalty track
+        i = 0
+        while i < amount:
+            self.allegiance = Data.getNext(self.allegiance)
+            i += 1
 
     def getMaxHammer(self):
         ret = 0
@@ -3846,7 +3986,8 @@ class Player:
             case Data.DieFace.MAZERED | Data.DieFace.MAZEBLUE:
                 self.mazeMoves += 1
 
-    def gainMinorBlessingEffect(self, cyclops):
+    def gainMinorBlessingEffect(self, cyclops, blessing):
+        gainedASorLoyalty = False
         if self.dieChoice:
             face = self.getDie1Result()
         else:
@@ -3859,26 +4000,48 @@ class Player:
                         self.gainVP(gains[0])
                     else:
                         self.gainGold(gains[0], False)
+                        if blessing and gains[0] > 0:
+                            if Data.getEffectLevel(self.allegiance) == 1:
+                                self.gainGold(1, False)
+                            elif Data.getEffectLevel(self.allegiance) > 1:
+                                self.gainGold(1, False)
+                                self.gainVP(1)
                 case 1:
                     self.gainSun(gains[1], False)
                 case 2:
                     self.gainMoon(gains[2], False)
                 case 3:
                     self.gainVP(gains[3])
+                    if blessing and gains[3] > 0 and Data.getEffectLevel(self.allegiance) == 3:
+                        self.gainVP(1)
                 case 4:
                     self.gainAncientShards(gains[4])
+                    if gains[4] > 0:
+                        gainedASorLoyalty = True
                 case 5:
                     self.gainLoyalty(gains[5])
+                    if gains[5] > 0:
+                        gainedASorLoyalty = True
         else:
             if cyclops and self.sentinel1Choice:
                 self.gainVP(gains[0])
             else:
                 self.gainGold(gains[0], False)
+                if blessing and gains[0] > 0:
+                    if Data.getEffectLevel(self.allegiance) == 1:
+                        self.gainGold(1, False)
+                    elif Data.getEffectLevel(self.allegiance) > 1:
+                        self.gainGold(1, False)
+                        self.gainVP(1)
             self.gainSun(gains[1], False)
             self.gainMoon(gains[2], False)
             self.gainVP(gains[3])
+            if blessing and gains[3] > 0 and Data.getEffectLevel(self.allegiance) == 3:
+                self.gainVP(1)
             self.gainAncientShards(gains[4])
             self.gainLoyalty(gains[5])
+            if gains[4] > 0 or gains[5] > 0:
+                gainedASorLoyalty = True
         match face:
             case Data.DieFace.REDSHIELD:
                 self.gainSun(2, False)
@@ -3886,31 +4049,38 @@ class Player:
                 self.gainMoon(2, False)
             case Data.DieFace.GREENSHIELD:
                 self.gainVP(3)
+                if blessing and Data.getEffectLevel(self.allegiance) == 3:
+                    self.gainVP(1)
             case Data.DieFace.YELLOWSHIELD:
                 if cyclops and self.sentinel1Choice:
                     self.gainVP(3)
                 else:
                     self.gainGold(3, False)
-            case Data.DieFace.REDCHAOS:
+                    if blessing:
+                        if Data.getEffectLevel(self.allegiance) == 1:
+                            self.gainGold(1, False)
+                        elif Data.getEffectLevel(self.allegiance) > 1:
+                            self.gainGold(1, False)
+                            self.gainVP(1)
+            case Data.DieFace.REDCHAOS | Data.DieFace.BLUECHAOS:
                 self.gainAncientShards(2)
-            case Data.DieFace.BLUECHAOS:
-                self.gainAncientShards(2)
-            case Data.DieFace.GREENCHAOS:
+                gainedASorLoyalty = True
+            case Data.DieFace.GREENCHAOS | Data.DieFace.YELLOWCHAOS:
                 self.gainLoyalty(2)
-            case Data.DieFace.YELLOWCHAOS:
-                self.gainLoyalty(2)
+                gainedASorLoyalty = True
             case Data.DieFace.SHIP:
                 self.shipsToResolve += 1
             case Data.DieFace.MAZERED | Data.DieFace.MAZEBLUE:
                 self.mazeMoves += 1
+        return gainedASorLoyalty
 
-    def gainDiceEffects(self, minotaur, sentinel):
-        self.gainDiceEffectsInternal(self.getDie1Result(), self.getDie2Result(), minotaur, sentinel)
+    def gainDiceEffects(self, minotaur, sentinel, blessing):
+        self.gainDiceEffectsInternal(self.getDie1Result(), self.getDie2Result(), minotaur, sentinel, blessing)
 
     def gainMazeDiceEffects(self):
-        self.gainDiceEffectsInternal(self.getMazeDie1Result(), self.getMazeDie2Result(), False, False)
+        self.gainDiceEffectsInternal(self.getMazeDie1Result(), self.getMazeDie2Result(), False, False, False)
 
-    def gainDiceEffectsInternal(self, die1, die2, minotaur, sentinel):
+    def gainDiceEffectsInternal(self, die1, die2, minotaur, sentinel, blessing):
         mult = 1
         if die1 == Data.DieFace.TIMES3 or die2 == Data.DieFace.TIMES3:
             mult = 3
@@ -3928,7 +4098,7 @@ class Player:
                 else:
                     self.shipsToResolve += 1
         if die1 == Data.DieFace.MAZERED or die1 == Data.DieFace.MAZEBLUE:
-            self.mazeMoves += mult  # note: minotaur and can't be used with goddess maze module so mult won't be negative
+            self.mazeMoves += mult  # note: minotaur can't be used with goddess maze module so mult won't be negative
         if die2 == Data.DieFace.MAZERED or die2 == Data.DieFace.MAZEBLUE:
             self.mazeMoves += mult
         if (die1 == Data.DieFace.MAZERED and die2 == Data.DieFace.MAZEBLUE) or (
@@ -3943,6 +4113,12 @@ class Player:
                 case 0:
                     self.gainGold(die1gains[0] * mult, minotaur)
                     gains1 = (die1gains[0], 0, 0, 0)
+                    if blessing and die1gains[0] > 0:
+                        if Data.getEffectLevel(self.allegiance) == 1:
+                            self.gainGold(1, False)
+                        elif Data.getEffectLevel(self.allegiance) > 1:
+                            self.gainGold(1, False)
+                            self.gainVP(1)
                 case 1:
                     if sentinel and self.sentinel1Choice:
                         self.gainVP(die1gains[1] * mult * 2)
@@ -3958,6 +4134,8 @@ class Player:
                 case 3:
                     self.gainVP(die1gains[3])
                     gains1 = (0, 0, 0, die1gains[3] * mult)
+                    if blessing and die1gains[3] > 0 and Data.getEffectLevel(self.allegiance) == 3:
+                        self.gainVP(1)
                 case 4:
                     self.gainAncientShards(die1gains[4] * mult)
                 case 5:
@@ -3965,12 +4143,20 @@ class Player:
         else:
             gains1 = die1gains
             self.gainGold(die1gains[0] * mult, minotaur)
+            if blessing and die1gains[0] > 0:
+                if Data.getEffectLevel(self.allegiance) == 1:
+                    self.gainGold(1, False)
+                elif Data.getEffectLevel(self.allegiance) > 1:
+                    self.gainGold(1, False)
+                    self.gainVP(1)
             if sentinel and self.sentinel1Choice:
                 self.gainVP(die1gains[1] * mult * 2 + die1gains[2] * mult * 2)
             else:
                 self.gainSun(die1gains[1] * mult, minotaur)
                 self.gainMoon(die1gains[2] * mult, minotaur)
             self.gainVP(die1gains[3] * mult)
+            if blessing and die1gains[3] > 0 and Data.getEffectLevel(self.allegiance) == 3:
+                self.gainVP(1)
             self.gainAncientShards(die1gains[4] * mult)
             self.gainLoyalty(die1gains[5] * mult)
         if Data.getIsOr(die2):
@@ -3978,6 +4164,12 @@ class Player:
                 case 0:
                     self.gainGold(die2gains[0] * mult, minotaur)
                     gains2 = (die2gains[0], 0, 0, 0)
+                    if blessing and die1gains[0] > 0:
+                        if Data.getEffectLevel(self.allegiance) == 1:
+                            self.gainGold(1, False)
+                        elif Data.getEffectLevel(self.allegiance) > 1:
+                            self.gainGold(1, False)
+                            self.gainVP(1)
                 case 1:
                     if sentinel and self.sentinel2Choice:
                         self.gainVP(die2gains[1] * mult * 2)
@@ -3993,6 +4185,8 @@ class Player:
                 case 3:
                     self.gainVP(die2gains[3] * mult)
                     gains2 = (0, 0, 0, die2gains[3])
+                    if blessing and die1gains[3] > 0 and Data.getEffectLevel(self.allegiance) == 3:
+                        self.gainVP(1)
                 case 4:
                     self.gainAncientShards(die2gains[4] * mult)
                 case 5:
@@ -4000,12 +4194,20 @@ class Player:
         else:
             gains2 = die2gains
             self.gainGold(die2gains[0] * mult, minotaur)
+            if blessing and die1gains[0] > 0:
+                if Data.getEffectLevel(self.allegiance) == 1:
+                    self.gainGold(1, False)
+                elif Data.getEffectLevel(self.allegiance) > 1:
+                    self.gainGold(1, False)
+                    self.gainVP(1)
             if sentinel and self.sentinel2Choice:
                 self.gainVP(die2gains[1] * mult * 2 + die2gains[2] * mult * 2)
             else:
                 self.gainSun(die2gains[1] * mult, minotaur)
                 self.gainMoon(die2gains[2] * mult, minotaur)
             self.gainVP(die2gains[3] * mult)
+            if blessing and die1gains[3] > 0 and Data.getEffectLevel(self.allegiance) == 3:
+                self.gainVP(1)
             self.gainAncientShards(die2gains[4] * mult)
             self.gainLoyalty(die2gains[5] * mult)
         match die1:
@@ -4017,6 +4219,8 @@ class Player:
                         self.gainSun(2 * mult, minotaur)
                 else:
                     self.gainVP(5 * mult)
+                    if blessing and die1gains[3] > 0 and Data.getEffectLevel(self.allegiance) == 3:
+                        self.gainVP(1)
             case Data.DieFace.BLUESHIELD:
                 if gains2[2] == 0:
                     if sentinel and self.sentinel1Choice:
@@ -4025,32 +4229,52 @@ class Player:
                         self.gainMoon(2 * mult, minotaur)
                 else:
                     self.gainVP(5 * mult)
+                    if blessing and die1gains[3] > 0 and Data.getEffectLevel(self.allegiance) == 3:
+                        self.gainVP(1)
             case Data.DieFace.GREENSHIELD:
                 if gains2[3] == 0:
                     self.gainVP(3 * mult)
                 else:
                     self.gainVP(5 * mult)
+                if blessing and die1gains[3] > 0 and Data.getEffectLevel(self.allegiance) == 3:
+                    self.gainVP(1)
             case Data.DieFace.YELLOWSHIELD:
                 if gains2[0] == 0:
                     self.gainGold(3 * mult, minotaur)
+                    if blessing and die1gains[0] > 0:
+                        if Data.getEffectLevel(self.allegiance) == 1:
+                            self.gainGold(1, False)
+                        elif Data.getEffectLevel(self.allegiance) > 1:
+                            self.gainGold(1, False)
+                            self.gainVP(1)
                 else:
                     self.gainVP(5 * mult)
+                    if blessing and die1gains[3] > 0 and Data.getEffectLevel(self.allegiance) == 3:
+                        self.gainVP(1)
             case Data.DieFace.REDCHAOS:
                 self.gainAncientShards(2 * mult)
                 if gains2[1] > 0:
                     self.gainVP(3 * mult)
+                    if blessing and die1gains[3] > 0 and Data.getEffectLevel(self.allegiance) == 3:
+                        self.gainVP(1)
             case Data.DieFace.BLUECHAOS:
                 self.gainAncientShards(2 * mult)
                 if gains2[2] > 0:
                     self.gainVP(3 * mult)
+                    if blessing and die1gains[3] > 0 and Data.getEffectLevel(self.allegiance) == 3:
+                        self.gainVP(1)
             case Data.DieFace.GREENCHAOS:
                 self.gainLoyalty(2 * mult)
                 if gains2[3] > 0:
                     self.gainVP(3 * mult)
+                    if blessing and die1gains[3] > 0 and Data.getEffectLevel(self.allegiance) == 3:
+                        self.gainVP(1)
             case Data.DieFace.YELLOWCHAOS:
                 self.gainLoyalty(2 * mult)
                 if gains2[0] > 0:
                     self.gainVP(3 * mult)
+                    if blessing and die1gains[3] > 0 and Data.getEffectLevel(self.allegiance) == 3:
+                        self.gainVP(1)
         match die2:
             case Data.DieFace.REDSHIELD:
                 if gains1[1] == 0:
@@ -4060,6 +4284,8 @@ class Player:
                         self.gainSun(2 * mult, minotaur)
                 else:
                     self.gainVP(5 * mult)
+                    if blessing and die1gains[3] > 0 and Data.getEffectLevel(self.allegiance) == 3:
+                        self.gainVP(1)
             case Data.DieFace.BLUESHIELD:
                 if gains1[2] == 0:
                     if sentinel and self.sentinel2Choice:
@@ -4068,32 +4294,52 @@ class Player:
                         self.gainMoon(2 * mult, minotaur)
                 else:
                     self.gainVP(5 * mult)
+                    if blessing and die1gains[3] > 0 and Data.getEffectLevel(self.allegiance) == 3:
+                        self.gainVP(1)
             case Data.DieFace.GREENSHIELD:
                 if gains1[3] == 0:
                     self.gainVP(3 * mult)
                 else:
                     self.gainVP(5 * mult)
+                if blessing and die1gains[3] > 0 and Data.getEffectLevel(self.allegiance) == 3:
+                    self.gainVP(1)
             case Data.DieFace.YELLOWSHIELD:
                 if gains1[0] == 0:
                     self.gainGold(3 * mult, minotaur)
+                    if blessing and die1gains[0] > 0:
+                        if Data.getEffectLevel(self.allegiance) == 1:
+                            self.gainGold(1, False)
+                        elif Data.getEffectLevel(self.allegiance) > 1:
+                            self.gainGold(1, False)
+                            self.gainVP(1)
                 else:
                     self.gainVP(5 * mult)
+                    if blessing and die1gains[3] > 0 and Data.getEffectLevel(self.allegiance) == 3:
+                        self.gainVP(1)
             case Data.DieFace.REDCHAOS:
                 self.gainAncientShards(2 * mult)
                 if gains1[1] > 0:
                     self.gainVP(3 * mult)
+                    if blessing and die1gains[3] > 0 and Data.getEffectLevel(self.allegiance) == 3:
+                        self.gainVP(1)
             case Data.DieFace.BLUECHAOS:
                 self.gainAncientShards(2 * mult)
                 if gains1[2] > 0:
                     self.gainVP(3 * mult)
+                    if blessing and die1gains[3] > 0 and Data.getEffectLevel(self.allegiance) == 3:
+                        self.gainVP(1)
             case Data.DieFace.GREENCHAOS:
                 self.gainLoyalty(2 * mult)
                 if gains1[3] > 0:
                     self.gainVP(3 * mult)
+                    if blessing and die1gains[3] > 0 and Data.getEffectLevel(self.allegiance) == 3:
+                        self.gainVP(1)
             case Data.DieFace.YELLOWCHAOS:
                 self.gainLoyalty(2 * mult)
                 if gains1[0] > 0:
                     self.gainVP(3 * mult)
+                    if blessing and die1gains[3] > 0 and Data.getEffectLevel(self.allegiance) == 3:
+                        self.gainVP(1)
 
     def buyFace(self, face):
         self.gainGold(-Data.faceCosts[face], False)
@@ -4184,6 +4430,8 @@ class Player:
             ret.append((Move.CHOOSE_DIE_OR, self.playerID, (4,)))
         if resources[5] > 0:
             ret.append((Move.CHOOSE_DIE_OR, self.playerID, (5,)))
+        if not ret:
+            print(f"die result: {face}")
         return tuple(ret)
 
     def getMazeDieOptions(self, die1):
@@ -4313,6 +4561,7 @@ class Player:
         else:
             print(f"Location: Island {self.location}")
         print(f"Maze location: {self.mazePosition}")
+        print(f"Allegiance: {self.allegiance}")
         print(f"Hammer: {self.hammerTrack} / {self.getMaxHammer()}")
         for companion in self.companions:
             print(f"Companion: {companion}")
