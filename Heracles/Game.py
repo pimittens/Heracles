@@ -2620,6 +2620,8 @@ class BoardState:
             ret.append((Move.PERFORM_FEAT, player, (self.islands[13][0],)))
         if self.islands[14]:
             ret.append((Move.PERFORM_FEAT, player, (self.islands[14][0],)))
+        if not ret:
+            ret.append((Move.PASS, player, ()))
         return tuple(ret)
 
     def getSpendGoldOptions(self, player):
