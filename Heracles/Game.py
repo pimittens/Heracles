@@ -3359,11 +3359,11 @@ class BoardState:
         for pl in self.players:
             if pl.playerID == player.playerID:
                 continue
-            if feat in pl.feats:
+            if feat in pl.feats or (Data.isBoarFeat(feat) and Data.containsBoarFeat(pl.feats)) or (Data.isMisfortuneFeat(feat) and Data.containsMisfortuneFeat(pl.feats)):
                 featPerformed = True
                 break
         if featPerformed:
-            if not feat in player.feats:
+            if not (feat in player.feats or (Data.isBoarFeat(feat) and Data.containsBoarFeat(player.feats)) or (Data.isMisfortuneFeat(feat) and Data.containsMisfortuneFeat(player.feats))):
                 if Data.getEffectLevel(player.allegiance) == -2:
                     player.gainVP(3)
                 else:  # -1
@@ -3495,10 +3495,6 @@ class BoardState:
     def selectRandomFeats(self):
         i = 0
         while i < 15:
-            if i == 11 and self.module == 2:
-                self.addFeat(i, Data.HeroicFeat.THE_CELESTIAL_DIE)
-                i += 1
-                continue
             if i == 2 and self.module == 1:
                 self.addFeat(i, Data.HeroicFeat.THE_SUN_GOLEM)
                 i += 1

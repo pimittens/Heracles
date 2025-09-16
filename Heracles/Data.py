@@ -198,6 +198,11 @@ def isBoarFace(face):
 def isBoarFeat(feat):
     return feat == HeroicFeat.TENACIOUS_BOAR or feat == HeroicFeat.TENACIOUS_BOAR_RED or feat == HeroicFeat.TENACIOUS_BOAR_BLUE or feat == HeroicFeat.TENACIOUS_BOAR_YELLOW or feat == HeroicFeat.TENACIOUS_BOAR_GREEN
 
+def containsBoarFeat(feats):
+    for feat in feats:
+        if isBoarFeat(feat):
+            return True
+    return False
 
 def isMisfortuneFace(face):
     return face == DieFace.REDMISFORTUNE or face == DieFace.BLUEMISFORTUNE or face == DieFace.YELLOWMISFORTUNE or face == DieFace.GREENMISFORTUNE
@@ -206,6 +211,11 @@ def isMisfortuneFace(face):
 def isMisfortuneFeat(feat):
     return feat == HeroicFeat.THE_MIRROR_OF_MISFORTUNE or feat == HeroicFeat.MIRROR_OF_MISFORTUNE_RED or feat == HeroicFeat.MIRROR_OF_MISFORTUNE_BLUE or feat == HeroicFeat.MIRROR_OF_MISFORTUNE_YELLOW or feat == HeroicFeat.MIRROR_OF_MISFORTUNE_GREEN
 
+def containsMisfortuneFeat(feats):
+    for feat in feats:
+        if isMisfortuneFeat(feat):
+            return True
+    return False
 
 def getPosition(feat):
     for f in featsData:
@@ -234,8 +244,13 @@ def getSet(feat):
 
 
 def getPoints(feat):
+    fe = feat
+    if feat == HeroicFeat.TENACIOUS_BOAR_RED or feat == HeroicFeat.TENACIOUS_BOAR_BLUE or feat == HeroicFeat.TENACIOUS_BOAR_YELLOW or feat == HeroicFeat.TENACIOUS_BOAR_GREEN:
+        fe = HeroicFeat.TENACIOUS_BOAR
+    if feat == HeroicFeat.MIRROR_OF_MISFORTUNE_RED or feat == HeroicFeat.MIRROR_OF_MISFORTUNE_BLUE or feat == HeroicFeat.MIRROR_OF_MISFORTUNE_YELLOW or feat == HeroicFeat.MIRROR_OF_MISFORTUNE_GREEN:
+        fe = HeroicFeat.THE_MIRROR_OF_MISFORTUNE
     for f in featsData:
-        if f["name"] == feat.name:
+        if f["name"] == fe.name:
             return f["points"]
     return 0
 

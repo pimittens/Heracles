@@ -260,6 +260,8 @@ def printOptions(options, boardState):
                 else:
                     token2 = "loyalty"
                 print(f"{i}: Place a(n) {token1} memory token on island {option[2][1]} and a {token2} memory token on island {option[2][3]}")
+            case Game.Move.GUARDIAN_CHOICE:
+                print(f"{i}: Gain one {option[2][0]} from the effect of The Guardian")
             case _:
                 print(f"{i}: Unhandled move type {option[0]}")
         i += 1
@@ -278,12 +280,12 @@ while not theBoard.isOver():
             theBoard.makeMove(options[len(options) - 1])  # always do random roll
             print(
                 f"After rolling, player {options[0][1]} has the faces {theBoard.players[options[0][1]].getDie1UpFace()} and {theBoard.players[options[0][1]].getDie2UpFace()}")
-        elif options[0][1] == 1:
-            move = MCTS.mcts(theBoard.copyState(), 1000)
+        elif options[0][1] == 0:
+            move = MCTS.mcts(theBoard.copyState(), 5000)
             printMove(move)
             theBoard.makeMove(move)
-        elif options[0][1] == 0:
-            move = MCTS.mctsWithHeuristic(theBoard.copyState(), 1000)
+        elif options[0][1] == 1:
+            move = MCTS.mctsWithHeuristic(theBoard.copyState(), 5000)
             printMove(move)
             theBoard.makeMove(move)
         else:
