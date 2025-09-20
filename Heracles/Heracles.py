@@ -2,9 +2,10 @@ import random
 import Game
 import MCTS
 
-module = 2  # 0 is no module, 1 is goddess maze, 2 is titans
+module = 1  # 0 is no module, 1 is goddess maze, 2 is titans
 players = [Game.Player(0, True, module), Game.Player(1, True, module)]
-theBoard = Game.BoardState(players, True, module)
+theBoard = Game.LoggingBoardState(players, True, module)
+theBoard.startLogging()
 undoState = theBoard.copyState()
 theBoard.printBoardState()
 
@@ -281,11 +282,11 @@ while not theBoard.isOver():
             print(
                 f"After rolling, player {options[0][1]} has the faces {theBoard.players[options[0][1]].getDie1UpFace()} and {theBoard.players[options[0][1]].getDie2UpFace()}")
         elif options[0][1] == 0:
-            move = MCTS.mcts(theBoard.copyState(), 5000)
+            move = MCTS.mcts(theBoard.copyState(), 10)
             printMove(move)
             theBoard.makeMove(move)
         elif options[0][1] == 1:
-            move = MCTS.mctsWithHeuristic(theBoard.copyState(), 5000)
+            move = MCTS.mctsWithHeuristic(theBoard.copyState(), 10)
             printMove(move)
             theBoard.makeMove(move)
         else:
@@ -320,3 +321,4 @@ while not theBoard.isOver():
 
 theBoard.printBoardState()
 theBoard.printPoints()
+theBoard.endLogging()

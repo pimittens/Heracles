@@ -308,6 +308,21 @@ def getIsland(feat):
         return 4
     return (pos + 1) // 2
 
+def getResourceType(type):
+    match type:
+        case 0:
+            return "gold"
+        case 1:
+            return "sun"
+        case 2:
+            return "moon"
+        case 3:
+            return "vp"
+        case 4:
+            return "ancient shards"
+        case 5:
+            return "loyalty"
+
 
 faceCosts = {face: getGoldValue(face) for face in DieFace}
 

@@ -285,19 +285,40 @@ class BoardState:
         ret.memories = copy.deepcopy(self.memories)
         return ret
 
-    """def copyLoggingState(self):
+    def copyLoggingState(self):
         copyPlayers = []
         for player in self.players:
             copyPlayers.append(player.copyPlayer())
-        ret = LoggingBoardState(copyPlayers, False)
+        ret = LoggingBoardState(copyPlayers, False, self.module)
         ret.temple = copy.deepcopy(self.temple)
         ret.shields = copy.deepcopy(self.shields)
+        ret.chaos = copy.deepcopy(self.chaos)
+        ret.dogged = copy.deepcopy(self.dogged)
         ret.islands = copy.deepcopy(self.islands)
+        ret.treasures = copy.deepcopy(self.treasures)
+        ret.cerberus = self.cerberus
+        ret.islandChoice = self.islandChoice
         ret.round = self.round
         ret.activePlayer = self.activePlayer
+        ret.blessingPlayer = self.blessingPlayer
+        ret.misfortunePlayer = self.misfortunePlayer
+        ret.faceToForge = self.faceToForge
         ret.phase = self.phase
+        ret.returnPhase = self.returnPhase
+        ret.sentinel = self.sentinel
+        ret.cyclops = self.cyclops
+        ret.satyrs = self.satyrs
+        ret.minotaur = self.minotaur
+        ret.eternalFire = self.eternalFire
+        ret.extraRolls = self.extraRolls
         ret.lastPlayer = self.lastPlayer
-        return ret"""
+        ret.celestialPlayer = self.celestialPlayer
+        ret.celestialReturnPhase = self.celestialReturnPhase
+        ret.mazeReturnPhase = self.mazeReturnPhase
+        ret.blessing = self.blessing
+        ret.oracle = self.oracle
+        ret.memories = copy.deepcopy(self.memories)
+        return ret
 
     def isOver(self):
         if len(self.players) == 3:
@@ -646,16 +667,7 @@ class BoardState:
                             case "GODDESS":
                                 self.phase = Phase.MAZE_EFFECT_GODDESS
                             case "TREASUREHALL":
-                                hasTreasure = False
-                                for treasure in self.treasures:
-                                    if treasure[1] == self.players[self.blessingPlayer].mazePosition:
-                                        hasTreasure = True
-                                        self.gainSmallTreasureEffect(treasure[0], self.players[self.blessingPlayer])
-                                if hasTreasure:
-                                    self.phase = Phase.RESOLVE_MAZE_MOVES
-                                    self.makeMove((Move.PASS, move[1], ()))
-                                else:
-                                    self.phase = Phase.MAZE_EFFECT_TREASUREHALL
+                                self.phase = Phase.MAZE_EFFECT_TREASUREHALL
             case Phase.MAZE_EFFECT_FACE_BUY:
                 if move[0] == Move.FORGE_FACE:
                     self.players[self.blessingPlayer].forgeFace(move[2])
@@ -2253,7 +2265,7 @@ class BoardState:
                         ret.append((Move.CHOOSE_BOAR_PLAYER, self.activePlayer, (player.playerID,)))
                 ret = tuple(ret)
             case Phase.FORGE_BOAR_MISFORTUNE_1 | Phase.FORGE_BOAR_MISFORTUNE_2:
-                ret = self.generateForgeBoarFace()
+                ret = self.generateForgeBoarMisfortuneFace()
             case Phase.SATYRS_CHOOSE_DIE_1:
                 ret = self.generateSatyrsChooseDie(True)
             case Phase.SATYRS_CHOOSE_DIE_2:
@@ -2487,14 +2499,14 @@ class BoardState:
         ret = set(ret)  # remove duplicates
         return tuple(ret)
 
-    def generateForgeBoarFace(self):
+    def generateForgeBoarMisfortuneFace(self):
         ret = []
         for existingFace in self.players[self.blessingPlayer].die1.faces:
             if not Data.isBoarFace(existingFace):
-                ret.append((Move.FORGE_FACE, self.blessingPlayer, (1, self.faceToForge, existingFace)))
+                ret.append((Move.FORGE_FACE, self.blessingPlayer, (True, self.faceToForge, existingFace)))
         for existingFace in self.players[self.blessingPlayer].die2.faces:
             if not Data.isBoarFace(existingFace):
-                ret.append((Move.FORGE_FACE, self.blessingPlayer, (2, self.faceToForge, existingFace)))
+                ret.append((Move.FORGE_FACE, self.blessingPlayer, (False, self.faceToForge, existingFace)))
         ret = set(ret)  # remove duplicates
         return tuple(ret)
 
@@ -3568,6 +3580,3608 @@ class BoardState:
                 self.islands[island].append(feat)
                 j += 1
 
+class LoggingBoardState:
+    def __init__(self, players, initialState, module):
+        self.players = players
+        self.module = module  # 0 is no module, 1 is goddess, 2 is titans
+        self.temple = ([Data.DieFace.GOLD3, Data.DieFace.GOLD3, Data.DieFace.GOLD3, Data.DieFace.GOLD3],
+                       [Data.DieFace.MOON1, Data.DieFace.MOON1, Data.DieFace.MOON1, Data.DieFace.MOON1],
+                       [Data.DieFace.GOLD4, Data.DieFace.GOLD4, Data.DieFace.GOLD4, Data.DieFace.GOLD4],
+                       [Data.DieFace.SUN1, Data.DieFace.SUN1, Data.DieFace.SUN1, Data.DieFace.SUN1],
+                       [Data.DieFace.GOLD6, Data.DieFace.VP1SUN1, Data.DieFace.GOLD2MOON1,
+                        Data.DieFace.GOLD1SUN1MOON1OR],
+                       [Data.DieFace.GOLD3VP2OR, Data.DieFace.GOLD3VP2OR, Data.DieFace.GOLD3VP2OR,
+                        Data.DieFace.GOLD3VP2OR],
+                       [Data.DieFace.MOON2, Data.DieFace.MOON2, Data.DieFace.MOON2, Data.DieFace.MOON2],
+                       [Data.DieFace.SUN2, Data.DieFace.SUN2, Data.DieFace.SUN2, Data.DieFace.SUN2],
+                       [Data.DieFace.VP3, Data.DieFace.VP3, Data.DieFace.VP3, Data.DieFace.VP3],
+                       [Data.DieFace.VP4, Data.DieFace.MOON2VP2, Data.DieFace.GOLD1SUN1MOON1VP1,
+                        Data.DieFace.GOLD2SUN2MOON2OR])
+        self.shields = []
+        self.chaos = []
+        self.dogged = []
+        self.islands = ([], [], [], [], [], [], [], [], [], [], [], [], [], [], [])
+        self.treasures = ()
+        self.cerberus = False
+        self.islandChoice = 0  # used to remember choice for ousting
+        self.round = 1
+        self.activePlayer = 0
+        self.blessingPlayer = 0  # player currently resolving a blessing
+        self.misfortunePlayer = 0  # player currently using misfortune effect
+        self.faceToForge = None  # boar or misfortune face
+        self.cyclops = False
+        self.sentinel = False
+        self.satyrs = False
+        self.minotaur = False
+        self.eternalFire = False
+        self.extraRolls = 0
+        self.lastPlayer = 0  # player who last made a move
+        self.phase = Phase.TURN_START
+        self.returnPhase = Phase.TURN_START  # phase to return to after resolving dice effects
+        self.celestialPlayer = 0  # player rolling the celestial die
+        self.celestialReturnPhase = Phase.TURN_START  # where to return after rolling celestial die
+        self.mazeReturnPhase = Phase.TURN_START  # where to return after resolving maze moves
+        self.blessing = False  # true when resolving a major/minor blessing
+        self.oracle = False
+        self.memories = []
+        self.log = None
+        self.loggingEnabled = False
+        if initialState:
+            self.setup()
+            self.makeMove((Move.PASS, 0, ()))
+
+    def copyState(self):
+        copyPlayers = []
+        for player in self.players:
+            copyPlayers.append(player.copyPlayer())
+        ret = BoardState(copyPlayers, False, self.module)
+        ret.temple = copy.deepcopy(self.temple)
+        ret.shields = copy.deepcopy(self.shields)
+        ret.chaos = copy.deepcopy(self.chaos)
+        ret.dogged = copy.deepcopy(self.dogged)
+        ret.islands = copy.deepcopy(self.islands)
+        ret.treasures = copy.deepcopy(self.treasures)
+        ret.cerberus = self.cerberus
+        ret.islandChoice = self.islandChoice
+        ret.round = self.round
+        ret.activePlayer = self.activePlayer
+        ret.blessingPlayer = self.blessingPlayer
+        ret.misfortunePlayer = self.misfortunePlayer
+        ret.faceToForge = self.faceToForge
+        ret.phase = self.phase
+        ret.returnPhase = self.returnPhase
+        ret.sentinel = self.sentinel
+        ret.cyclops = self.cyclops
+        ret.satyrs = self.satyrs
+        ret.minotaur = self.minotaur
+        ret.eternalFire = self.eternalFire
+        ret.extraRolls = self.extraRolls
+        ret.lastPlayer = self.lastPlayer
+        ret.celestialPlayer = self.celestialPlayer
+        ret.celestialReturnPhase = self.celestialReturnPhase
+        ret.mazeReturnPhase = self.mazeReturnPhase
+        ret.blessing = self.blessing
+        ret.oracle = self.oracle
+        ret.memories = copy.deepcopy(self.memories)
+        return ret
+
+    def copyLoggingState(self):
+        copyPlayers = []
+        for player in self.players:
+            copyPlayers.append(player.copyPlayer())
+        ret = LoggingBoardState(copyPlayers, False, self.module)
+        ret.temple = copy.deepcopy(self.temple)
+        ret.shields = copy.deepcopy(self.shields)
+        ret.chaos = copy.deepcopy(self.chaos)
+        ret.dogged = copy.deepcopy(self.dogged)
+        ret.islands = copy.deepcopy(self.islands)
+        ret.treasures = copy.deepcopy(self.treasures)
+        ret.cerberus = self.cerberus
+        ret.islandChoice = self.islandChoice
+        ret.round = self.round
+        ret.activePlayer = self.activePlayer
+        ret.blessingPlayer = self.blessingPlayer
+        ret.misfortunePlayer = self.misfortunePlayer
+        ret.faceToForge = self.faceToForge
+        ret.phase = self.phase
+        ret.returnPhase = self.returnPhase
+        ret.sentinel = self.sentinel
+        ret.cyclops = self.cyclops
+        ret.satyrs = self.satyrs
+        ret.minotaur = self.minotaur
+        ret.eternalFire = self.eternalFire
+        ret.extraRolls = self.extraRolls
+        ret.lastPlayer = self.lastPlayer
+        ret.celestialPlayer = self.celestialPlayer
+        ret.celestialReturnPhase = self.celestialReturnPhase
+        ret.mazeReturnPhase = self.mazeReturnPhase
+        ret.blessing = self.blessing
+        ret.oracle = self.oracle
+        ret.memories = copy.deepcopy(self.memories)
+        return ret
+
+    def startLogging(self):
+        self.loggingEnabled = True
+        self.log = open("1.txt", "a")
+        self.log.write("Begin logging\n")
+        self.logBoardState()
+
+    def endLogging(self):
+        self.logBoardState()
+        self.logPoints()
+        self.loggingEnabled = False
+        self.log.close()
+
+    def isOver(self):
+        if len(self.players) == 3:
+            return self.round > 10
+        return self.round > 9
+
+    def makeMove(self, move):
+        # print(f"Player {move[1]} makes move: {move}")
+        # if self.loggingEnabled:
+        #    self.log.write(f"Player {move[1]} makes move: {move}\n")
+        self.lastPlayer = move[1]
+        if move[0] == Move.SPEND_GOLD:
+            print(f"Player {move[1]} spends {self.players[move[1]].goldToSpend - move[2][0]} gold from their main track and {move[2][0]} from their scepters")
+            if self.loggingEnabled:
+                self.log.write(f"Player {move[1]} spends {self.players[move[1]].goldToSpend - move[2][0]} gold from their main track and {move[2][0]} from their scepters\n")
+            self.players[move[1]].spendGold(move[2][0])
+            return
+        if move[0] == Move.SPEND_SUN:
+            print(f"Player {move[1]} spends {self.players[move[1]].sunToSpend - move[2][0] - move[2][1]} sun from their main track, {move[2][0]} from their scepters, and {move[2][1]} ancient shard(s)")
+            if self.loggingEnabled:
+                self.log.write(f"Player {move[1]} spends {self.players[move[1]].sunToSpend - move[2][0] - move[2][1]} sun from their main track, {move[2][0]} from their scepters, and {move[2][1]} ancient shard(s)\n")
+            self.players[move[1]].spendSun(move[2][0], move[2][1])
+            return
+        if move[0] == Move.SPEND_MOON:
+            print(f"Player {move[1]} spends {self.players[move[1]].moonToSpend - move[2][0] - move[2][1]} moon from their main track, {move[2][0]} from their scepters, and {move[2][1]} ancient shard(s)")
+            if self.loggingEnabled:
+                self.log.write(f"Player {move[1]} spends {self.players[move[1]].moonToSpend - move[2][0] - move[2][1]} moon from their main track, {move[2][0]} from their scepters, and {move[2][1]} ancient shard(s)\n")
+            self.players[move[1]].spendMoon(move[2][0], move[2][1])
+            return
+        if move[0] == Move.USE_TRITON_TOKEN:
+            print(f"Player {move[1]} uses a Triton token to gain {move[2][0]}")
+            if self.loggingEnabled:
+                self.log.write(f"Player {move[1]} uses a Triton token to gain {move[2][0]}\n")
+            match move[2][0]:
+                case "sun":
+                    self.players[move[1]].gainSun(2, False)
+                case "moon":
+                    self.players[move[1]].gainMoon(2, False)
+                case "gold":
+                    self.players[move[1]].gainGold(6, False)
+            self.players[move[1]].tritonTokens -= 1
+            return
+        if move[0] == Move.USE_COMPANION:
+            print(f"Player {move[1]} uses a Companion to gain {move[2][0]} sun and vp")
+            if self.loggingEnabled:
+                self.log.write(f"Player {move[1]} uses a Companion to gain {move[2][0]} sun and vp\n")
+            self.players[move[1]].gainSun(move[2][0], False)
+            self.players[move[1]].gainVP(move[2][0])
+            self.players[move[1]].companions.remove(move[2][0])
+            return
+        match self.phase:
+            case Phase.TURN_START:
+                if self.loggingEnabled:
+                    self.log.write(f"Start of turn")
+                    self.logBoardState()
+                self.blessingPlayer = self.activePlayer
+                self.blessing = True
+                self.phase = Phase.ROLL_DIE_1
+                self.returnPhase = Phase.USE_TWINS_CHOICE
+                if len(self.players) == 2:
+                    self.extraRolls = 1
+            case Phase.ROLL_DIE_1:
+                if move[0] == Move.ROLL:
+                    print(f"Player {move[1]} rolls die 1 and gets {move[2][0]}")
+                    if self.loggingEnabled:
+                        self.log.write(f"Player {move[1]} rolls die 1 and gets {move[2][0]}\n")
+                    self.players[self.blessingPlayer].die1.setToFace(move[2][0])
+                    self.phase = Phase.ROLL_DIE_2
+                elif move[0] == Move.RANDOM_ROLL:
+                    self.players[self.blessingPlayer].die1.roll()
+                    print(f"Player {move[1]} rolls die 1 and gets {self.players[self.blessingPlayer].getDie1UpFace()}")
+                    if self.loggingEnabled:
+                        self.log.write(f"Player {move[1]} rolls die 1 and gets {self.players[self.blessingPlayer].getDie1UpFace()}\n")
+                    self.phase = Phase.ROLL_DIE_2
+            case Phase.ROLL_DIE_2:
+                if move[0] == Move.ROLL:
+                    print(f"Player {move[1]} rolls die 2 and gets {move[2][0]}")
+                    if self.loggingEnabled:
+                        self.log.write(f"Player {move[1]} rolls die 2 and gets {move[2][0]}\n")
+                    self.players[self.blessingPlayer].die2.setToFace(move[2][0])
+                    if not self.eternalFire:
+                        self.blessingPlayer = (self.blessingPlayer + 1) % len(self.players)
+                    if self.blessingPlayer == self.activePlayer:
+                        if self.satyrs:
+                            self.phase = Phase.SATYRS_CHOOSE_DIE_1
+                        elif self.minotaur:
+                            self.blessingPlayer = (self.blessingPlayer + 1) % len(self.players)
+                            self.players[self.blessingPlayer].setBuffers()
+                            self.phase = Phase.MIRROR_1_CHOICE
+                        else:
+                            self.players[self.blessingPlayer].populateTwins()
+                            self.phase = Phase.USE_TWINS_CHOICE
+                        self.makeMove((Move.PASS, move[1], ()))
+                    else:
+                        self.phase = Phase.ROLL_DIE_1
+                elif move[0] == Move.RANDOM_ROLL:
+                    self.players[self.blessingPlayer].die2.roll()
+                    print(f"Player {move[1]} rolls die 2 and gets {self.players[self.blessingPlayer].getDie2UpFace()}")
+                    if self.loggingEnabled:
+                        self.log.write(f"Player {move[1]} rolls die 2 and gets {self.players[self.blessingPlayer].getDie2UpFace()}\n")
+                    if not self.eternalFire:
+                        self.blessingPlayer = (self.blessingPlayer + 1) % len(self.players)
+                    if self.blessingPlayer == self.activePlayer:
+                        if self.satyrs:
+                            self.phase = Phase.SATYRS_CHOOSE_DIE_1
+                        elif self.minotaur:
+                            self.blessingPlayer = (self.blessingPlayer + 1) % len(self.players)
+                            self.players[self.blessingPlayer].setBuffers()
+                            self.phase = Phase.MIRROR_1_CHOICE
+                        else:
+                            self.players[self.blessingPlayer].populateTwins()
+                            self.phase = Phase.USE_TWINS_CHOICE
+                        self.makeMove((Move.PASS, move[1], ()))
+                    else:
+                        self.phase = Phase.ROLL_DIE_1
+            case Phase.BLESSING_ROLL_DIE_1:
+                if move[0] == Move.ROLL:
+                    print(f"Player {move[1]} rolls die 1 and gets {move[2][0]}")
+                    if self.loggingEnabled:
+                        self.log.write(f"Player {move[1]} rolls die 1 and gets {move[2][0]}\n")
+                    self.players[self.blessingPlayer].die1.setToFace(move[2][0])
+                    self.phase = Phase.BLESSING_ROLL_DIE_2
+                elif move[0] == Move.RANDOM_ROLL:
+                    self.players[self.blessingPlayer].die1.roll()
+                    print(f"Player {move[1]} rolls die 1 and gets {self.players[self.blessingPlayer].getDie1UpFace()}")
+                    if self.loggingEnabled:
+                        self.log.write(f"Player {move[1]} rolls die 1 and gets {self.players[self.blessingPlayer].getDie1UpFace()}\n")
+                    self.phase = Phase.BLESSING_ROLL_DIE_2
+            case Phase.BLESSING_ROLL_DIE_2:
+                if move[0] == Move.ROLL:
+                    print(f"Player {move[1]} rolls die 2 and gets {move[2][0]}")
+                    if self.loggingEnabled:
+                        self.log.write(f"Player {move[1]} rolls die 2 and gets {move[2][0]}\n")
+                    self.players[self.blessingPlayer].die2.setToFace(move[2][0])
+                    self.players[self.blessingPlayer].populateTwins()
+                    self.phase = Phase.USE_TWINS_CHOICE
+                    self.makeMove((Move.PASS, move[1], ()))
+                elif move[0] == Move.RANDOM_ROLL:
+                    self.players[self.blessingPlayer].die2.roll()
+                    print(f"Player {move[1]} rolls die 2 and gets {self.players[self.blessingPlayer].getDie2UpFace()}")
+                    if self.loggingEnabled:
+                        self.log.write(f"Player {move[1]} rolls die 2 and gets {self.players[self.blessingPlayer].getDie2UpFace()}\n")
+                    self.players[self.blessingPlayer].populateTwins()
+                    self.phase = Phase.USE_TWINS_CHOICE
+                    self.makeMove((Move.PASS, move[1], ()))
+            case Phase.USE_TWINS_CHOICE:  # call populateTwins() before entering this state for the first time
+                if move[0] == Move.USE_TWINS:
+                    if move[2][0]:
+                        print(f"Player {move[1]} chooses to spend 3 gold to use the effect of The Twins")
+                        if self.loggingEnabled:
+                            self.log.write(f"Player {move[1]} chooses to spend 3 gold to use the effect of The Twins\n")
+                        self.players[self.blessingPlayer].gainGold(-3, False)
+                        self.players[self.blessingPlayer].twinsToUse -= 1
+                        self.phase = Phase.TWINS_REROLL_CHOICE
+                    else:
+                        self.phase = Phase.USE_CERBERUS_CHOICE
+                        self.makeMove((Move.PASS, move[1], ()))
+                elif self.players[self.blessingPlayer].twinsToUse == 0 or self.players[
+                    self.blessingPlayer].getEffectiveGold() < 3:
+                    self.phase = Phase.USE_CERBERUS_CHOICE
+                    self.makeMove((Move.PASS, move[1], ()))
+            case Phase.TWINS_REROLL_CHOICE:
+                if move[0] == Move.TWINS_CHOOSE_DIE:
+                    if move[2][0]:
+                        print(f"Player {move[1]} chooses to use the effect of The Twins to reroll die 1")
+                        if self.loggingEnabled:
+                            self.log.write(f"Player {move[1]} chooses to use the effect of The Twins to reroll die 1\n")
+                        self.phase = Phase.TWINS_REROLL_1
+                    else:
+                        print(f"Player {move[1]} chooses to use the effect of The Twins to reroll die 2")
+                        if self.loggingEnabled:
+                            self.log.write(f"Player {move[1]} chooses to use the effect of The Twins to reroll die 2\n")
+                        self.phase = Phase.TWINS_REROLL_2
+            case Phase.TWINS_REROLL_1:
+                if move[0] == Move.ROLL:
+                    print(f"Player {move[1]} rolls die 1 and gets {move[2][0]}")
+                    if self.loggingEnabled:
+                        self.log.write(f"Player {move[1]} rolls die 1 and gets {move[2][0]}\n")
+                    self.players[self.blessingPlayer].die1.setToFace(move[2][0])
+                    if self.players[self.blessingPlayer].hasMaxMoon():  # max moon so gain vp
+                        print(f"Player {move[1]} gains 1 vp from the effect of The Twins")
+                        if self.loggingEnabled:
+                            self.log.write(f"Player {move[1]} gains 1 vp from the effect of The Twins\n")
+                        self.players[self.blessingPlayer].gainVP(1)
+                        self.phase = Phase.USE_TWINS_CHOICE
+                        self.makeMove((Move.PASS, move[1], ()))
+                    else:
+                        self.phase = Phase.TWINS_RESOURCE_CHOICE
+                elif move[0] == Move.RANDOM_ROLL:
+                    self.players[self.blessingPlayer].die1.roll()
+                    print(f"Player {move[1]} rolls die 1 and gets {self.players[self.blessingPlayer].getDie1UpFace()}")
+                    if self.loggingEnabled:
+                        self.log.write(f"Player {move[1]} rolls die 1 and gets {self.players[self.blessingPlayer].getDie1UpFace()}\n")
+                    if self.players[self.blessingPlayer].hasMaxMoon():  # max moon so gain vp
+                        print(f"Player {move[1]} gains 1 vp from the effect of The Twins")
+                        if self.loggingEnabled:
+                            self.log.write(f"Player {move[1]} gains 1 vp from the effect of The Twins\n")
+                        self.players[self.blessingPlayer].gainVP(1)
+                        self.phase = Phase.USE_TWINS_CHOICE
+                        self.makeMove((Move.PASS, move[1], ()))
+                    else:
+                        self.phase = Phase.TWINS_RESOURCE_CHOICE
+            case Phase.TWINS_REROLL_2:
+                if move[0] == Move.ROLL:
+                    print(f"Player {move[1]} rolls die 2 and gets {move[2][0]}")
+                    if self.loggingEnabled:
+                        self.log.write(f"Player {move[1]} rolls die 2 and gets {move[2][0]}\n")
+                    self.players[self.blessingPlayer].die2.setToFace(move[2][0])
+                    if self.players[self.blessingPlayer].hasMaxMoon():  # max moon so gain vp
+                        print(f"Player {move[1]} gains 1 vp from the effect of The Twins")
+                        if self.loggingEnabled:
+                            self.log.write(f"Player {move[1]} gains 1 vp from the effect of The Twins\n")
+                        self.players[self.blessingPlayer].gainVP(1)
+                        self.phase = Phase.USE_TWINS_CHOICE
+                        self.makeMove((Move.PASS, move[1], ()))
+                    else:
+                        self.phase = Phase.TWINS_RESOURCE_CHOICE
+                elif move[0] == Move.RANDOM_ROLL:
+                    self.players[self.blessingPlayer].die2.roll()
+                    print(f"Player {move[1]} rolls die 2 and gets {self.players[self.blessingPlayer].getDie2UpFace()}")
+                    if self.loggingEnabled:
+                        self.log.write(f"Player {move[1]} rolls die 2 and gets {self.players[self.blessingPlayer].getDie2UpFace()}\n")
+                    if self.players[self.blessingPlayer].hasMaxMoon():  # max moon so gain vp
+                        print(f"Player {move[1]} gains 1 vp from the effect of The Twins")
+                        if self.loggingEnabled:
+                            self.log.write(f"Player {move[1]} gains 1 vp from the effect of The Twins\n")
+                        self.players[self.blessingPlayer].gainVP(1)
+                        self.phase = Phase.USE_TWINS_CHOICE
+                        self.makeMove((Move.PASS, move[1], ()))
+                    else:
+                        self.phase = Phase.TWINS_RESOURCE_CHOICE
+            case Phase.TWINS_RESOURCE_CHOICE:
+                if move[0] == Move.TWINS_CHOOSE_RESOURCE:
+                    if move[2][0] == "vp":
+                        print(f"Player {move[1]} gains 1 vp from the effect of The Twins")
+                        if self.loggingEnabled:
+                            self.log.write(f"Player {move[1]} gains 1 vp from the effect of The Twins\n")
+                        self.players[self.blessingPlayer].gainVP(1)
+                    else:
+                        print(f"Player {move[1]} gains 1 moon from the effect of The Twins")
+                        if self.loggingEnabled:
+                            self.log.write(f"Player {move[1]} gains 1 moon from the effect of The Twins\n")
+                        self.players[self.blessingPlayer].gainMoon(1, False)
+                    self.phase = Phase.USE_TWINS_CHOICE
+                    self.makeMove((Move.PASS, move[1], ()))
+            case Phase.USE_CERBERUS_CHOICE:
+                if move[0] == Move.USE_CERBERUS:
+                    if move[2][0]:
+                        print(f"Player {move[1]} uses a Cerberus token")
+                        if self.loggingEnabled:
+                            self.log.write(f"Player {move[1]} uses a Cerberus token\n")
+                        self.players[self.blessingPlayer].cerberusTokens -= 1
+                        self.cerberus = True
+                    self.players[self.blessingPlayer].setBuffers()
+                    self.phase = Phase.MIRROR_1_CHOICE
+                    self.makeMove((Move.PASS, move[1], ()))
+                elif self.players[self.blessingPlayer].cerberusTokens == 0:
+                    self.players[self.blessingPlayer].setBuffers()
+                    self.phase = Phase.MIRROR_1_CHOICE
+                    self.makeMove((Move.PASS, move[1], ()))
+            case Phase.MIRROR_1_CHOICE:
+                if move[0] == Move.MIRROR_CHOICE:
+                    print(f"Player {move[1]} uses the effect of The Mirror of the Abyss to copy the die face {move[2][0]} on die 1")
+                    if self.loggingEnabled:
+                        self.log.write(f"Player {move[1]} uses the effect of The Mirror of the Abyss to copy the die face {move[2][0]} on die 1\n")
+                    self.players[self.blessingPlayer].mirrorChoice1 = move[2][0]
+                    self.phase = Phase.MIRROR_2_CHOICE
+                    self.makeMove((Move.PASS, move[1], ()))
+                elif self.players[self.blessingPlayer].die1ResultBuffer != Data.DieFace.MIRROR:
+                    self.phase = Phase.MIRROR_2_CHOICE
+                    self.makeMove((Move.PASS, move[1], ()))
+            case Phase.MIRROR_2_CHOICE:
+                if move[0] == Move.MIRROR_CHOICE:
+                    print(f"Player {move[1]} uses the effect of The Mirror of the Abyss to copy the die face {move[2][0]} on die 2")
+                    if self.loggingEnabled:
+                        self.log.write(f"Player {move[1]} uses the effect of The Mirror of the Abyss to copy the die face {move[2][0]} on die 2\n")
+                    self.players[self.blessingPlayer].mirrorChoice2 = move[2][0]
+                    self.phase = Phase.DIE_1_CHOOSE_OR
+                    self.makeMove((Move.PASS, move[1], ()))
+                elif self.players[self.blessingPlayer].die2ResultBuffer != Data.DieFace.MIRROR:
+                    self.phase = Phase.DIE_1_CHOOSE_OR
+                    self.makeMove((Move.PASS, move[1], ()))
+            case Phase.DIE_1_CHOOSE_OR:
+                if move[0] == Move.CHOOSE_DIE_OR:
+                    print(f"Player {move[1]} chooses to gain {Data.getResourceType(move[2][0])} from their die face {self.players[self.blessingPlayer].getDie1Result()} on die 1")
+                    if self.loggingEnabled:
+                        self.log.write(f"Player {move[1]} chooses to gain {Data.getResourceType(move[2][0])} from their die face {self.players[self.blessingPlayer].getDie1Result()} on die 1\n")
+                    self.players[self.blessingPlayer].orChoice1 = move[2][0]
+                    self.phase = Phase.DIE_2_CHOOSE_OR
+                    self.makeMove((Move.PASS, move[1], ()))
+                elif not Data.getIsOr(self.players[self.blessingPlayer].getDie1Result()):
+                    self.phase = Phase.DIE_2_CHOOSE_OR
+                    self.makeMove((Move.PASS, move[1], ()))
+            case Phase.DIE_2_CHOOSE_OR:
+                if move[0] == Move.CHOOSE_DIE_OR:
+                    print(f"Player {move[1]} chooses to gain {Data.getResourceType(move[2][0])} from their die face {self.players[self.blessingPlayer].getDie2Result()} on die 2")
+                    if self.loggingEnabled:
+                        self.log.write(f"Player {move[1]} chooses to gain {Data.getResourceType(move[2][0])} from their die face {self.players[self.blessingPlayer].getDie2Result()} on die 2\n")
+                    self.players[self.blessingPlayer].orChoice2 = move[2][0]
+                    if self.sentinel:
+                        self.phase = Phase.DIE_1_CHOOSE_SENTINEL
+                    else:
+                        self.phase = Phase.APPLY_DICE_EFFECTS
+                    self.makeMove((Move.PASS, move[1], ()))
+                elif not Data.getIsOr(self.players[self.blessingPlayer].getDie2Result()):
+                    if self.sentinel:
+                        self.phase = Phase.DIE_1_CHOOSE_SENTINEL
+                    else:
+                        self.phase = Phase.APPLY_DICE_EFFECTS
+                    self.makeMove((Move.PASS, move[1], ()))
+            case Phase.DIE_1_CHOOSE_SENTINEL:
+                if move[0] == Move.CHOOSE_USE_SENTINEL:
+                    if move[2][0]:
+                        print(f"Player {move[1]} chooses to use the effect of The Sentinel to convert resources gained from their die 1 into vp")
+                        if self.loggingEnabled:
+                            self.log.write(f"Player {move[1]} chooses to use the effect of The Sentinel to convert resources gained from their die 1 into vp\n")
+                    self.players[self.blessingPlayer].sentinel1Choice = move[2][0]
+                    self.phase = Phase.DIE_2_CHOOSE_SENTINEL
+                    self.makeMove((Move.PASS, move[1], ()))
+                elif not self.players[self.blessingPlayer].canUseSentinel(True):
+                    self.phase = Phase.DIE_2_CHOOSE_SENTINEL
+                    self.makeMove((Move.PASS, move[1], ()))
+            case Phase.DIE_2_CHOOSE_SENTINEL:
+                if move[0] == Move.CHOOSE_USE_SENTINEL:
+                    if move[2][0]:
+                        print(f"Player {move[1]} chooses to use the effect of The Sentinel to convert resources gained from their die 2 into vp")
+                        if self.loggingEnabled:
+                            self.log.write(f"Player {move[1]} chooses to use the effect of The Sentinel to convert resources gained from their die 2 into vp\n")
+                    self.players[self.blessingPlayer].sentinel2Choice = move[2][0]
+                    self.phase = Phase.APPLY_DICE_EFFECTS
+                    self.makeMove((Move.PASS, move[1], ()))
+                elif not self.players[self.blessingPlayer].canUseSentinel(False):
+                    self.phase = Phase.APPLY_DICE_EFFECTS
+                    self.makeMove((Move.PASS, move[1], ()))
+            case Phase.APPLY_DICE_EFFECTS:
+                if move[0] == Move.CHOOSE_ADD_HAMMER_SCEPTER:
+                    if self.players[self.blessingPlayer].canAddScepter():
+                        print(f"Player {move[1]} chooses to add {move[2][0]} gold to their scepter(s) and gain {self.players[self.blessingPlayer].goldToGain - move[2][0]} gold to their main track")
+                        if self.loggingEnabled:
+                            self.log.write(f"Player {move[1]} chooses to add {move[2][0]} gold to their scepter(s) and gain {self.players[self.blessingPlayer].goldToGain - move[2][0]} gold to their main track\n")
+                    else:
+                        print(f"Player {move[1]} chooses to add {move[2][0]} gold to their hammer track and gain {self.players[self.blessingPlayer].goldToGain - move[2][0]} gold to their main track")
+                        if self.loggingEnabled:
+                            self.log.write(f"Player {move[1]} chooses to add {move[2][0]} gold to their hammer track and gain {self.players[self.blessingPlayer].goldToGain - move[2][0]} gold to their main track\n")
+                    self.players[self.blessingPlayer].useHammerOrScepter(move[2][0])
+                    self.phase = Phase.CHOOSE_MAZE_ORDER
+                    self.makeMove((Move.PASS, move[1], ()))
+                else:
+                    print(f"Player {move[1]} applies the effects of their dice faces")
+                    if self.loggingEnabled:
+                        self.log.write(f"Player {move[1]} applies the effects of their dice faces\n")
+                    self.players[self.blessingPlayer].gainDiceEffects(self.minotaur, self.sentinel, self.blessing)
+                    if self.players[self.blessingPlayer].goldToGain == 0:
+                        self.phase = Phase.CHOOSE_MAZE_ORDER
+                        self.makeMove((Move.PASS, move[1], ()))
+            case Phase.CHOOSE_MAZE_ORDER:
+                if move[0] == Move.CHOOSE_MAZE_ORDER:
+                    if move[2][0]:
+                        self.celestialReturnPhase = Phase.CHOOSE_MAZE_ORDER
+                        self.celestialPlayer = self.blessingPlayer
+                        self.phase = Phase.ROLL_CELESTIAL_DIE
+                    else:
+                        self.phase = Phase.RESOLVE_MAZE_MOVES
+                        self.mazeReturnPhase = Phase.CHOOSE_MAZE_ORDER
+                        self.makeMove((Move.PASS, move[1], ()))
+                elif move[0] == Move.PASS:
+                    if self.players[self.blessingPlayer].mazeMoves == 0 or self.players[
+                        self.blessingPlayer].celestialRolls == 0:
+                        if self.players[self.blessingPlayer].celestialRolls == 0:
+                            if self.players[self.blessingPlayer].mazeMoves == 0 or self.players[
+                                self.blessingPlayer].mazePosition == 35:
+                                if self.players[self.blessingPlayer].shipsToResolve == 0 and self.players[
+                                    self.blessingPlayer].times3ShipsToResolve == 0:
+                                    self.phase = Phase.BOAR_CHOICE_1
+                                    self.makeMove((Move.PASS, move[1], ()))
+                                else:
+                                    self.phase = Phase.RESOLVE_SHIPS
+                            else:
+                                self.phase = Phase.RESOLVE_MAZE_MOVES
+                                self.mazeReturnPhase = Phase.CHOOSE_MAZE_ORDER
+                                self.makeMove((Move.PASS, move[1], ()))
+                        else:
+                            self.celestialReturnPhase = Phase.CHOOSE_MAZE_ORDER
+                            self.celestialPlayer = self.blessingPlayer
+                            self.phase = Phase.ROLL_CELESTIAL_DIE
+            case Phase.RESOLVE_MAZE_MOVES:
+                if move[0] == Move.MAZE_MOVE:
+                    self.players[self.blessingPlayer].mazePosition = move[2][0]
+                    print(f"Player {move[1]} moves to space {self.players[self.blessingPlayer].mazePosition} in the Maze of the Goddess")
+                    if self.loggingEnabled:
+                        self.log.write(f"Player {move[1]} moves to space {self.players[self.blessingPlayer].mazePosition} in the Maze of the Goddess\n")
+                    if self.players[self.blessingPlayer].mazeMoves > 0:
+                        self.players[self.blessingPlayer].mazeMoves -= 1
+                    else:
+                        self.players[self.blessingPlayer].mazeMoves += 1
+                    self.phase = Phase.MAZE_EFFECT
+                    self.makeMove((Move.PASS, move[1], ()))
+                elif self.players[self.blessingPlayer].mazeMoves == 0 or self.players[
+                    self.blessingPlayer].mazePosition == 35 or (
+                        self.players[self.blessingPlayer].mazePosition == 0 and self.players[
+                    self.blessingPlayer].mazeMoves < 0):
+                    self.players[self.blessingPlayer].mazeMoves = 0
+                    if self.players[self.blessingPlayer].celestialRolls == 0:
+                        self.phase = self.mazeReturnPhase
+                        self.makeMove((Move.PASS, move[1], ()))
+                    else:
+                        self.celestialReturnPhase = Phase.RESOLVE_MAZE_MOVES
+                        self.celestialPlayer = self.blessingPlayer
+                        self.phase = Phase.ROLL_CELESTIAL_DIE
+                elif self.players[self.blessingPlayer].mazeMoves > 0 and len(
+                        Data.getMazeMoveOptions(self.players[self.blessingPlayer].mazePosition)) == 1:
+                    self.players[self.blessingPlayer].mazePosition = \
+                        Data.getMazeMoveOptions(self.players[self.blessingPlayer].mazePosition)[0]
+                    print(f"Player {move[1]} moves to space {self.players[self.blessingPlayer].mazePosition} in the Maze of the Goddess")
+                    if self.loggingEnabled:
+                        self.log.write(f"Player {move[1]} moves to space {self.players[self.blessingPlayer].mazePosition} in the Maze of the Goddess\n")
+                    self.players[self.blessingPlayer].mazeMoves -= 1
+                    self.phase = Phase.MAZE_EFFECT
+                    self.makeMove((Move.PASS, move[1], ()))
+                elif self.players[self.blessingPlayer].mazeMoves < 0 and len(
+                        Data.getReverseMazeMoveOptions(self.players[self.blessingPlayer].mazePosition)) == 1:
+                    self.players[self.blessingPlayer].mazePosition = \
+                        Data.getReverseMazeMoveOptions(self.players[self.blessingPlayer].mazePosition)[0]
+                    print(f"Player {move[1]} moves to space {self.players[self.blessingPlayer].mazePosition} in the Maze of the Goddess")
+                    if self.loggingEnabled:
+                        self.log.write(f"Player {move[1]} moves to space {self.players[self.blessingPlayer].mazePosition} in the Maze of the Goddess\n")
+                    self.players[self.blessingPlayer].mazeMoves += 1
+                    self.phase = Phase.MAZE_EFFECT
+                    self.makeMove((Move.PASS, move[1], ()))
+            case Phase.MAZE_EFFECT:
+                if move[0] == Move.CHOOSE_ADD_HAMMER_SCEPTER:
+                    if self.players[self.blessingPlayer].canAddScepter():
+                        print(f"Player {move[1]} chooses to add {move[2][0]} gold to their scepter(s) and gain {self.players[self.blessingPlayer].goldToGain - move[2][0]} gold to their main track")
+                        if self.loggingEnabled:
+                            self.log.write(f"Player {move[1]} chooses to add {move[2][0]} gold to their scepter(s) and gain {self.players[self.blessingPlayer].goldToGain - move[2][0]} gold to their main track\n")
+                    else:
+                        print(f"Player {move[1]} chooses to add {move[2][0]} gold to their hammer track and gain {self.players[self.blessingPlayer].goldToGain - move[2][0]} gold to their main track")
+                        if self.loggingEnabled:
+                            self.log.write(f"Player {move[1]} chooses to add {move[2][0]} gold to their hammer track and gain {self.players[self.blessingPlayer].goldToGain - move[2][0]} gold to their main track\n")
+                    self.players[self.blessingPlayer].useHammerOrScepter(move[2][0])
+                    self.phase = Phase.RESOLVE_MAZE_MOVES
+                    self.makeMove((Move.PASS, move[1], ()))
+                elif move[0] == Move.CHOOSE_MAZE_OR:
+                    resources = Data.getMazeOrEffects(self.players[self.blessingPlayer].mazePosition)
+                    match move[2][0]:
+                        case 0:
+                            print(f"Player {move[1]} chooses to gain {resources[0]} gold from the effect of space {self.players[self.blessingPlayer].mazePosition} of the Maze of the Goddess")
+                            if self.loggingEnabled:
+                                self.log.write(f"Player {move[1]} chooses to gain {resources[0]} gold from the effect of space {self.players[self.blessingPlayer].mazePosition} of the Maze of the Goddess\n")
+                            self.players[self.blessingPlayer].gainGold(resources[0], False)
+                        case 1:
+                            print(f"Player {move[1]} chooses to gain {resources[0]} sun from the effect of space {self.players[self.blessingPlayer].mazePosition} of the Maze of the Goddess")
+                            if self.loggingEnabled:
+                                self.log.write(f"Player {move[1]} chooses to gain {resources[0]} sun from the effect of space {self.players[self.blessingPlayer].mazePosition} of the Maze of the Goddess\n")
+                            self.players[self.blessingPlayer].gainSun(resources[1], False)
+                        case 2:
+                            print(f"Player {move[1]} chooses to gain {resources[0]} moon from the effect of space {self.players[self.blessingPlayer].mazePosition} of the Maze of the Goddess")
+                            if self.loggingEnabled:
+                                self.log.write(f"Player {move[1]} chooses to gain {resources[0]} moon from the effect of space {self.players[self.blessingPlayer].mazePosition} of the Maze of the Goddess\n")
+                            self.players[self.blessingPlayer].gainMoon(resources[2], False)
+                        case 3:
+                            print(f"Player {move[1]} chooses to gain {resources[0]} vp from the effect of space {self.players[self.blessingPlayer].mazePosition} of the Maze of the Goddess")
+                            if self.loggingEnabled:
+                                self.log.write(f"Player {move[1]} chooses to gain {resources[0]} vp from the effect of space {self.players[self.blessingPlayer].mazePosition} of the Maze of the Goddess\n")
+                            self.players[self.blessingPlayer].gainVP(resources[3])
+                    if self.players[self.blessingPlayer].goldToGain == 0:
+                        self.phase = Phase.RESOLVE_MAZE_MOVES
+                        self.makeMove((Move.PASS, move[1], ()))
+                elif move[0] == Move.PASS:
+                    if self.checkBasicMazeEffect(self.players[self.blessingPlayer]):
+                        self.phase = Phase.RESOLVE_MAZE_MOVES
+                        self.makeMove((Move.PASS, move[1], ()))
+                    else:
+                        match Data.getMazeEffect(self.players[self.blessingPlayer].mazePosition):
+                            case "FACEBUY" | "FACEBUYDISCOUNT2":
+                                self.phase = Phase.MAZE_EFFECT_FACE_BUY
+                            case "6GOLDFOR6VP":
+                                if self.players[self.blessingPlayer].getEffectiveGold() > 5:
+                                    self.phase = Phase.MAZE_EFFECT_SPEND_GOLD
+                                else:
+                                    self.phase = Phase.RESOLVE_MAZE_MOVES
+                                    self.makeMove((Move.PASS, move[1], ()))
+                            case "2MOONFOR8VP":
+                                if self.players[self.blessingPlayer].getEffectiveMoon() > 1:
+                                    self.phase = Phase.MAZE_EFFECT_SPEND_MOON
+                                else:
+                                    self.phase = Phase.RESOLVE_MAZE_MOVES
+                                    self.makeMove((Move.PASS, move[1], ()))
+                            case "GODDESS":
+                                self.phase = Phase.MAZE_EFFECT_GODDESS
+                            case "TREASUREHALL":
+                                self.phase = Phase.MAZE_EFFECT_TREASUREHALL
+            case Phase.MAZE_EFFECT_FACE_BUY: # todo: next
+                if move[0] == Move.FORGE_FACE:
+                    self.players[self.blessingPlayer].forgeFace(move[2])
+                    self.phase = Phase.RESOLVE_MAZE_MOVES
+                    self.makeMove((Move.PASS, move[1], ()))
+                elif move[0] == Move.BUY_FACES:
+                    if Data.getMazeEffect(self.players[self.blessingPlayer].mazePosition) == "FACEBUY":
+                        discount = 0
+                    else:
+                        discount = 2
+                    for face in move[2]:
+                        self.temple[Data.getPool(face)].remove(face)
+                        self.players[self.blessingPlayer].buyFaceShip(face, discount)
+                elif move[0] == Move.PASS:
+                    self.phase = Phase.RESOLVE_MAZE_MOVES
+                    self.makeMove((Move.PASS, move[1], ()))
+            case Phase.MAZE_EFFECT_SPEND_GOLD:
+                if move[0] == Move.MAZE_SPEND:
+                    if move[2][0]:
+                        self.players[self.blessingPlayer].gainGold(-6, False)
+                        self.players[self.blessingPlayer].gainVP(6)
+                    self.phase = Phase.RESOLVE_MAZE_MOVES
+                    self.makeMove((Move.PASS, move[1], ()))
+            case Phase.MAZE_EFFECT_SPEND_MOON:
+                if move[0] == Move.MAZE_SPEND:
+                    if move[2][0]:
+                        self.players[self.blessingPlayer].gainMoon(-2, False)
+                        self.players[self.blessingPlayer].gainVP(8)
+                    self.phase = Phase.RESOLVE_MAZE_MOVES
+                    self.makeMove((Move.PASS, move[1], ()))
+            case Phase.MAZE_EFFECT_GODDESS:
+                if move[0] == Move.CHOOSE_FACES:
+                    self.players[self.blessingPlayer].die1.setToFace(move[2][0])
+                    self.players[self.blessingPlayer].die2.setToFace(move[2][1])
+                    self.players[self.blessingPlayer].setMazeBuffers()
+                    self.phase = Phase.MAZE_MIRROR_1
+                    self.makeMove((Move.PASS, move[1], ()))
+            case Phase.MAZE_MIRROR_1:
+                if move[0] == Move.MIRROR_CHOICE:
+                    self.players[self.blessingPlayer].mirrorMazeChoice1 = move[2][0]
+                    self.phase = Phase.MAZE_MIRROR_2
+                    self.makeMove((Move.PASS, move[1], ()))
+                elif self.players[self.blessingPlayer].die1MazeResultBuffer != Data.DieFace.MIRROR:
+                    self.phase = Phase.MAZE_MIRROR_2
+                    self.makeMove((Move.PASS, move[1], ()))
+            case Phase.MAZE_MIRROR_2:
+                if move[0] == Move.MIRROR_CHOICE:
+                    self.players[self.blessingPlayer].mirrorMazeChoice2 = move[2][0]
+                    self.phase = Phase.MAZE_DIE_1_CHOOSE_OR
+                    self.makeMove((Move.PASS, move[1], ()))
+                elif self.players[self.blessingPlayer].die2MazeResultBuffer != Data.DieFace.MIRROR:
+                    self.phase = Phase.MAZE_DIE_1_CHOOSE_OR
+                    self.makeMove((Move.PASS, move[1], ()))
+            case Phase.MAZE_DIE_1_CHOOSE_OR:
+                if move[0] == Move.CHOOSE_DIE_OR:
+                    self.players[self.blessingPlayer].orMazeChoice1 = move[2][0]
+                    self.phase = Phase.MAZE_DIE_2_CHOOSE_OR
+                    self.makeMove((Move.PASS, move[1], ()))
+                elif not Data.getIsOr(self.players[self.blessingPlayer].getMazeDie1Result()):
+                    self.phase = Phase.MAZE_DIE_2_CHOOSE_OR
+                    self.makeMove((Move.PASS, move[1], ()))
+            case Phase.MAZE_DIE_2_CHOOSE_OR:
+                if move[0] == Move.CHOOSE_DIE_OR:
+                    self.players[self.blessingPlayer].orMazeChoice2 = move[2][0]
+                    self.phase = Phase.MAZE_APPLY_DICE_EFFECTS
+                    self.makeMove((Move.PASS, move[1], ()))
+                elif not Data.getIsOr(self.players[self.blessingPlayer].getMazeDie2Result()):
+                    self.phase = Phase.MAZE_APPLY_DICE_EFFECTS
+                    self.makeMove((Move.PASS, move[1], ()))
+            case Phase.MAZE_APPLY_DICE_EFFECTS:
+                if move[0] == Move.CHOOSE_ADD_HAMMER_SCEPTER:
+                    self.players[self.blessingPlayer].useHammerOrScepter(move[2][0])
+                    self.phase = Phase.MAZE_BOAR_CHOICE_1
+                    self.makeMove((Move.PASS, move[1], ()))
+                else:
+                    self.players[self.blessingPlayer].gainMazeDiceEffects()
+                    if self.players[self.blessingPlayer].goldToGain == 0:
+                        self.phase = Phase.MAZE_BOAR_CHOICE_1
+                        self.makeMove((Move.PASS, move[1], ()))
+            case Phase.MAZE_BOAR_CHOICE_1:
+                if move[0] == Move.BOAR_CHOICE:
+                    match move[2][0]:
+                        case "sun":
+                            self.players[move[1]].gainSun(1, False)
+                        case "moon":
+                            self.players[move[1]].gainMoon(1, False)
+                        case "vp":
+                            self.players[move[1]].gainVP(3)
+                    self.phase = Phase.MAZE_BOAR_CHOICE_2
+                    self.makeMove((Move.PASS, move[1], ()))
+                elif not self.players[self.blessingPlayer].die1MazeIsBoar():
+                    self.phase = Phase.MAZE_BOAR_CHOICE_2
+                    self.makeMove((Move.PASS, move[1], ()))
+            case Phase.MAZE_BOAR_CHOICE_2:
+                if move[0] == Move.BOAR_CHOICE:
+                    match move[2][0]:
+                        case "sun":
+                            self.players[move[1]].gainSun(1, False)
+                        case "moon":
+                            self.players[move[1]].gainMoon(1, False)
+                        case "vp":
+                            self.players[move[1]].gainVP(3)
+                    self.phase = Phase.RESOLVE_MAZE_MOVES
+                    self.makeMove((Move.PASS, move[1], ()))
+                elif not self.players[self.blessingPlayer].die2MazeIsBoar():
+                    self.phase = Phase.RESOLVE_MAZE_MOVES
+                    self.makeMove((Move.PASS, move[1], ()))
+            case Phase.MAZE_EFFECT_TREASUREHALL:
+                if move[0] == Move.CHOOSE_TREASURE_HALL:
+                    for treasure in self.treasures:
+                        if treasure[0] == move[2][0]:
+                            treasure[1] = self.players[self.blessingPlayer].mazePosition
+                            self.gainTreasureEffect(treasure[0], self.players[self.blessingPlayer])
+                    self.phase = Phase.RESOLVE_MAZE_MOVES
+                    self.makeMove((Move.PASS, move[1], ()))
+            case Phase.RESOLVE_SHIPS:
+                if move[0] == Move.BUY_FACES:
+                    if self.players[self.blessingPlayer].times3ShipsToResolve > 0:
+                        self.players[self.blessingPlayer].times3ShipsToResolve -= 1
+                        for face in move[2]:
+                            self.temple[Data.getPool(face)].remove(face)
+                            self.players[self.blessingPlayer].buyFaceShip(face, 6)
+                    else:
+                        self.players[self.blessingPlayer].shipsToResolve -= 1
+                        for face in move[2]:
+                            self.temple[Data.getPool(face)].remove(face)
+                            self.players[self.blessingPlayer].buyFaceShip(face, 2)
+                    self.phase = Phase.RESOLVE_SHIPS_FORGE
+                elif move[0] == Move.PASS:
+                    if self.players[self.blessingPlayer].times3ShipsToResolve > 0:
+                        self.players[self.blessingPlayer].times3ShipsToResolve -= 1
+                    else:
+                        self.players[self.blessingPlayer].shipsToResolve -= 1
+                    if self.players[self.blessingPlayer].shipsToResolve == 0 and self.players[
+                        self.blessingPlayer].times3ShipsToResolve == 0:
+                        self.phase = Phase.BOAR_CHOICE_1
+                        self.makeMove((Move.PASS, move[1], ()))
+            case Phase.RESOLVE_SHIPS_FORGE:
+                if move[0] == Move.FORGE_FACE:
+                    self.players[self.blessingPlayer].forgeFace(move[2])
+                    if self.players[self.blessingPlayer].shipsToResolve > 0 or self.players[
+                        self.blessingPlayer].times3ShipsToResolve > 0:
+                        self.phase = Phase.RESOLVE_SHIPS
+                    else:
+                        self.phase = Phase.BOAR_CHOICE_1
+                        self.makeMove((Move.PASS, move[1], ()))
+            case Phase.BOAR_CHOICE_1:
+                if move[0] == Move.BOAR_CHOICE:
+                    match move[2][0]:
+                        case "sun":
+                            self.players[move[1]].gainSun(1, False)
+                        case "moon":
+                            self.players[move[1]].gainMoon(1, False)
+                        case "vp":
+                            self.players[move[1]].gainVP(3)
+                    self.phase = Phase.BOAR_CHOICE_2
+                    self.makeMove((Move.PASS, move[1], ()))
+                elif not self.players[self.blessingPlayer].die1IsBoar():
+                    self.phase = Phase.BOAR_CHOICE_2
+                    self.makeMove((Move.PASS, move[1], ()))
+            case Phase.BOAR_CHOICE_2:
+                if move[0] == Move.BOAR_CHOICE:
+                    match move[2][0]:
+                        case "sun":
+                            self.players[move[1]].gainSun(1, False)
+                        case "moon":
+                            self.players[move[1]].gainMoon(1, False)
+                        case "vp":
+                            self.players[move[1]].gainVP(3)
+                    self.phase = Phase.MISFORTUNE_1
+                    self.makeMove((Move.PASS, move[1], ()))
+                elif not self.players[self.blessingPlayer].die2IsBoar():
+                    self.phase = Phase.MISFORTUNE_1
+                    self.makeMove((Move.PASS, move[1], ()))
+            case Phase.MISFORTUNE_1:
+                if move[0] == Move.CHOOSE_DIE_OR:
+                    self.players[self.misfortunePlayer].orChoice1 = move[2][0]
+                    self.phase = Phase.MISFORTUNE_1_CHOOSE_OR
+                    self.makeMove((Move.PASS, move[1], ()))
+                elif not Data.isMisfortuneFace(self.players[self.blessingPlayer].die1ResultBuffer):
+                    self.phase = Phase.MISFORTUNE_2
+                    self.makeMove((Move.PASS, move[1], ()))
+            case Phase.MISFORTUNE_1_CHOOSE_OR:
+                if move[0] == Move.CHOOSE_DIE_OR:
+                    self.players[self.misfortunePlayer].orChoice2 = move[2][0]
+                    self.phase = Phase.MISFORTUNE_1_APPLY_EFFECTS
+                    self.makeMove((Move.PASS, move[1], ()))
+                elif not Data.getIsOr(self.players[self.misfortunePlayer].getDie2Result()):
+                    self.phase = Phase.MISFORTUNE_1_APPLY_EFFECTS
+                    self.makeMove((Move.PASS, move[1], ()))
+            case Phase.MISFORTUNE_1_APPLY_EFFECTS:
+                if move[0] == Move.CHOOSE_ADD_HAMMER_SCEPTER:
+                    self.players[self.misfortunePlayer].useHammerOrScepter(move[2][0])
+                    if self.players[self.misfortunePlayer].shipsToResolve == 0:
+                        self.phase = Phase.MISFORTUNE_1_BOAR_CHOICE
+                        self.makeMove((Move.PASS, move[1], ()))
+                    else:
+                        self.phase = Phase.MISFORTUNE_1_RESOLVE_SHIPS
+                        self.makeMove((Move.PASS, move[1], ()))
+                else:
+                    self.players[self.misfortunePlayer].gainDiceEffects(False, False, False)
+                    if self.players[self.misfortunePlayer].goldToGain == 0:
+                        if self.players[self.misfortunePlayer].shipsToResolve == 0:
+                            self.phase = Phase.MISFORTUNE_1_BOAR_CHOICE
+                            self.makeMove((Move.PASS, move[1], ()))
+                        else:
+                            self.phase = Phase.MISFORTUNE_1_RESOLVE_SHIPS
+                            self.makeMove((Move.PASS, move[1], ()))
+            case Phase.MISFORTUNE_1_RESOLVE_SHIPS:
+                if move[0] == Move.BUY_FACES:
+                    self.players[self.misfortunePlayer].shipsToResolve -= 1
+                    for face in move[2]:
+                        self.temple[Data.getPool(face)].remove(face)
+                        self.players[self.blessingPlayer].buyFaceShip(face, 2)
+                    self.phase = Phase.MISFORTUNE_1_RESOLVE_SHIPS_FORGE
+                elif move[0] == Move.PASS:
+                    self.players[self.misfortunePlayer].shipsToResolve -= 1
+                    if self.players[self.misfortunePlayer].shipsToResolve == 0:
+                        self.phase = Phase.MISFORTUNE_1_BOAR_CHOICE
+                        self.makeMove((Move.PASS, move[1], ()))
+            case Phase.MISFORTUNE_1_RESOLVE_SHIPS_FORGE:
+                if move[0] == Move.FORGE_FACE:
+                    self.players[self.misfortunePlayer].forgeFace(move[2])
+                    if self.players[self.misfortunePlayer].shipsToResolve > 0:
+                        self.phase = Phase.MISFORTUNE_1_RESOLVE_SHIPS
+                    else:
+                        self.phase = Phase.MISFORTUNE_1_BOAR_CHOICE
+                        self.makeMove((Move.PASS, move[1], ()))
+            case Phase.MISFORTUNE_1_BOAR_CHOICE:
+                if move[0] == Move.BOAR_CHOICE:
+                    match move[2][0]:
+                        case "sun":
+                            self.players[move[1]].gainSun(1, False)
+                        case "moon":
+                            self.players[move[1]].gainMoon(1, False)
+                        case "vp":
+                            self.players[move[1]].gainVP(3)
+                    self.phase = Phase.MISFORTUNE_2
+                    self.makeMove((Move.PASS, move[1], ()))
+                elif not self.players[self.blessingPlayer].die2IsBoar():
+                    self.phase = Phase.MISFORTUNE_2
+                    self.makeMove((Move.PASS, move[1], ()))
+            case Phase.MISFORTUNE_2:
+                if move[0] == Move.CHOOSE_DIE_OR:
+                    self.players[self.misfortunePlayer].orChoice2 = move[2][0]
+                    self.phase = Phase.MISFORTUNE_2_CHOOSE_OR
+                    self.makeMove((Move.PASS, move[1], ()))
+                elif not Data.isMisfortuneFace(self.players[self.blessingPlayer].die2ResultBuffer):
+                    self.phase = Phase.CERBERUS_DECISION
+                    self.makeMove((Move.PASS, move[1], ()))
+            case Phase.MISFORTUNE_2_CHOOSE_OR:
+                if move[0] == Move.CHOOSE_DIE_OR:
+                    self.players[self.misfortunePlayer].orChoice1 = move[2][0]
+                    self.phase = Phase.MISFORTUNE_2_APPLY_EFFECTS
+                    self.makeMove((Move.PASS, move[1], ()))
+                elif not Data.getIsOr(self.players[self.misfortunePlayer].getDie1Result()):
+                    self.phase = Phase.MISFORTUNE_2_APPLY_EFFECTS
+                    self.makeMove((Move.PASS, move[1], ()))
+            case Phase.MISFORTUNE_2_APPLY_EFFECTS:
+                if move[0] == Move.CHOOSE_ADD_HAMMER_SCEPTER:
+                    self.players[self.misfortunePlayer].useHammerOrScepter(move[2][0])
+                    if self.players[self.misfortunePlayer].shipsToResolve == 0:
+                        self.phase = Phase.MISFORTUNE_2_BOAR_CHOICE
+                        self.makeMove((Move.PASS, move[1], ()))
+                    else:
+                        self.phase = Phase.MISFORTUNE_2_RESOLVE_SHIPS
+                        self.makeMove((Move.PASS, move[1], ()))
+                else:
+                    self.players[self.misfortunePlayer].gainDiceEffects(False, False, False)
+                    if self.players[self.misfortunePlayer].goldToGain == 0:
+                        if self.players[self.misfortunePlayer].shipsToResolve == 0:
+                            self.phase = Phase.MISFORTUNE_2_BOAR_CHOICE
+                            self.makeMove((Move.PASS, move[1], ()))
+                        else:
+                            self.phase = Phase.MISFORTUNE_2_RESOLVE_SHIPS
+                            self.makeMove((Move.PASS, move[1], ()))
+            case Phase.MISFORTUNE_2_RESOLVE_SHIPS:
+                if move[0] == Move.BUY_FACES:
+                    self.players[self.misfortunePlayer].shipsToResolve -= 1
+                    for face in move[2]:
+                        self.temple[Data.getPool(face)].remove(face)
+                        self.players[self.blessingPlayer].buyFaceShip(face, 2)
+                    self.phase = Phase.MISFORTUNE_2_RESOLVE_SHIPS_FORGE
+                elif move[0] == Move.PASS:
+                    self.players[self.misfortunePlayer].shipsToResolve -= 1
+                    if self.players[self.misfortunePlayer].shipsToResolve == 0:
+                        self.phase = Phase.MISFORTUNE_2_BOAR_CHOICE
+                        self.makeMove((Move.PASS, move[1], ()))
+            case Phase.MISFORTUNE_2_RESOLVE_SHIPS_FORGE:
+                if move[0] == Move.FORGE_FACE:
+                    self.players[self.misfortunePlayer].forgeFace(move[2])
+                    if self.players[self.misfortunePlayer].shipsToResolve > 0:
+                        self.phase = Phase.MISFORTUNE_1_RESOLVE_SHIPS
+                    else:
+                        self.phase = Phase.MISFORTUNE_2_BOAR_CHOICE
+                        self.makeMove((Move.PASS, move[1], ()))
+            case Phase.MISFORTUNE_2_BOAR_CHOICE:
+                if move[0] == Move.BOAR_CHOICE:
+                    match move[2][0]:
+                        case "sun":
+                            self.players[move[1]].gainSun(1, False)
+                        case "moon":
+                            self.players[move[1]].gainMoon(1, False)
+                        case "vp":
+                            self.players[move[1]].gainVP(3)
+                    self.phase = Phase.CERBERUS_DECISION
+                    self.makeMove((Move.PASS, move[1], ()))
+                elif not self.players[self.blessingPlayer].die1IsBoar():
+                    self.phase = Phase.CERBERUS_DECISION
+                    self.makeMove((Move.PASS, move[1], ()))
+            case Phase.CERBERUS_DECISION:
+                if self.cerberus:
+                    self.cerberus = False
+                    self.phase = Phase.MIRROR_1_CHOICE
+                    self.makeMove((Move.PASS, move[1], ()))
+                elif self.returnPhase == Phase.USE_TWINS_CHOICE:  # start of turn divine blessings
+                    if not self.eternalFire:
+                        self.blessingPlayer = (self.blessingPlayer + 1) % len(self.players)
+                    if self.blessingPlayer == self.activePlayer:
+                        if self.extraRolls > 0:
+                            self.extraRolls -= 1
+                            self.phase = Phase.ROLL_DIE_1
+                        else:
+                            self.players[self.activePlayer].populateReinfEffects()
+                            self.phase = Phase.CHOOSE_REINF_EFFECT
+                            self.eternalFire = False
+                            self.blessing = False
+                            self.makeMove((Move.PASS, move[1], ()))
+                    else:
+                        self.players[self.blessingPlayer].populateTwins()
+                        self.phase = Phase.USE_TWINS_CHOICE
+                        self.makeMove((Move.PASS, move[1], ()))
+                elif self.extraRolls > 0:
+                    self.extraRolls -= 1
+                    self.phase = Phase.BLESSING_ROLL_DIE_1
+                elif self.minotaur:
+                    self.blessingPlayer = (self.blessingPlayer + 1) % len(self.players)
+                    if self.blessingPlayer == self.activePlayer:
+                        self.minotaur = False
+                        self.phase = self.returnPhase
+                        self.makeReturnMove(move[1])
+                    else:
+                        self.phase = Phase.MIRROR_1_CHOICE
+                        self.players[self.blessingPlayer].setBuffers()
+                        self.makeMove((Move.PASS, move[1], ()))
+                elif self.satyrs:
+                    self.satyrs = False
+                    self.phase = self.returnPhase
+                    self.makeReturnMove(move[1])
+                elif self.returnPhase == Phase.LEFT_HAND_ROLL_1_1 or self.returnPhase == Phase.LEFT_HAND_ROLL_1_2:
+                    self.blessingPlayer = (self.blessingPlayer + 1) % len(self.players)
+                    while self.players[self.blessingPlayer].location == 0:
+                        self.blessingPlayer = (self.blessingPlayer + 1) % len(self.players)
+                        if self.blessingPlayer == self.activePlayer:
+                            break
+                    if self.blessingPlayer == self.activePlayer:  # everyone ousted
+                        if self.returnPhase == Phase.LEFT_HAND_ROLL_1_1:
+                            self.phase = Phase.EXTRA_TURN_DECISION
+                        else:
+                            self.phase = Phase.END_TURN
+                        self.makeReturnMove(move[1])
+                    else:
+                        self.players[self.blessingPlayer].checkBears()
+                        self.players[self.blessingPlayer].location = 0
+                        self.phase = self.returnPhase
+                else:
+                    self.phase = self.returnPhase
+                    self.makeReturnMove(move[1])
+            case Phase.SATYRS_CHOOSE_DIE_1:
+                if move[0] == Move.SATYRS_CHOOSE_DIE:
+                    self.players[self.activePlayer].orChoice1 = move[2][0]
+                    self.phase = Phase.SATYRS_CHOOSE_DIE_2
+            case Phase.SATYRS_CHOOSE_DIE_2:
+                if move[0] == Move.SATYRS_CHOOSE_DIE:
+                    self.players[self.activePlayer].orChoice2 = move[2][0]
+                    if self.players[self.activePlayer].orChoice1 % 2 == 0:
+                        self.players[self.activePlayer].die1ResultBuffer = self.players[
+                            self.players[self.activePlayer].orChoice1 // 2].getDie1UpFace()
+                    else:
+                        self.players[self.activePlayer].die1ResultBuffer = self.players[
+                            self.players[self.activePlayer].orChoice1 // 2].getDie2UpFace()
+                    if self.players[self.activePlayer].orChoice2 % 2 == 0:
+                        self.players[self.activePlayer].die2ResultBuffer = self.players[
+                            self.players[self.activePlayer].orChoice2 // 2].getDie1UpFace()
+                    else:
+                        self.players[self.activePlayer].die2ResultBuffer = self.players[
+                            self.players[self.activePlayer].orChoice2 // 2].getDie2UpFace()
+                    self.phase = Phase.MIRROR_1_CHOICE
+                    self.makeMove((Move.PASS, move[1], ()))
+            case Phase.MINOR_CHOOSE_DIE:
+                if move[0] == Move.CHOOSE_DIE:
+                    self.players[self.blessingPlayer].dieChoice = move[2][0]
+                    self.phase = Phase.MINOR_ROLL_DIE
+            case Phase.MINOR_ROLL_DIE:
+                if move[0] == Move.ROLL:
+                    if self.players[self.blessingPlayer].dieChoice:
+                        self.players[self.blessingPlayer].die1.setToFace(move[2][0])
+                    else:
+                        self.players[self.blessingPlayer].die2.setToFace(move[2][0])
+                    self.players[self.blessingPlayer].populateTwins()
+                    self.phase = Phase.MINOR_TWINS_CHOICE
+                    self.makeMove((Move.PASS, move[1], ()))
+                elif move[0] == Move.RANDOM_ROLL:
+                    if self.players[self.blessingPlayer].dieChoice:
+                        self.players[self.blessingPlayer].die1.roll()
+                    else:
+                        self.players[self.blessingPlayer].die2.roll()
+                    self.players[self.blessingPlayer].populateTwins()
+                    self.phase = Phase.MINOR_TWINS_CHOICE
+                    self.makeMove((Move.PASS, move[1], ()))
+            case Phase.MINOR_TWINS_CHOICE:
+                if move[0] == Move.USE_TWINS:
+                    if move[2][0]:
+                        self.players[self.blessingPlayer].gainGold(-3, False)
+                        self.players[self.blessingPlayer].twinsToUse -= 1
+                        self.phase = Phase.MINOR_TWINS_REROLL
+                    else:
+                        self.phase = Phase.MINOR_USE_CERBERUS
+                        self.makeMove((Move.PASS, move[1], ()))
+                elif self.players[self.blessingPlayer].twinsToUse == 0 or self.players[
+                    self.blessingPlayer].getEffectiveGold() < 3:
+                    self.phase = Phase.MINOR_USE_CERBERUS
+                    self.makeMove((Move.PASS, move[1], ()))
+            case Phase.MINOR_TWINS_REROLL:
+                if move[0] == Move.ROLL:
+                    if self.players[self.blessingPlayer].dieChoice:
+                        self.players[self.blessingPlayer].die1.setToFace(move[2][0])
+                    else:
+                        self.players[self.blessingPlayer].die2.setToFace(move[2][0])
+                    if self.players[self.blessingPlayer].hasMaxMoon():  # max moon so gain vp
+                        self.players[self.blessingPlayer].gainVP(1)
+                        self.phase = Phase.MINOR_TWINS_CHOICE
+                        self.makeMove((Move.PASS, move[1], ()))
+                    else:
+                        self.phase = Phase.MINOR_TWINS_RESOURCE
+                elif move[0] == Move.RANDOM_ROLL:
+                    if self.players[self.blessingPlayer].dieChoice:
+                        self.players[self.blessingPlayer].die1.roll()
+                    else:
+                        self.players[self.blessingPlayer].die2.roll()
+                    if self.players[self.blessingPlayer].hasMaxMoon():  # max moon so gain vp
+                        self.players[self.blessingPlayer].gainVP(1)
+                        self.phase = Phase.MINOR_TWINS_CHOICE
+                        self.makeMove((Move.PASS, move[1], ()))
+                    else:
+                        self.phase = Phase.MINOR_TWINS_RESOURCE
+            case Phase.MINOR_TWINS_RESOURCE:
+                if move[0] == Move.TWINS_CHOOSE_RESOURCE:
+                    if move[2][0] == "vp":
+                        self.players[self.blessingPlayer].gainVP(1)
+                    else:
+                        self.players[self.blessingPlayer].gainMoon(1, False)
+                    self.phase = Phase.MINOR_TWINS_CHOICE
+                    self.makeMove((Move.PASS, move[1], ()))
+            case Phase.MINOR_USE_CERBERUS:
+                if move[0] == Move.USE_CERBERUS:
+                    if move[2][0]:
+                        self.players[self.blessingPlayer].cerberusTokens -= 1
+                        self.cerberus = True
+                    self.players[self.blessingPlayer].setBuffers()
+                    self.phase = Phase.MINOR_MIRROR_CHOICE
+                    self.makeMove((Move.PASS, move[1], ()))
+                elif self.players[self.blessingPlayer].cerberusTokens == 0:
+                    self.players[self.blessingPlayer].setBuffers()
+                    self.phase = Phase.MINOR_MIRROR_CHOICE
+                    self.makeMove((Move.PASS, move[1], ()))
+            case Phase.MINOR_MIRROR_CHOICE:
+                if self.players[self.blessingPlayer].dieChoice:
+                    if move[0] == Move.MIRROR_CHOICE:
+                        self.players[self.blessingPlayer].mirrorChoice1 = move[2][0]
+                        self.phase = Phase.MINOR_CHOOSE_OR
+                        self.makeMove((Move.PASS, move[1], ()))
+                    elif self.players[self.blessingPlayer].getDie1UpFace() != Data.DieFace.MIRROR:
+                        self.phase = Phase.MINOR_CHOOSE_OR
+                        self.makeMove((Move.PASS, move[1], ()))
+                else:
+                    if move[0] == Move.MIRROR_CHOICE:
+                        self.players[self.blessingPlayer].mirrorChoice2 = move[2][0]
+                        self.phase = Phase.MINOR_CHOOSE_OR
+                        self.makeMove((Move.PASS, move[1], ()))
+                    elif self.players[self.blessingPlayer].getDie2UpFace() != Data.DieFace.MIRROR:
+                        self.phase = Phase.MINOR_CHOOSE_OR
+                        self.makeMove((Move.PASS, move[1], ()))
+            case Phase.MINOR_CHOOSE_OR:
+                if self.players[self.blessingPlayer].dieChoice:
+                    if move[0] == Move.CHOOSE_DIE_OR:
+                        self.players[self.blessingPlayer].orChoice1 = move[2][0]
+                        if self.cyclops:
+                            self.phase = Phase.CHOOSE_CYCLOPS
+                        else:
+                            self.phase = Phase.MINOR_RESOLVE_EFFECTS
+                        self.makeMove((Move.PASS, move[1], ()))
+                    elif not Data.getIsOr(self.players[self.blessingPlayer].getDie1Result()):
+                        if self.cyclops:
+                            self.phase = Phase.CHOOSE_CYCLOPS
+                        else:
+                            self.phase = Phase.MINOR_RESOLVE_EFFECTS
+                        self.makeMove((Move.PASS, move[1], ()))
+                else:
+                    if move[0] == Move.CHOOSE_DIE_OR:
+                        self.players[self.blessingPlayer].orChoice2 = move[2][0]
+                        if self.cyclops:
+                            self.phase = Phase.CHOOSE_CYCLOPS
+                        else:
+                            self.phase = Phase.MINOR_RESOLVE_EFFECTS
+                        self.makeMove((Move.PASS, move[1], ()))
+                    elif not Data.getIsOr(self.players[self.blessingPlayer].getDie2Result()):
+                        if self.cyclops:
+                            self.phase = Phase.CHOOSE_CYCLOPS
+                        else:
+                            self.phase = Phase.MINOR_RESOLVE_EFFECTS
+                        self.makeMove((Move.PASS, move[1], ()))
+            case Phase.CHOOSE_CYCLOPS:
+                if move[0] == Move.CHOOSE_USE_CYCLOPS:
+                    self.players[self.blessingPlayer].sentinel1Choice = move[2][0]  # reuse sentinel1Choice
+                    self.phase = Phase.MINOR_RESOLVE_EFFECTS
+                    self.makeMove((Move.PASS, move[1], ()))
+                elif not self.players[self.blessingPlayer].canUseCyclops():
+                    self.phase = Phase.MINOR_RESOLVE_EFFECTS
+                    self.makeMove((Move.PASS, move[1], ()))
+            case Phase.MINOR_RESOLVE_EFFECTS:
+                if move[0] == Move.CHOOSE_ADD_HAMMER_SCEPTER:
+                    self.players[self.blessingPlayer].useHammerOrScepter(move[2][0])
+                    self.phase = Phase.MINOR_MAZE_MOVES
+                    self.makeMove((Move.PASS, move[1], ()))
+                else:
+                    if self.players[self.blessingPlayer].gainMinorBlessingEffect(self.cyclops, self.blessing):
+                        for player in self.players:
+                            if player.playerID != self.blessingPlayer:
+                                player.allegiance = Data.getPrev(player.allegiance)
+                    if self.players[self.blessingPlayer].goldToGain == 0:
+                        self.phase = Phase.MINOR_MAZE_MOVES
+                        self.makeMove((Move.PASS, move[1], ()))
+            case Phase.MINOR_MAZE_MOVES:
+                if self.players[self.blessingPlayer].mazeMoves > 0 and self.players[
+                    self.blessingPlayer].mazePosition != 35:
+                    self.phase = Phase.RESOLVE_MAZE_MOVES
+                    self.mazeReturnPhase = Phase.MINOR_MAZE_MOVES
+                    self.makeMove((Move.PASS, move[1], ()))
+                elif self.players[self.blessingPlayer].shipsToResolve == 0:
+                    self.phase = Phase.MINOR_BOAR_CHOICE
+                    self.makeMove((Move.PASS, move[1], ()))
+                else:
+                    self.phase = Phase.MINOR_RESOLVE_SHIPS
+            case Phase.MINOR_RESOLVE_SHIPS:
+                if move[0] == Move.BUY_FACES:
+                    self.players[self.blessingPlayer].shipsToResolve -= 1
+                    for face in move[2]:
+                        self.temple[Data.getPool(face)].remove(face)
+                        self.players[self.blessingPlayer].buyFaceShip(face, 2)
+                    self.phase = Phase.MINOR_RESOLVE_SHIPS_FORGE
+                elif move[0] == Move.PASS:
+                    self.players[self.blessingPlayer].shipsToResolve -= 1
+                    if self.players[self.blessingPlayer].shipsToResolve == 0:
+                        self.phase = Phase.MINOR_BOAR_CHOICE
+                        self.makeMove((Move.PASS, move[1], ()))
+            case Phase.MINOR_RESOLVE_SHIPS_FORGE:
+                if move[0] == Move.FORGE_FACE:
+                    self.players[self.blessingPlayer].forgeFace(move[2])
+                    if self.players[self.blessingPlayer].shipsToResolve > 0:
+                        self.phase = Phase.MINOR_RESOLVE_SHIPS
+                    else:
+                        self.phase = Phase.MINOR_BOAR_CHOICE
+                        self.makeMove((Move.PASS, move[1], ()))
+            case Phase.MINOR_BOAR_CHOICE:
+                if move[0] == Move.BOAR_CHOICE:
+                    match move[2][0]:
+                        case "sun":
+                            self.players[move[1]].gainSun(1, False)
+                        case "moon":
+                            self.players[move[1]].gainMoon(1, False)
+                        case "vp":
+                            self.players[move[1]].gainVP(3)
+                    self.phase = Phase.MINOR_MISFORTUNE
+                    self.makeMove((Move.PASS, move[1], ()))
+                elif (self.players[self.blessingPlayer].dieChoice and not self.players[
+                    self.blessingPlayer].die1IsBoar()) or (
+                        not self.players[self.blessingPlayer].dieChoice and not self.players[
+                    self.blessingPlayer].die2IsBoar()):
+                    self.phase = Phase.MINOR_MISFORTUNE
+                    self.makeMove((Move.PASS, move[1], ()))
+            case Phase.MINOR_MISFORTUNE:
+                if (self.players[self.blessingPlayer].dieChoice and not Data.isMisfortuneFace(
+                        self.players[self.blessingPlayer].die1ResultBuffer)) or (
+                        not self.players[self.blessingPlayer].dieChoice and not Data.isMisfortuneFace(self.players[
+                                                                                                          self.blessingPlayer].die2ResultBuffer)):
+                    self.phase = Phase.MINOR_CERBERUS_DECISION
+                    self.makeMove((Move.PASS, move[1], ()))
+                else:
+                    if self.players[self.blessingPlayer].dieChoice:
+                        self.misfortunePlayer = self.decideMisfortunePlayer(
+                            self.players[self.blessingPlayer].getDie1Result())
+                    else:
+                        self.misfortunePlayer = self.decideMisfortunePlayer(
+                            self.players[self.blessingPlayer].getDie2Result())
+                    self.phase = Phase.MINOR_MISFORTUNE_1_OR
+                    self.makeMove((Move.PASS, move[1], ()))
+            case Phase.MINOR_MISFORTUNE_1_OR:
+                if move[0] == Move.CHOOSE_DIE_OR:
+                    self.players[self.misfortunePlayer].orChoice1 = move[2][0]
+                    self.phase = Phase.MINOR_MISFORTUNE_2_OR
+                    self.makeMove((Move.PASS, move[1], ()))
+                elif not Data.getIsOr(self.players[self.misfortunePlayer].getDie1Result()):
+                    self.phase = Phase.MINOR_MISFORTUNE_2_OR
+                    self.makeMove((Move.PASS, move[1], ()))
+            case Phase.MINOR_MISFORTUNE_2_OR:
+                if move[0] == Move.CHOOSE_DIE_OR:
+                    self.players[self.misfortunePlayer].orChoice2 = move[2][0]
+                    self.phase = Phase.MINOR_MISFORTUNE_RESOLVE
+                    self.makeMove((Move.PASS, move[1], ()))
+                elif not Data.getIsOr(self.players[self.misfortunePlayer].getDie2Result()):
+                    self.phase = Phase.MINOR_MISFORTUNE_RESOLVE
+                    self.makeMove((Move.PASS, move[1], ()))
+            case Phase.MINOR_MISFORTUNE_RESOLVE:
+                if move[0] == Move.CHOOSE_ADD_HAMMER_SCEPTER:
+                    self.players[self.misfortunePlayer].useHammerOrScepter(move[2][0])
+                    if self.players[self.misfortunePlayer].shipsToResolve == 0:
+                        self.phase = Phase.MINOR_CERBERUS_DECISION
+                        self.makeMove((Move.PASS, move[1], ()))
+                    else:
+                        self.phase = Phase.MINOR_MISFORTUNE_SHIPS
+                        self.makeMove((Move.PASS, move[1], ()))
+                else:
+                    self.players[self.misfortunePlayer].gainDiceEffects(False, False, False)
+                    if self.players[self.misfortunePlayer].goldToGain == 0:
+                        if self.players[self.misfortunePlayer].shipsToResolve == 0:
+                            self.phase = Phase.MINOR_CERBERUS_DECISION
+                            self.makeMove((Move.PASS, move[1], ()))
+                        else:
+                            self.phase = Phase.MINOR_MISFORTUNE_SHIPS
+                            self.makeMove((Move.PASS, move[1], ()))
+            case Phase.MINOR_MISFORTUNE_SHIPS:
+                if move[0] == Move.BUY_FACES:
+                    self.players[self.misfortunePlayer].shipsToResolve -= 1
+                    for face in move[2]:
+                        self.temple[Data.getPool(face)].remove(face)
+                        self.players[self.blessingPlayer].buyFaceShip(face, 2)
+                    self.phase = Phase.MINOR_MISFORTUNE_SHIPS_FORGE
+                elif move[0] == Move.PASS:
+                    self.players[self.misfortunePlayer].shipsToResolve -= 1
+                    if self.players[self.misfortunePlayer].shipsToResolve == 0:
+                        self.phase = Phase.MINOR_CERBERUS_DECISION
+                        self.makeMove((Move.PASS, move[1], ()))
+            case Phase.MINOR_MISFORTUNE_SHIPS_FORGE:
+                if move[0] == Move.FORGE_FACE:
+                    self.players[self.misfortunePlayer].forgeFace(move[2])
+                    if self.players[self.misfortunePlayer].shipsToResolve > 0:
+                        self.phase = Phase.MINOR_MISFORTUNE_SHIPS
+                    else:
+                        self.phase = Phase.MINOR_CERBERUS_DECISION
+                        self.makeMove((Move.PASS, move[1], ()))
+            case Phase.MINOR_CERBERUS_DECISION:
+                if self.cerberus:
+                    self.cerberus = False
+                    self.phase = Phase.MINOR_MIRROR_CHOICE
+                    self.makeMove((Move.PASS, move[1], ()))
+                else:
+                    self.blessing = False
+                    self.phase = self.returnPhase
+                    self.makeMove((Move.PASS, move[1], ()))
+            case Phase.CHOOSE_REINF_EFFECT:
+                if not self.players[self.activePlayer].unusedReinfEffects:
+                    self.phase = Phase.ACTIVE_PLAYER_CHOICE_1
+                elif move[0] == Move.CHOOSE_REINF_EFFECT:
+                    self.players[self.activePlayer].unusedReinfEffects.remove(move[2][0])
+                    self.selectReinfState(move[2][0])
+                    self.makeMove((Move.PASS, move[1], ()))
+            case Phase.RESOLVE_ELDER_REINF:
+                if move[0] == Move.USE_ELDER:
+                    if move[2][0]:
+                        self.players[self.activePlayer].gainGold(-3, False)
+                        self.players[self.activePlayer].gainVP(4)
+                    self.phase = Phase.CHOOSE_REINF_EFFECT
+                    self.makeMove(move)
+            case Phase.RESOLVE_OWL_REINF:
+                if move[0] == Move.OWL_CHOICE:
+                    match move[2][0]:
+                        case "gold":
+                            self.players[self.activePlayer].gainGold(1, False)
+                        case "sun":
+                            self.players[self.activePlayer].gainSun(1, False)
+                        case "moon":
+                            self.players[self.activePlayer].gainMoon(1, False)
+                    if self.players[self.activePlayer].goldToGain == 0:
+                        self.phase = Phase.CHOOSE_REINF_EFFECT
+                        self.makeMove((Move.PASS, move[1], ()))
+                elif move[0] == Move.CHOOSE_ADD_HAMMER_SCEPTER:
+                    self.players[self.activePlayer].useHammerOrScepter(move[2][0])
+                    self.phase = Phase.CHOOSE_REINF_EFFECT
+                    self.makeMove((Move.PASS, move[1], ()))
+            case Phase.RESOLVE_HIND_REINF:
+                self.phase = Phase.MINOR_CHOOSE_DIE
+                self.blessingPlayer = self.activePlayer
+                self.blessing = True
+                self.returnPhase = Phase.CHOOSE_REINF_EFFECT
+            case Phase.RESOLVE_TREE_REINF:
+                if move[0] == Move.PASS:
+                    if self.players[self.activePlayer].gold < 8:  # note: this only checks hero inventory reserve
+                        self.players[self.activePlayer].gainGold(3, False)
+                        self.players[self.activePlayer].gainVP(1)
+                    else:
+                        self.players[self.activePlayer].gainVP(2)
+                    if self.players[self.activePlayer].goldToGain == 0:
+                        self.phase = Phase.CHOOSE_REINF_EFFECT
+                        self.makeMove((Move.PASS, move[1], ()))
+                elif move[0] == Move.CHOOSE_ADD_HAMMER_SCEPTER:
+                    self.players[self.activePlayer].useHammerOrScepter(move[2][0])
+                    self.phase = Phase.CHOOSE_REINF_EFFECT
+                    self.makeMove((Move.PASS, move[1], ()))
+            case Phase.RESOLVE_MERCHANT_REINF:
+                if move[0] == Move.MERCHANT_UPGRADE:
+                    self.players[self.activePlayer].gainVP(move[2][0])
+                    if len(move[2]) > 1:
+                        self.temple[Data.getPool(move[2][3])].remove(move[2][3])
+                        self.players[self.activePlayer].upgradeFace(move[2][1], move[2][2], move[2][3])
+                    self.phase = Phase.CHOOSE_REINF_EFFECT
+                    self.makeMove((Move.PASS, move[1], ()))
+            case Phase.RESOLVE_LIGHT_REINF:
+                if move[0] == Move.USE_LIGHT:
+                    if move[2][0]:
+                        self.players[self.activePlayer].gainGold(-3, False)
+                        self.players[self.activePlayer].die1ResultBuffer = move[2][1]
+                        self.players[self.activePlayer].dieChoice = True
+                        self.blessingPlayer = self.activePlayer
+                        self.phase = Phase.MINOR_CHOOSE_OR
+                        self.returnPhase = Phase.CHOOSE_REINF_EFFECT
+                    else:
+                        self.phase = Phase.CHOOSE_REINF_EFFECT
+                    self.makeMove((Move.PASS, move[1], ()))
+            case Phase.RESOLVE_COMPANION_REINF:
+                self.players[self.activePlayer].advanceCompanions()
+                self.phase = Phase.CHOOSE_REINF_EFFECT
+                self.makeMove((Move.PASS, move[1], ()))
+            case Phase.RESOLVE_GUARDIAN_REINF:
+                if move[0] == Move.GUARDIAN_CHOICE:
+                    match move[2][0]:
+                        case "ancientshard":
+                            self.players[self.activePlayer].gainAncientShards(1)
+                        case "loyalty":
+                            self.players[self.activePlayer].gainLoyalty(1)
+                    self.phase = Phase.CHOOSE_REINF_EFFECT
+                    self.makeMove((Move.PASS, move[1], ()))
+            case Phase.RESOLVE_ORACLE_REINF:
+                self.phase = Phase.MINOR_CHOOSE_DIE
+                self.oracle = True
+                self.blessingPlayer = self.activePlayer
+                self.blessing = True
+                self.returnPhase = Phase.CHOOSE_REINF_EFFECT
+            case Phase.ACTIVE_PLAYER_CHOICE_1:
+                if move[0] == Move.CHOOSE_BUY_FACES:
+                    self.phase = Phase.ACTIVE_PLAYER_BUY_FACES_1
+                elif move[0] == Move.CHOOSE_PERFORM_FEAT:
+                    self.phase = Phase.ACTIVE_PLAYER_PERFORM_FEAT_1
+            case Phase.ACTIVE_PLAYER_CHOICE_2:
+                if move[0] == Move.CHOOSE_BUY_FACES:
+                    self.phase = Phase.ACTIVE_PLAYER_BUY_FACES_2
+                elif move[0] == Move.CHOOSE_PERFORM_FEAT:
+                    self.phase = Phase.ACTIVE_PLAYER_PERFORM_FEAT_2
+            case Phase.EXTRA_TURN_DECISION:
+                if move[0] == Move.TAKE_EXTRA_TURN:
+                    if move[2][0]:
+                        self.players[self.activePlayer].gainSun(-2, False)
+                        self.phase = Phase.ACTIVE_PLAYER_CHOICE_2
+                    else:
+                        self.phase = Phase.TURN_START
+                        self.advanceActivePlayer(move[1])
+                elif self.players[self.activePlayer].getEffectiveSun() < 2:
+                    self.phase = Phase.TURN_START
+                    self.advanceActivePlayer(move[1])
+            case Phase.ACTIVE_PLAYER_BUY_FACES_1:
+                if move[0] == Move.BUY_FACES:
+                    for face in move[2]:
+                        self.temple[Data.getPool(face)].remove(face)
+                        self.players[self.activePlayer].buyFace(face)
+                elif move[0] == Move.FORGE_FACE:
+                    self.players[self.activePlayer].forgeFace(move[2])
+                    if not self.players[self.activePlayer].unforgedFaces:
+                        self.phase = Phase.EXTRA_TURN_DECISION
+                        self.makeMove((Move.PASS, move[1], ()))
+                elif move[0] == Move.PASS:
+                    self.phase = Phase.EXTRA_TURN_DECISION
+                    self.makeMove((Move.PASS, move[1], ()))
+            case Phase.ACTIVE_PLAYER_BUY_FACES_2:
+                if move[0] == Move.BUY_FACES:
+                    for face in move[2]:
+                        self.temple[Data.getPool(face)].remove(face)
+                        self.players[self.activePlayer].buyFace(face)
+                elif move[0] == Move.FORGE_FACE:
+                    self.players[self.activePlayer].forgeFace(move[2])
+                    if not self.players[self.activePlayer].unforgedFaces:
+                        self.phase = Phase.TURN_START
+                        self.advanceActivePlayer(move[1])
+                elif move[0] == Move.PASS:
+                    self.phase = Phase.TURN_START
+                    self.advanceActivePlayer(move[1])
+            case Phase.ACTIVE_PLAYER_PERFORM_FEAT_1:
+                if move[0] == Move.PERFORM_FEAT:
+                    island = Data.getIsland(move[2][0])
+                    ousted = False
+                    for player in self.players:
+                        if player.location == island and player.playerID != self.activePlayer:
+                            ousted = True
+                            self.oust(player, 1)
+                            break
+                    self.players[self.activePlayer].location = island
+                    if ousted:
+                        self.islandChoice = Data.getPosition(move[2][0])
+                    else:
+                        if Data.getEffectLevel(self.players[self.activePlayer].allegiance) < 0:
+                            self.checkRebellionEffects(self.players[self.activePlayer], move[2][0])
+                        self.checkMemories(move[2][0], self.activePlayer)
+                        self.islands[Data.getPosition(move[2][0])].remove(move[2][0])
+                        self.players[self.activePlayer].performFeat(move[2][0])
+                        effect = Data.getEffect(move[2][0])
+                        if "INST" in effect:
+                            self.resolveInstEffect(effect)
+                        else:
+                            self.makeMove((Move.PASS, move[1], ()))
+                elif move[0] == Move.RETURN_TO_FEAT:
+                    feat = self.islands[self.islandChoice][0]
+                    if Data.getEffectLevel(self.players[self.activePlayer].allegiance) < 0:
+                        self.checkRebellionEffects(self.players[self.activePlayer], feat)
+                    self.checkMemories(feat, self.activePlayer)
+                    self.islands[self.islandChoice].remove(feat)
+                    self.players[self.activePlayer].performFeat(feat)
+                    effect = Data.getEffect(feat)
+                    if "INST" in effect:
+                        self.resolveInstEffect(effect)
+                    else:
+                        self.makeMove((Move.PASS, move[1], ()))
+                elif move[0] == Move.CHOOSE_ADD_HAMMER_SCEPTER:
+                    self.players[self.activePlayer].useHammerOrScepter(move[2][0])
+                    self.phase = Phase.EXTRA_TURN_DECISION
+                    self.makeMove((Move.PASS, move[1], ()))
+                elif move[0] == Move.PASS:
+                    self.phase = Phase.EXTRA_TURN_DECISION
+                    self.makeMove((Move.PASS, move[1], ()))
+            case Phase.ACTIVE_PLAYER_PERFORM_FEAT_2:
+                if move[0] == Move.PERFORM_FEAT:
+                    island = Data.getIsland(move[2][0])
+                    ousted = False
+                    for player in self.players:
+                        if player.location == island and player.playerID != self.activePlayer:
+                            ousted = True
+                            self.oust(player, 2)
+                            break
+                    self.players[self.activePlayer].location = island
+                    if ousted:
+                        self.islandChoice = Data.getPosition(move[2][0])
+                    else:
+                        if Data.getEffectLevel(self.players[self.activePlayer].allegiance) < 0:
+                            self.checkRebellionEffects(self.players[self.activePlayer], move[2][0])
+                        self.checkMemories(move[2][0], self.activePlayer)
+                        self.islands[Data.getPosition(move[2][0])].remove(move[2][0])
+                        self.players[self.activePlayer].performFeat(move[2][0])
+                        effect = Data.getEffect(move[2][0])
+                        if "INST" in effect:
+                            self.resolveInstEffect(effect)
+                        else:
+                            self.makeMove((Move.PASS, move[1], ()))
+                elif move[0] == Move.RETURN_TO_FEAT:
+                    feat = self.islands[self.islandChoice][0]
+                    if Data.getEffectLevel(self.players[self.activePlayer].allegiance) < 0:
+                        self.checkRebellionEffects(self.players[self.activePlayer], feat)
+                        self.checkMemories(feat, self.activePlayer)
+                    self.islands[self.islandChoice].remove(feat)
+                    self.players[self.activePlayer].performFeat(feat)
+                    effect = Data.getEffect(feat)
+                    if "INST" in effect:
+                        self.resolveInstEffect(effect)
+                    else:
+                        self.makeMove((Move.PASS, move[1], ()))
+                elif move[0] == Move.CHOOSE_ADD_HAMMER_SCEPTER:
+                    self.players[self.activePlayer].useHammerOrScepter(move[2][0])
+                    self.phase = Phase.TURN_START
+                    self.advanceActivePlayer(move[1])
+                elif move[0] == Move.PASS:
+                    self.phase = Phase.TURN_START
+                    self.advanceActivePlayer(move[1])
+            case Phase.CHOOSE_SHIELD_FACE_1 | Phase.CHOOSE_CHAOS_FACE_1 | Phase.CHOOSE_DOGGED_FACE_1:
+                if move[0] == Move.BUY_FACES:
+                    self.players[self.activePlayer].unforgedFaces.append(move[2][0])
+                elif move[0] == Move.FORGE_FACE:
+                    self.players[self.activePlayer].forgeFace(move[2])
+                    self.phase = Phase.EXTRA_TURN_DECISION
+                    self.makeMove((Move.PASS, move[1], ()))
+            case Phase.CHOOSE_SHIELD_FACE_2 | Phase.CHOOSE_CHAOS_FACE_2 | Phase.CHOOSE_DOGGED_FACE_2:
+                if move[0] == Move.BUY_FACES:
+                    self.players[self.activePlayer].unforgedFaces.append(move[2][0])
+                elif move[0] == Move.FORGE_FACE:
+                    self.players[self.activePlayer].forgeFace(move[2])
+                    self.phase = Phase.TURN_START
+                    self.advanceActivePlayer(move[1])
+            case Phase.FORGE_FEAT_FACE_1:
+                if move[0] == Move.FORGE_FACE:
+                    self.players[self.activePlayer].forgeFace(move[2])
+                    self.phase = Phase.EXTRA_TURN_DECISION
+                    self.makeMove((Move.PASS, move[1], ()))
+            case Phase.FORGE_FEAT_FACE_2:
+                if move[0] == Move.FORGE_FACE:
+                    self.players[self.activePlayer].forgeFace(move[2])
+                    self.phase = Phase.TURN_START
+                    self.advanceActivePlayer(move[1])
+            case Phase.CHOOSE_BOAR_MISFORTUNE_PLAYER_1:
+                if move[0] == Move.CHOOSE_BOAR_PLAYER:
+                    self.blessingPlayer = move[2][0]  # use blessing player variable for boar face player
+                    self.phase = Phase.FORGE_BOAR_MISFORTUNE_1
+            case Phase.FORGE_BOAR_MISFORTUNE_1:
+                if move[0] == Move.FORGE_FACE:
+                    self.players[self.blessingPlayer].forgeBoarMisfortuneFace(move[2])
+                    self.phase = Phase.EXTRA_TURN_DECISION
+                    self.makeMove((Move.PASS, move[1], ()))
+            case Phase.CHOOSE_BOAR_MISFORTUNE_PLAYER_2:
+                if move[0] == Move.CHOOSE_BOAR_PLAYER:
+                    self.blessingPlayer = move[2][0]  # use blessing player variable for boar face player
+                    self.phase = Phase.FORGE_BOAR_MISFORTUNE_2
+            case Phase.FORGE_BOAR_MISFORTUNE_2:
+                if move[0] == Move.FORGE_FACE:
+                    self.players[self.blessingPlayer].forgeBoarMisfortuneFace(move[2])
+                    self.phase = Phase.TURN_START
+                    self.advanceActivePlayer(move[1])
+            case Phase.NYMPH_1:
+                if move[0] == Move.CHOOSE_ADD_HAMMER_SCEPTER:
+                    self.players[self.activePlayer].useHammerOrScepter(move[2][0])
+                elif move[0] == Move.BUY_FACES:
+                    self.temple[Data.getPool(move[2][0])].remove(move[2][0])
+                    self.players[self.activePlayer].buyFace(move[2][0])
+                elif move[0] == Move.FORGE_FACE:
+                    self.players[self.activePlayer].forgeFace(move[2])
+                    self.phase = Phase.EXTRA_TURN_DECISION
+                    self.makeMove((Move.PASS, move[1], ()))
+                elif move[0] == Move.PASS:
+                    self.phase = Phase.EXTRA_TURN_DECISION
+                    self.makeMove((Move.PASS, move[1], ()))
+            case Phase.NYMPH_2:
+                if move[0] == Move.CHOOSE_ADD_HAMMER_SCEPTER:
+                    self.players[self.activePlayer].useHammerOrScepter(move[2][0])
+                elif move[0] == Move.BUY_FACES:
+                    self.temple[Data.getPool(move[2][0])].remove(move[2][0])
+                    self.players[self.activePlayer].buyFace(move[2][0])
+                elif move[0] == Move.FORGE_FACE:
+                    self.players[self.activePlayer].forgeFace(move[2])
+                    self.phase = Phase.TURN_START
+                    self.advanceActivePlayer(move[1])
+                elif move[0] == Move.PASS:
+                    self.phase = Phase.TURN_START
+                    self.advanceActivePlayer(move[1])
+            case Phase.TRIDENT_1:
+                if move[0] == Move.BUY_FACES:
+                    if move[2][0] == Data.DieFace.REDSHIELD or move[2][0] == Data.DieFace.REDSHIELD or move[2][
+                        0] == Data.DieFace.REDSHIELD or move[2][0] == Data.DieFace.REDSHIELD:
+                        self.shields.remove(move[2][0])
+                    elif Data.getPool(move[2][0]) != -1:
+                        self.temple[Data.getPool(move[2][0])].remove(move[2][0])
+                    self.players[self.activePlayer].unforgedFaces.append(move[2][0])
+                elif move[0] == Move.FORGE_FACE:
+                    self.players[self.activePlayer].forgeFace(move[2])
+                    self.phase = Phase.EXTRA_TURN_DECISION
+                    self.makeMove((Move.PASS, move[1], ()))
+                elif move[0] == Move.PASS:
+                    self.phase = Phase.EXTRA_TURN_DECISION
+                    self.makeMove((Move.PASS, move[1], ()))
+            case Phase.TRIDENT_2:
+                if move[0] == Move.BUY_FACES:
+                    if move[2][0] == Data.DieFace.REDSHIELD or move[2][0] == Data.DieFace.REDSHIELD or move[2][
+                        0] == Data.DieFace.REDSHIELD or move[2][0] == Data.DieFace.REDSHIELD:
+                        self.shields.remove(move[2][0])
+                    elif Data.getPool(move[2][0]) != -1:
+                        self.temple[Data.getPool(move[2][0])].remove(move[2][0])
+                    self.players[self.activePlayer].unforgedFaces.append(move[2][0])
+                elif move[0] == Move.FORGE_FACE:
+                    self.players[self.activePlayer].forgeFace(move[2])
+                    self.phase = Phase.TURN_START
+                    self.advanceActivePlayer(move[1])
+                elif move[0] == Move.PASS:
+                    self.phase = Phase.TURN_START
+                    self.advanceActivePlayer(move[1])
+            case Phase.GODDESS_CHOOSE_FACES:
+                if move[0] == Move.CHOOSE_FACES:
+                    self.players[self.activePlayer].die1.setToFace(move[2][0])
+                    self.players[self.activePlayer].die2.setToFace(move[2][1])
+                    self.players[self.activePlayer].setBuffers()
+                    self.blessingPlayer = self.activePlayer
+                    self.phase = Phase.MIRROR_1_CHOICE
+                    self.makeMove((Move.PASS, move[1], ()))
+            case Phase.RIGHTHAND_1:
+                if move[0] == Move.RIGHTHAND_SPEND:
+                    self.players[self.activePlayer].gainGold(-move[2][0], False)
+                    self.players[self.activePlayer].gainVP(move[2][0])
+                    self.phase = Phase.EXTRA_TURN_DECISION
+                    self.makeMove((Move.PASS, move[1], ()))
+            case Phase.RIGHTHAND_2:
+                if move[0] == Move.RIGHTHAND_SPEND:
+                    self.players[self.activePlayer].gainGold(-move[2][0], False)
+                    self.players[self.activePlayer].gainVP(move[2][0])
+                    self.phase = Phase.TURN_START
+                    self.advanceActivePlayer(move[1])
+            case Phase.WIND_ROLL_DIE_1:
+                if move[0] == Move.ROLL:
+                    self.players[self.blessingPlayer].die1.setToFace(move[2][0])
+                    self.phase = Phase.WIND_ROLL_DIE_2
+                elif move[0] == Move.RANDOM_ROLL:
+                    self.players[self.blessingPlayer].die1.roll()
+                    self.phase = Phase.WIND_ROLL_DIE_2
+            case Phase.WIND_ROLL_DIE_2:
+                if move[0] == Move.ROLL:
+                    self.players[self.blessingPlayer].die2.setToFace(move[2][0])
+                    self.blessingPlayer = (self.blessingPlayer + 1) % len(self.players)
+                    if self.blessingPlayer == self.activePlayer:
+                        self.phase = Phase.WIND_CHOOSE_RESOURCE
+                    else:
+                        self.phase = Phase.WIND_ROLL_DIE_1
+                elif move[0] == Move.RANDOM_ROLL:
+                    self.players[self.blessingPlayer].die2.roll()
+                    self.blessingPlayer = (self.blessingPlayer + 1) % len(self.players)
+                    if self.blessingPlayer == self.activePlayer:
+                        self.phase = Phase.WIND_CHOOSE_RESOURCE
+                    else:
+                        self.phase = Phase.WIND_ROLL_DIE_1
+            case Phase.WIND_CHOOSE_RESOURCE:
+                if move[0] == Move.CHOOSE_RESOURCE:
+                    for player in self.players:
+                        self.players[self.activePlayer].gainWindResources(player.getDie1UpFace(), move[2][0])
+                        self.players[self.activePlayer].gainWindResources(player.getDie2UpFace(), move[2][0])
+                    self.phase = self.returnPhase
+                    self.makeReturnMove(self.activePlayer)
+            case Phase.USE_ANCESTOR:
+                if move[0] == Move.BUY_FACES:
+                    self.temple[Data.getPool(move[2][0])].remove(move[2][0])
+                    self.players[self.activePlayer].unforgedFaces.append(move[2][0])
+                elif move[0] == Move.FORGE_FACE:
+                    self.players[self.activePlayer].forgeFace(move[2])
+                    self.players[self.activePlayer].dieChoice = move[2][0]
+                    self.blessingPlayer = self.activePlayer
+                    self.blessing = True
+                    self.phase = Phase.MINOR_ROLL_DIE
+                elif move[0] == Move.PASS:
+                    self.blessingPlayer = self.activePlayer
+                    self.blessing = True
+                    self.phase = Phase.MINOR_CHOOSE_DIE
+            case Phase.TITAN_1:
+                if move[0] == Move.PERFORM_FEAT:
+                    if Data.getEffectLevel(self.players[self.activePlayer].allegiance) < 0:
+                        self.checkRebellionEffects(self.players[self.activePlayer], move[2][0])
+                    self.checkMemories(move[2][0], self.activePlayer)
+                    self.islands[Data.getPosition(move[2][0])].remove(move[2][0])
+                    self.players[self.activePlayer].performFreeFeat(move[2][0])
+                    effect = Data.getEffect(move[2][0])
+                    if "INST" in effect:
+                        self.resolveInstEffect(effect)
+                    else:
+                        self.makeMove((Move.PASS, move[1], ()))
+                elif move[0] == Move.CHOOSE_ADD_HAMMER_SCEPTER:
+                    self.players[self.activePlayer].useHammerOrScepter(move[2][0])
+                    self.phase = Phase.EXTRA_TURN_DECISION
+                    self.makeMove((Move.PASS, move[1], ()))
+                elif move[0] == Move.PASS:
+                    self.phase = Phase.EXTRA_TURN_DECISION
+                    self.makeMove((Move.PASS, move[1], ()))
+            case Phase.TITAN_2:
+                if move[0] == Move.PERFORM_FEAT:
+                    if Data.getEffectLevel(self.players[self.activePlayer].allegiance) < 0:
+                        self.checkRebellionEffects(self.players[self.activePlayer], move[2][0])
+                    self.checkMemories(move[2][0], self.activePlayer)
+                    self.islands[Data.getPosition(move[2][0])].remove(move[2][0])
+                    self.players[self.activePlayer].performFreeFeat(move[2][0])
+                    effect = Data.getEffect(move[2][0])
+                    if "INST" in effect:
+                        self.resolveInstEffect(effect)
+                    else:
+                        self.makeMove((Move.PASS, move[1], ()))
+                elif move[0] == Move.CHOOSE_ADD_HAMMER_SCEPTER:
+                    self.players[self.activePlayer].useHammerOrScepter(move[2][0])
+                    self.phase = Phase.TURN_START
+                    self.advanceActivePlayer(move[1])
+                elif move[0] == Move.PASS:
+                    self.phase = Phase.TURN_START
+                    self.advanceActivePlayer(move[1])
+            case Phase.LEFT_HAND_ROLL_1_1 | Phase.LEFT_HAND_ROLL_1_2:
+                if move[0] == Move.ROLL:
+                    self.players[self.blessingPlayer].die1.setToFace(move[2][0])
+                    self.returnPhase = self.phase
+                    self.phase = Phase.LEFT_HAND_ROLL_2
+                elif move[0] == Move.RANDOM_ROLL:
+                    self.players[self.blessingPlayer].die1.roll()
+                    self.returnPhase = self.phase
+                    self.phase = Phase.LEFT_HAND_ROLL_2
+            case Phase.LEFT_HAND_ROLL_2:
+                if move[0] == Move.ROLL:
+                    self.players[self.blessingPlayer].die2.setToFace(move[2][0])
+                    self.players[self.activePlayer].die1ResultBuffer = self.players[self.blessingPlayer].getDie1UpFace()
+                    self.players[self.activePlayer].die2ResultBuffer = self.players[self.blessingPlayer].getDie2UpFace()
+                    self.blessingPlayer = self.activePlayer
+                    self.phase = Phase.MIRROR_1_CHOICE
+                    self.makeMove((Move.PASS, move[1], ()))
+                elif move[0] == Move.RANDOM_ROLL:
+                    self.players[self.blessingPlayer].die2.roll()
+                    self.players[self.activePlayer].die1ResultBuffer = self.players[self.blessingPlayer].getDie1UpFace()
+                    self.players[self.activePlayer].die2ResultBuffer = self.players[self.blessingPlayer].getDie2UpFace()
+                    self.blessingPlayer = self.activePlayer
+                    self.makeMove((Move.PASS, move[1], ()))
+            case Phase.CHOOSE_MEMORY_1:
+                if move[0] == Move.CHOOSE_MEMORY:
+                    self.memories.append((move[2][0], move[2][1], self.activePlayer))
+                    self.memories.append((move[2][2], move[2][3], self.activePlayer))
+                    self.phase = Phase.EXTRA_TURN_DECISION
+                    self.makeMove((Move.PASS, move[1], ()))
+            case Phase.CHOOSE_MEMORY_2:
+                if move[0] == Move.CHOOSE_MEMORY:
+                    self.memories.append((move[2][0], move[2][1], self.activePlayer))
+                    self.memories.append((move[2][2], move[2][3], self.activePlayer))
+                    self.phase = Phase.TURN_START
+                    self.advanceActivePlayer(move[1])
+            case Phase.ROLL_CELESTIAL_DIE:
+                if move[0] == Move.ROLL or move[0] == Move.RANDOM_ROLL:
+                    self.players[self.celestialPlayer].celestialRolls -= 1
+                    if move[0] == Move.RANDOM_ROLL:
+                        self.players[self.celestialPlayer].celestialResultBuffer = self.celestialDieRandomRoll()
+                    else:
+                        self.players[self.celestialPlayer].celestialResultBuffer = move[2][0]
+                    self.players[self.celestialPlayer].populateTwins()
+                    self.phase = Phase.CELESTIAL_USE_TWINS_CHOICE
+                    self.makeMove((Move.PASS, move[1], ()))
+                elif move[0] == Move.PASS and self.players[self.celestialPlayer].celestialRolls == 0:
+                    if self.players[self.celestialPlayer].mazeMoves == 0:
+                        self.phase = self.celestialReturnPhase
+                        self.makeMove((Move.PASS, move[1], ()))
+                    else:
+                        self.phase = Phase.RESOLVE_MAZE_MOVES
+                        if self.celestialReturnPhase != Phase.RESOLVE_MAZE_MOVES:
+                            self.mazeReturnPhase = self.celestialReturnPhase
+                        self.blessingPlayer = self.celestialPlayer
+                        self.makeMove((Move.PASS, move[1], ()))
+            case Phase.CELESTIAL_USE_TWINS_CHOICE:  # call populateTwins() before entering this state for the first time
+                if move[0] == Move.USE_TWINS:
+                    if move[2][0]:
+                        self.players[self.celestialPlayer].gainGold(-3, False)
+                        self.players[self.celestialPlayer].twinsToUse -= 1
+                        self.phase = Phase.CELESTIAL_TWINS_REROLL
+                    else:
+                        self.phase = Phase.CELESTIAL_RESOLVE_EFFECT
+                        self.makeMove((Move.PASS, move[1], ()))
+                elif self.players[self.celestialPlayer].twinsToUse == 0 or self.players[
+                    self.celestialPlayer].getEffectiveGold() < 3:
+                    self.phase = Phase.CELESTIAL_RESOLVE_EFFECT
+                    self.makeMove((Move.PASS, move[1], ()))
+            case Phase.CELESTIAL_TWINS_REROLL:
+                if move[0] == Move.ROLL or move[0] == Move.RANDOM_ROLL:
+                    if move[0] == Move.RANDOM_ROLL:
+                        self.players[self.celestialPlayer].celestialResultBuffer = self.celestialDieRandomRoll()
+                    else:
+                        self.players[self.celestialPlayer].celestialResultBuffer = move[2][0]
+                    if self.players[self.celestialPlayer].hasMaxMoon():  # max moon so gain vp
+                        self.players[self.celestialPlayer].gainVP(1)
+                        self.phase = Phase.CELESTIAL_USE_TWINS_CHOICE
+                        self.makeMove((Move.PASS, move[1], ()))
+                    else:
+                        self.phase = Phase.CELESTIAL_TWINS_RESOURCE_CHOICE
+            case Phase.CELESTIAL_TWINS_RESOURCE_CHOICE:
+                if move[0] == Move.TWINS_CHOOSE_RESOURCE:
+                    if move[2][0] == "vp":
+                        self.players[self.celestialPlayer].gainVP(1)
+                    else:
+                        self.players[self.celestialPlayer].gainMoon(1, False)
+                    self.phase = Phase.CELESTIAL_USE_TWINS_CHOICE
+                    self.makeMove((Move.PASS, move[1], ()))
+            case Phase.CELESTIAL_RESOLVE_EFFECT:
+                if move[0] == Move.CHOOSE_ADD_HAMMER_SCEPTER:
+                    self.players[self.celestialPlayer].useHammerOrScepter(move[2][0])
+                    self.phase = Phase.ROLL_CELESTIAL_DIE
+                    self.makeMove((Move.PASS, move[1], ()))
+                else:
+                    match self.players[self.celestialPlayer].celestialResultBuffer:
+                        case Data.DieFace.CELESTIAL12GOLD:
+                            self.players[self.celestialPlayer].gainGold(12, False)
+                        case Data.DieFace.CELESTIAL5VP:
+                            self.players[self.celestialPlayer].gainVP(5)
+                        case Data.DieFace.CELESTIAL3VPAND3GOLD1SUN1MOONOR:
+                            self.players[self.celestialPlayer].gainVP(3)
+                            self.phase = Phase.CELESTIAL_CHOOSE_OR
+                        case Data.DieFace.CELESTIALMIRROR:
+                            self.phase = Phase.CELESTIAL_CHOOSE_MIRROR
+                        case Data.DieFace.CELESTIALGODDESS:
+                            self.phase = Phase.CELESTIAL_CHOOSE_GODDESS
+                        case Data.DieFace.CELESTIALUPGRADE:
+                            self.phase = Phase.CELESTIAL_CHOOSE_UPGRADE
+                    if self.phase == Phase.CELESTIAL_RESOLVE_EFFECT and self.players[
+                        self.celestialPlayer].goldToGain == 0:
+                        self.phase = Phase.ROLL_CELESTIAL_DIE
+                        self.makeMove((Move.PASS, move[1], ()))
+            case Phase.CELESTIAL_CHOOSE_OR:
+                if move[0] == Move.CHOOSE_ADD_HAMMER_SCEPTER:
+                    self.players[self.celestialPlayer].useHammerOrScepter(move[2][0])
+                    self.phase = Phase.ROLL_CELESTIAL_DIE
+                    self.makeMove((Move.PASS, move[1], ()))
+                elif move[0] == Move.CHOOSE_CELESTIAL_DIE_OR:
+                    if move[2][0] == 0:
+                        self.players[self.celestialPlayer].gainGold(3, False)
+                    elif move[2][0] == 1:
+                        self.players[self.celestialPlayer].gainSun(1, False)
+                    elif move[2][0] == 2:
+                        self.players[self.celestialPlayer].gainMoon(1, False)
+                    if self.players[self.celestialPlayer].goldToGain == 0:
+                        self.phase = Phase.ROLL_CELESTIAL_DIE
+                        self.makeMove((Move.PASS, move[1], ()))
+            case Phase.CELESTIAL_CHOOSE_UPGRADE:
+                if move[0] == Move.CELESTIAL_UPGRADE:
+                    self.temple[Data.getPool(move[2][2])].remove(move[2][2])
+                    self.players[self.celestialPlayer].upgradeFace(move[2][0], move[2][1], move[2][2])
+                    self.phase = Phase.ROLL_CELESTIAL_DIE
+                    self.makeMove((Move.PASS, move[1], ()))
+                elif move[0] == Move.PASS:
+                    self.phase = Phase.ROLL_CELESTIAL_DIE
+                    self.makeMove((Move.PASS, move[1], ()))
+            case Phase.CELESTIAL_CHOOSE_MIRROR:
+                if move[0] == Move.CELESTIAL_MIRROR_CHOICE:
+                    self.players[self.celestialPlayer].celestialResultBuffer = move[2][0]
+                    self.phase = Phase.CELESTIAL_RESOLVE_DIE_OR
+                    self.makeMove((Move.PASS, move[1], ()))
+            case Phase.CELESTIAL_CHOOSE_GODDESS:
+                if move[0] == Move.CELESTIAL_GODDESS:
+                    if move[2][0]:
+                        self.players[self.celestialPlayer].die1.setToFace(move[2][1])
+                    else:
+                        self.players[self.celestialPlayer].die2.setToFace(move[2][1])
+                    self.players[self.celestialPlayer].celestialResultBuffer = move[2][1]
+                    self.phase = Phase.CELESTIAL_RESOLVE_DIE_MIRROR
+                    self.makeMove((Move.PASS, move[1], ()))
+            case Phase.CELESTIAL_RESOLVE_DIE_MIRROR:
+                if move[0] == Move.MIRROR_CHOICE:
+                    self.players[self.celestialPlayer].celestialResultBuffer = move[2][0]
+                    self.phase = Phase.CELESTIAL_RESOLVE_DIE_OR
+                    self.makeMove((Move.PASS, move[1], ()))
+                elif self.players[self.celestialPlayer].celestialResultBuffer != Data.DieFace.MIRROR:
+                    self.phase = Phase.CELESTIAL_RESOLVE_DIE_OR
+                    self.makeMove((Move.PASS, move[1], ()))
+            case Phase.CELESTIAL_RESOLVE_DIE_OR:
+                if move[0] == Move.CHOOSE_DIE_OR:
+                    self.players[self.celestialPlayer].celestialOrChoice = move[2][0]
+                    self.phase = Phase.CELESTIAL_RESOLVE_DIE_EFFECT
+                    self.makeMove((Move.PASS, move[1], ()))
+                elif not Data.getIsOr(self.players[self.celestialPlayer].celestialResultBuffer):
+                    self.phase = Phase.CELESTIAL_RESOLVE_DIE_EFFECT
+                    self.makeMove((Move.PASS, move[1], ()))
+            case Phase.CELESTIAL_RESOLVE_DIE_EFFECT:
+                if move[0] == Move.CHOOSE_ADD_HAMMER_SCEPTER:
+                    self.players[self.celestialPlayer].useHammerOrScepter(move[2][0])
+                    if self.players[self.celestialPlayer].shipsToResolve > 0:
+                        self.phase = Phase.CELESTIAL_RESOLVE_SHIPS
+                    else:
+                        self.phase = Phase.CELESTIAL_BOAR_CHOICE
+                        self.makeMove((Move.PASS, move[1], ()))
+                else:
+                    self.players[self.celestialPlayer].gainCelestialDieEffects()
+                    if self.players[self.celestialPlayer].goldToGain == 0:
+                        if self.players[self.celestialPlayer].shipsToResolve > 0:
+                            self.phase = Phase.CELESTIAL_RESOLVE_SHIPS
+                        else:
+                            self.phase = Phase.CELESTIAL_BOAR_CHOICE
+                            self.makeMove((Move.PASS, move[1], ()))
+            case Phase.CELESTIAL_RESOLVE_SHIPS:
+                if move[0] == Move.BUY_FACES:
+                    self.players[self.celestialPlayer].shipsToResolve -= 1
+                    for face in move[2]:
+                        self.temple[Data.getPool(face)].remove(face)
+                        self.players[self.celestialPlayer].buyFaceShip(face, 2)
+                    self.phase = Phase.CELESTIAL_RESOLVE_SHIPS_FORGE
+                elif move[0] == Move.PASS:
+                    self.players[self.celestialPlayer].shipsToResolve -= 1
+                    if self.players[self.celestialPlayer].shipsToResolve == 0:
+                        self.phase = Phase.CELESTIAL_BOAR_CHOICE
+                        self.makeMove((Move.PASS, move[1], ()))
+            case Phase.CELESTIAL_RESOLVE_SHIPS_FORGE:
+                if move[0] == Move.FORGE_FACE:
+                    self.players[self.celestialPlayer].forgeFace(move[2])
+                    if self.players[self.celestialPlayer].shipsToResolve > 0:
+                        self.phase = Phase.CELESTIAL_RESOLVE_SHIPS
+                    else:
+                        self.phase = Phase.CELESTIAL_BOAR_CHOICE
+                        self.makeMove((Move.PASS, move[1], ()))
+            case Phase.CELESTIAL_BOAR_CHOICE:
+                if move[0] == Move.BOAR_CHOICE:
+                    match move[2][0]:
+                        case "sun":
+                            self.players[move[1]].gainSun(1, False)
+                        case "moon":
+                            self.players[move[1]].gainMoon(1, False)
+                        case "vp":
+                            self.players[move[1]].gainVP(3)
+                    self.phase = Phase.CELESTIAL_MISFORTUNE
+                    self.makeMove((Move.PASS, move[1], ()))
+                elif not self.players[self.celestialPlayer].celestialIsBoar():
+                    self.phase = Phase.CELESTIAL_MISFORTUNE
+                    self.makeMove((Move.PASS, move[1], ()))
+            case Phase.CELESTIAL_MISFORTUNE:
+                if move[0] == Move.CHOOSE_DIE_OR:
+                    self.players[self.misfortunePlayer].orChoice1 = move[2][0]
+                    self.phase = Phase.CELESTIAL_MISFORTUNE_OR
+                    self.makeMove((Move.PASS, move[1], ()))
+                elif not Data.isMisfortuneFace(self.players[self.celestialPlayer].celestialResultBuffer):
+                    self.phase = Phase.ROLL_CELESTIAL_DIE
+                    self.makeMove((Move.PASS, move[1], ()))
+            case Phase.CELESTIAL_MISFORTUNE_OR:
+                if move[0] == Move.CHOOSE_DIE_OR:
+                    self.players[self.misfortunePlayer].orChoice2 = move[2][0]
+                    self.phase = Phase.CELESTIAL_MISFORTUNE_EFFECTS
+                    self.makeMove((Move.PASS, move[1], ()))
+                elif not Data.getIsOr(self.players[self.misfortunePlayer].getDie2Result()):
+                    self.phase = Phase.CELESTIAL_MISFORTUNE_EFFECTS
+                    self.makeMove((Move.PASS, move[1], ()))
+            case Phase.CELESTIAL_MISFORTUNE_EFFECTS:
+                if move[0] == Move.CHOOSE_ADD_HAMMER_SCEPTER:
+                    self.players[self.misfortunePlayer].useHammerOrScepter(move[2][0])
+                    if self.players[self.misfortunePlayer].shipsToResolve == 0:
+                        self.phase = Phase.ROLL_CELESTIAL_DIE
+                        self.makeMove((Move.PASS, move[1], ()))
+                    else:
+                        self.phase = Phase.CELESTIAL_MISFORTUNE_SHIPS
+                        self.makeMove((Move.PASS, move[1], ()))
+                else:
+                    self.players[self.misfortunePlayer].gainDiceEffects(False, False, False)
+                    if self.players[self.misfortunePlayer].goldToGain == 0:
+                        if self.players[self.misfortunePlayer].shipsToResolve == 0:
+                            self.phase = Phase.ROLL_CELESTIAL_DIE
+                            self.makeMove((Move.PASS, move[1], ()))
+                        else:
+                            self.phase = Phase.CELESTIAL_MISFORTUNE_SHIPS
+                            self.makeMove((Move.PASS, move[1], ()))
+            case Phase.CELESTIAL_MISFORTUNE_SHIPS:
+                if move[0] == Move.BUY_FACES:
+                    self.players[self.misfortunePlayer].shipsToResolve -= 1
+                    for face in move[2]:
+                        self.temple[Data.getPool(face)].remove(face)
+                        self.players[self.blessingPlayer].buyFaceShip(face, 2)
+                    self.phase = Phase.CELESTIAL_MISFORTUNE_SHIPS_FORGE
+                elif move[0] == Move.PASS:
+                    self.players[self.misfortunePlayer].shipsToResolve -= 1
+                    if self.players[self.misfortunePlayer].shipsToResolve == 0:
+                        self.phase = Phase.ROLL_CELESTIAL_DIE
+                        self.makeMove((Move.PASS, move[1], ()))
+            case Phase.CELESTIAL_MISFORTUNE_SHIPS_FORGE:
+                if move[0] == Move.FORGE_FACE:
+                    self.players[self.misfortunePlayer].forgeFace(move[2])
+                    if self.players[self.misfortunePlayer].shipsToResolve > 0:
+                        self.phase = Phase.CELESTIAL_MISFORTUNE_SHIPS
+                    else:
+                        self.phase = Phase.ROLL_CELESTIAL_DIE
+                        self.makeMove((Move.PASS, move[1], ()))
+                        # note: boars are impossible with both celestial die and mirror of misfortune
+            case Phase.END_TURN:
+                self.phase = Phase.TURN_START
+                self.advanceActivePlayer(move[1])
+
+    def getOptions(self):
+        # print(self.phase)
+        # self.printBoardState()
+        for player in self.players:
+            if player.goldToSpend > 0:
+                return self.getSpendGoldOptions(player)
+            if player.sunToSpend > 0:
+                return self.getSpendSunOptions(player)
+            if player.moonToSpend > 0:
+                return self.getSpendMoonOptions(player)
+        ret = ((Move.PASS, self.activePlayer, ()),)
+        match self.phase:
+            case Phase.ROLL_DIE_1 | Phase.BLESSING_ROLL_DIE_1 | Phase.TWINS_REROLL_1 | Phase.WIND_ROLL_DIE_1 | Phase.LEFT_HAND_ROLL_1_1 | Phase.LEFT_HAND_ROLL_1_2:
+                ret = self.generateRollDieOptions(self.blessingPlayer, self.players[self.blessingPlayer].die1)
+            case Phase.ROLL_DIE_2 | Phase.BLESSING_ROLL_DIE_2 | Phase.TWINS_REROLL_2 | Phase.WIND_ROLL_DIE_2 | Phase.LEFT_HAND_ROLL_2:
+                ret = self.generateRollDieOptions(self.blessingPlayer, self.players[self.blessingPlayer].die2)
+            case Phase.USE_TWINS_CHOICE | Phase.MINOR_TWINS_CHOICE | Phase.CELESTIAL_USE_TWINS_CHOICE:
+                ret = ((Move.USE_TWINS, self.blessingPlayer, (True,)), (Move.USE_TWINS, self.blessingPlayer, (False,)))
+            case Phase.TWINS_REROLL_CHOICE:
+                ret = (
+                    (Move.TWINS_CHOOSE_DIE, self.blessingPlayer, (True,)),
+                    (Move.TWINS_CHOOSE_DIE, self.blessingPlayer, (False,)))
+            case Phase.TWINS_RESOURCE_CHOICE | Phase.MINOR_TWINS_RESOURCE | Phase.CELESTIAL_TWINS_RESOURCE_CHOICE:
+                ret = ((Move.TWINS_CHOOSE_RESOURCE, self.blessingPlayer, ("vp",)),
+                       (Move.TWINS_CHOOSE_RESOURCE, self.blessingPlayer, ("moon",)))
+            case Phase.USE_CERBERUS_CHOICE | Phase.MINOR_USE_CERBERUS:
+                ret = (
+                    (Move.USE_CERBERUS, self.blessingPlayer, (True,)),
+                    (Move.USE_CERBERUS, self.blessingPlayer, (False,)))
+            case Phase.MIRROR_1_CHOICE:
+                if self.satyrs:
+                    ret = self.getMirrorChoices(self.players[self.activePlayer].orChoice1 // 2)
+                else:
+                    ret = self.getMirrorChoices(self.blessingPlayer)
+            case Phase.MIRROR_2_CHOICE:
+                if self.satyrs:
+                    ret = self.getMirrorChoices(self.players[self.activePlayer].orChoice2 // 2)
+                else:
+                    ret = self.getMirrorChoices(self.blessingPlayer)
+            case Phase.MAZE_MIRROR_1 | Phase.MAZE_MIRROR_2:
+                ret = self.getMirrorChoices(self.blessingPlayer)
+            case Phase.MINOR_MIRROR_CHOICE:
+                ret = self.getMirrorChoices(self.blessingPlayer)
+            case Phase.CHOOSE_MAZE_ORDER:
+                ret = (Move.CHOOSE_MAZE_ORDER, self.blessingPlayer, (True,)), (
+                    Move.CHOOSE_MAZE_ORDER, self.blessingPlayer, (False,))
+            case Phase.RESOLVE_MAZE_MOVES:
+                ret = self.getMazeMoveChoices(self.players[self.blessingPlayer])
+            case Phase.MAZE_EFFECT_SPEND_GOLD | Phase.MAZE_EFFECT_SPEND_MOON:
+                ret = (
+                    (Move.MAZE_SPEND, self.blessingPlayer, (True,)), (Move.MAZE_SPEND, self.blessingPlayer, (False,)))
+            case Phase.MAZE_EFFECT:
+                if self.players[self.blessingPlayer].goldToGain > 0:
+                    ret = self.getHammerScepterChoices(self.blessingPlayer)
+                else:
+                    ret = self.getMazeEffectOrChoices(self.players[self.blessingPlayer])
+            case Phase.MAZE_EFFECT_FACE_BUY:
+                if self.players[self.blessingPlayer].unforgedFaces:
+                    ret = self.generateForgeFace(self.blessingPlayer)
+                elif Data.getMazeEffect(self.players[self.blessingPlayer].mazePosition) == "FACEBUY":
+                    ret = self.generateBuyFace(self.blessingPlayer, 0)
+                else:
+                    ret = self.generateBuyFace(self.blessingPlayer, 2)
+            case Phase.MAZE_EFFECT_GODDESS:
+                ret = self.generateGoddessChoice(self.players[self.blessingPlayer])
+            case Phase.MAZE_EFFECT_TREASUREHALL:
+                ret = []
+                for treasure in self.treasures:
+                    if treasure[1] == -1:
+                        ret.append((Move.CHOOSE_TREASURE_HALL, self.blessingPlayer, (treasure[0],)))
+                ret = tuple(ret)
+            case Phase.ROLL_CELESTIAL_DIE | Phase.CELESTIAL_TWINS_REROLL:
+                ret = self.generateCelestialDieDecision(self.celestialPlayer)
+            case Phase.CELESTIAL_RESOLVE_EFFECT | Phase.CELESTIAL_RESOLVE_DIE_EFFECT:
+                ret = self.getHammerScepterChoices(self.celestialPlayer)
+            case Phase.CELESTIAL_CHOOSE_OR:
+                if self.players[self.celestialPlayer].goldToGain > 0:
+                    ret = self.getHammerScepterChoices(self.celestialPlayer)
+                else:
+                    ret = (Move.CHOOSE_CELESTIAL_DIE_OR, self.celestialPlayer, (0,)), (
+                        Move.CHOOSE_CELESTIAL_DIE_OR, self.celestialPlayer, (1,)), (
+                        Move.CHOOSE_CELESTIAL_DIE_OR, self.celestialPlayer, (2,))
+            case Phase.CELESTIAL_CHOOSE_UPGRADE:
+                ret = self.getCelestialUpgradeChoices(self.players[self.celestialPlayer])
+            case Phase.CELESTIAL_CHOOSE_MIRROR:
+                ret = self.getCelestialMirrorChoices(self.celestialPlayer)
+            case Phase.CELESTIAL_CHOOSE_GODDESS:
+                ret = self.getCelestialGoddessChoices(self.players[self.celestialPlayer])
+            case Phase.CELESTIAL_RESOLVE_DIE_MIRROR:
+                ret = self.getMirrorChoices(self.celestialPlayer)
+            case Phase.CELESTIAL_RESOLVE_DIE_OR:
+                ret = self.players[self.celestialPlayer].getCelestialDieOptions()
+            case Phase.CELESTIAL_RESOLVE_SHIPS:
+                ret = self.generateBuyFace(self.celestialPlayer, 2)
+            case Phase.CELESTIAL_RESOLVE_SHIPS_FORGE:
+                ret = self.generateForgeFace(self.celestialPlayer)
+            case Phase.CELESTIAL_BOAR_CHOICE:
+                ret = self.generateBoarChoice(self.players[self.celestialPlayer].celestialResultBuffer)
+            case Phase.CELESTIAL_MISFORTUNE:
+                ret = self.generateCelestialMisfortuneChoice()
+            case Phase.CELESTIAL_MISFORTUNE_OR:
+                ret = self.players[self.misfortunePlayer].getDieOptions(False)
+            case Phase.CELESTIAL_MISFORTUNE_EFFECTS:
+                ret = self.getHammerScepterChoices(self.misfortunePlayer)
+            case Phase.DIE_1_CHOOSE_OR:
+                ret = self.players[self.blessingPlayer].getDieOptions(True)
+            case Phase.DIE_2_CHOOSE_OR:
+                ret = self.players[self.blessingPlayer].getDieOptions(False)
+            case Phase.MAZE_DIE_1_CHOOSE_OR:
+                ret = self.players[self.blessingPlayer].getMazeDieOptions(True)
+            case Phase.MAZE_DIE_2_CHOOSE_OR:
+                ret = self.players[self.blessingPlayer].getMazeDieOptions(False)
+            case Phase.APPLY_DICE_EFFECTS | Phase.MAZE_APPLY_DICE_EFFECTS:
+                ret = self.getHammerScepterChoices(self.blessingPlayer)
+            case Phase.BOAR_CHOICE_1 | Phase.MISFORTUNE_2_BOAR_CHOICE:
+                ret = self.generateBoarChoice(self.players[self.blessingPlayer].getDie1Result())
+            case Phase.BOAR_CHOICE_2 | Phase.MISFORTUNE_1_BOAR_CHOICE:
+                ret = self.generateBoarChoice(self.players[self.blessingPlayer].getDie2Result())
+            case Phase.MAZE_BOAR_CHOICE_1:
+                ret = self.generateBoarChoice(self.players[self.blessingPlayer].getMazeDie1Result())
+            case Phase.MAZE_BOAR_CHOICE_2:
+                ret = self.generateBoarChoice(self.players[self.blessingPlayer].getMazeDie2Result())
+            case Phase.MISFORTUNE_1:
+                ret = self.generateMisfortune1Choice()
+            case Phase.MISFORTUNE_1_CHOOSE_OR | Phase.MINOR_MISFORTUNE_2_OR:
+                ret = self.players[self.misfortunePlayer].getDieOptions(False)
+            case Phase.MISFORTUNE_2:
+                ret = self.generateMisfortune2Choice()
+            case Phase.MISFORTUNE_2_CHOOSE_OR | Phase.MINOR_MISFORTUNE_1_OR:
+                ret = self.players[self.misfortunePlayer].getDieOptions(True)
+            case Phase.MISFORTUNE_1_APPLY_EFFECTS | Phase.MISFORTUNE_2_APPLY_EFFECTS:
+                ret = self.getHammerScepterChoices(self.misfortunePlayer)
+            case Phase.DIE_1_CHOOSE_SENTINEL | Phase.DIE_2_CHOOSE_SENTINEL:
+                ret = (Move.CHOOSE_USE_SENTINEL, self.blessingPlayer, (True,)), (
+                    Move.CHOOSE_USE_SENTINEL, self.blessingPlayer, (False,))
+            case Phase.MINOR_CHOOSE_DIE:
+                ret = (Move.CHOOSE_DIE, self.blessingPlayer, (True,)), (Move.CHOOSE_DIE, self.blessingPlayer, (False,))
+            case Phase.MINOR_ROLL_DIE:
+                if self.players[self.blessingPlayer].dieChoice:
+                    ret = self.generateRollDieOptions(self.blessingPlayer, self.players[self.blessingPlayer].die1)
+                else:
+                    ret = self.generateRollDieOptions(self.blessingPlayer, self.players[self.blessingPlayer].die2)
+            case Phase.MINOR_TWINS_REROLL:
+                if self.players[self.blessingPlayer].dieChoice:
+                    ret = self.generateRollDieOptions(self.blessingPlayer, self.players[self.blessingPlayer].die1)
+                else:
+                    ret = self.generateRollDieOptions(self.blessingPlayer, self.players[self.blessingPlayer].die2)
+            case Phase.MINOR_CHOOSE_OR:
+                if self.players[self.blessingPlayer].dieChoice:
+                    ret = self.players[self.blessingPlayer].getDieOptions(True)
+                else:
+                    ret = self.players[self.blessingPlayer].getDieOptions(False)
+            case Phase.CHOOSE_CYCLOPS:
+                ret = (Move.CHOOSE_USE_CYCLOPS, self.blessingPlayer, (True,)), (
+                    Move.CHOOSE_USE_CYCLOPS, self.blessingPlayer, (False,))
+            case Phase.MINOR_RESOLVE_EFFECTS:
+                ret = self.getHammerScepterChoices(self.blessingPlayer)
+            case Phase.MINOR_BOAR_CHOICE:
+                if self.players[self.blessingPlayer].dieChoice:
+                    ret = self.generateBoarChoice(self.players[self.blessingPlayer].getDie1Result())
+                else:
+                    ret = self.generateBoarChoice(self.players[self.blessingPlayer].getDie2Result())
+            case Phase.MINOR_MISFORTUNE_RESOLVE:
+                ret = self.getHammerScepterChoices(self.misfortunePlayer)
+            case Phase.CHOOSE_REINF_EFFECT:
+                ret = self.players[self.activePlayer].getReinfOptions()
+            case Phase.RESOLVE_ELDER_REINF:
+                if self.players[self.activePlayer].getEffectiveGold() >= 3:
+                    ret = (Move.USE_ELDER, self.activePlayer, (True,)), (Move.USE_ELDER, self.activePlayer, (False,))
+                else:
+                    ret = (Move.USE_ELDER, self.activePlayer, (False,)),
+            case Phase.RESOLVE_OWL_REINF:
+                if self.players[self.activePlayer].goldToGain == 0:
+                    ret = (
+                        (Move.OWL_CHOICE, self.activePlayer, ("gold",)), (Move.OWL_CHOICE, self.activePlayer, ("sun",)),
+                        (Move.OWL_CHOICE, self.activePlayer, ("moon",)))
+                else:
+                    ret = self.getHammerScepterChoices(self.activePlayer)
+            case Phase.RESOLVE_TREE_REINF:
+                ret = self.getHammerScepterChoices(self.activePlayer)
+            case Phase.RESOLVE_MERCHANT_REINF:
+                ret = self.generateMerchantChoices(self.players[self.activePlayer])
+            case Phase.RESOLVE_LIGHT_REINF:
+                if self.players[self.activePlayer].getEffectiveGold() >= 3:
+                    ret = self.generateLightChoices()
+                else:
+                    ret = (Move.USE_LIGHT, self.activePlayer, (False,)),
+            case Phase.RESOLVE_GUARDIAN_REINF:
+                ret = ((Move.GUARDIAN_CHOICE, self.activePlayer, ("ancientshard",)),
+                       (Move.GUARDIAN_CHOICE, self.activePlayer, ("loyalty",)))
+            case Phase.ACTIVE_PLAYER_CHOICE_1 | Phase.ACTIVE_PLAYER_CHOICE_2:
+                ret = (Move.CHOOSE_BUY_FACES, self.activePlayer, ()), (Move.CHOOSE_PERFORM_FEAT, self.activePlayer, ())
+            case Phase.ACTIVE_PLAYER_BUY_FACES_1 | Phase.ACTIVE_PLAYER_BUY_FACES_2:
+                if self.players[self.activePlayer].unforgedFaces:
+                    ret = self.generateForgeFace(self.activePlayer)
+                else:
+                    ret = self.generateBuyFaces(self.players[self.activePlayer].getEffectiveGold())
+            case Phase.ACTIVE_PLAYER_PERFORM_FEAT_1 | Phase.ACTIVE_PLAYER_PERFORM_FEAT_2:
+                if self.players[self.activePlayer].goldToGain == 0:
+                    ret = self.generatePerformFeats()
+                else:
+                    ret = self.getHammerScepterChoices(self.activePlayer)
+            case Phase.EXTRA_TURN_DECISION:
+                if self.players[self.activePlayer].getEffectiveSun() < 2:
+                    self.makeMove((Move.PASS, self.activePlayer, ()))
+                    return self.getOptions()
+                ret = (
+                    (Move.TAKE_EXTRA_TURN, self.activePlayer, (True,)),
+                    (Move.TAKE_EXTRA_TURN, self.activePlayer, (False,)))
+            case Phase.CHOOSE_SHIELD_FACE_1 | Phase.CHOOSE_SHIELD_FACE_2:
+                if self.players[self.activePlayer].unforgedFaces:
+                    ret = self.generateForgeFace(self.activePlayer)
+                else:
+                    ret = self.generateChooseShield()
+            case Phase.CHOOSE_CHAOS_FACE_1 | Phase.CHOOSE_CHAOS_FACE_2:
+                if self.players[self.activePlayer].unforgedFaces:
+                    ret = self.generateForgeFace(self.activePlayer)
+                else:
+                    ret = self.generateChooseChaos()
+            case Phase.CHOOSE_DOGGED_FACE_1 | Phase.CHOOSE_DOGGED_FACE_2:
+                if self.players[self.activePlayer].unforgedFaces:
+                    ret = self.generateForgeFace(self.activePlayer)
+                else:
+                    ret = self.generateChooseDogged()
+            case Phase.FORGE_FEAT_FACE_1 | Phase.FORGE_FEAT_FACE_2:
+                ret = self.generateForgeFace(self.activePlayer)
+            case Phase.RESOLVE_SHIPS | Phase.MINOR_RESOLVE_SHIPS:
+                if self.players[self.blessingPlayer].times3ShipsToResolve > 0:
+                    ret = self.generateBuyFace(self.blessingPlayer, 6)
+                else:
+                    ret = self.generateBuyFace(self.blessingPlayer, 2)
+            case Phase.RESOLVE_SHIPS_FORGE | Phase.MINOR_RESOLVE_SHIPS_FORGE:
+                ret = self.generateForgeFace(self.blessingPlayer)
+            case Phase.MISFORTUNE_1_RESOLVE_SHIPS | Phase.MISFORTUNE_2_RESOLVE_SHIPS | Phase.MINOR_MISFORTUNE_SHIPS | Phase.CELESTIAL_MISFORTUNE_SHIPS:
+                ret = self.generateBuyFace(self.misfortunePlayer, 2)
+            case Phase.MISFORTUNE_1_RESOLVE_SHIPS_FORGE | Phase.MISFORTUNE_2_RESOLVE_SHIPS_FORGE | Phase.MINOR_MISFORTUNE_SHIPS_FORGE | Phase.CELESTIAL_MISFORTUNE_SHIPS_FORGE:
+                ret = self.generateForgeFace(self.misfortunePlayer)
+            case Phase.CHOOSE_BOAR_MISFORTUNE_PLAYER_1 | Phase.CHOOSE_BOAR_MISFORTUNE_PLAYER_2:
+                ret = []
+                for player in self.players:
+                    if player.playerID != self.activePlayer:
+                        ret.append((Move.CHOOSE_BOAR_PLAYER, self.activePlayer, (player.playerID,)))
+                ret = tuple(ret)
+            case Phase.FORGE_BOAR_MISFORTUNE_1 | Phase.FORGE_BOAR_MISFORTUNE_2:
+                ret = self.generateForgeBoarMisfortuneFace()
+            case Phase.SATYRS_CHOOSE_DIE_1:
+                ret = self.generateSatyrsChooseDie(True)
+            case Phase.SATYRS_CHOOSE_DIE_2:
+                ret = self.generateSatyrsChooseDie(False)
+            case Phase.NYMPH_1 | Phase.NYMPH_2:
+                if self.players[self.activePlayer].goldToGain > 0:
+                    ret = self.getHammerScepterChoices(self.activePlayer)
+                elif self.players[self.activePlayer].unforgedFaces:
+                    ret = self.generateForgeFace(self.activePlayer)
+                else:
+                    ret = self.generateBuyFace(self.activePlayer, 0)
+            case Phase.TRIDENT_1 | Phase.TRIDENT_2:
+                if self.players[self.activePlayer].unforgedFaces:
+                    ret = self.generateForgeFace(self.activePlayer)
+                else:
+                    ret = self.generateTridentAction(self.activePlayer)
+            case Phase.GODDESS_CHOOSE_FACES:
+                ret = self.generateGoddessChoice(self.players[self.activePlayer])
+            case Phase.RIGHTHAND_1 | Phase.RIGHTHAND_2:
+                ret = self.generateRightHandChoice(self.players[self.activePlayer])
+            case Phase.WIND_CHOOSE_RESOURCE:
+                ret = (Move.CHOOSE_RESOURCE, self.activePlayer, (0,)), (
+                    Move.CHOOSE_RESOURCE, self.activePlayer, (1,)), (Move.CHOOSE_RESOURCE, self.activePlayer, (2,)), (
+                    Move.CHOOSE_RESOURCE, self.activePlayer, (3,)), (Move.CHOOSE_RESOURCE, self.activePlayer, (4,)), (
+                    Move.CHOOSE_RESOURCE, self.activePlayer, (5,))
+            case Phase.USE_ANCESTOR:
+                if self.players[self.activePlayer].unforgedFaces:
+                    ret = self.generateForgeFace(self.activePlayer)
+                else:
+                    ret = self.generateAncestorChoice(self.players[self.activePlayer])
+            case Phase.TITAN_1 | Phase.TITAN_2:
+                if self.players[self.activePlayer].goldToGain == 0:
+                    ret = self.generateTitanChoice(self.activePlayer)
+                else:
+                    ret = self.getHammerScepterChoices(self.activePlayer)
+            case Phase.CHOOSE_MEMORY_1 | Phase.CHOOSE_MEMORY_2:
+                ret = self.generateMemoryChoices(self.activePlayer)
+        if ret[0][1] == self.activePlayer and self.players[self.activePlayer].tritonTokens >= 1:
+            ret = list(ret)
+            ret.append((Move.USE_TRITON_TOKEN, self.activePlayer, ("gold",)))
+            if self.players[self.activePlayer].sun < self.players[self.activePlayer].maxSun:
+                ret.append((Move.USE_TRITON_TOKEN, self.activePlayer, ("sun",)))
+            if self.players[self.activePlayer].moon < self.players[self.activePlayer].maxMoon:
+                ret.append((Move.USE_TRITON_TOKEN, self.activePlayer, ("moon",)))
+            ret = tuple(ret)
+        if ret[0][1] == self.activePlayer and self.players[self.activePlayer].companions:
+            ret = list(ret)
+            for companion in self.players[self.activePlayer].companions:
+                if companion > 0:
+                    move = Move.USE_COMPANION, self.activePlayer, (companion,)
+                    if move not in ret:
+                        ret.append(move)
+            ret = tuple(ret)
+        return ret
+
+    def generateBuyFaces(self, gold):
+        ret = []
+        availableFaces = []
+        if gold >= 2:
+            if self.temple[0]:
+                availableFaces.append(self.temple[0][0])
+            if self.temple[1]:
+                availableFaces.append(self.temple[1][0])
+            if gold >= 3:
+                if self.temple[2]:
+                    availableFaces.append(self.temple[2][0])
+                if self.temple[3]:
+                    availableFaces.append(self.temple[3][0])
+                if gold >= 4:
+                    for face in self.temple[4]:
+                        availableFaces.append(face)
+                    if gold >= 5:
+                        if self.temple[5]:
+                            availableFaces.append(self.temple[5][0])
+                        if gold >= 6:
+                            if self.temple[6]:
+                                availableFaces.append(self.temple[6][0])
+                            if gold >= 8:
+                                if self.temple[7]:
+                                    availableFaces.append(self.temple[7][0])
+                                if self.temple[8]:
+                                    availableFaces.append(self.temple[8][0])
+                                if gold >= 12:
+                                    for face in self.temple[9]:
+                                        availableFaces.append(face)
+        for i in range(1, len(availableFaces) + 1):
+            for combo in combinations(availableFaces, i):
+                if Data.getTotalGoldCost(combo) <= gold:
+                    ret.append((Move.BUY_FACES, self.activePlayer, tuple(combo)))
+        ret.append((Move.PASS, self.activePlayer, ()))
+        return tuple(ret)
+
+    def generateBuyFace(self, player, goldBonus):
+        ret = []
+        gold = self.players[player].getEffectiveGold() + goldBonus
+        if gold >= 2:
+            if self.temple[0]:
+                ret.append((Move.BUY_FACES, player, (self.temple[0][0],)))
+            if self.temple[1]:
+                ret.append((Move.BUY_FACES, player, (self.temple[1][0],)))
+            if gold >= 3:
+                if self.temple[2]:
+                    ret.append((Move.BUY_FACES, player, (self.temple[2][0],)))
+                if self.temple[3]:
+                    ret.append((Move.BUY_FACES, player, (self.temple[3][0],)))
+                if gold >= 4:
+                    for face in self.temple[4]:
+                        ret.append((Move.BUY_FACES, player, (face,)))
+                    if gold >= 5:
+                        if self.temple[5]:
+                            ret.append((Move.BUY_FACES, player, (self.temple[5][0],)))
+                        if gold >= 6:
+                            if self.temple[6]:
+                                ret.append((Move.BUY_FACES, player, (self.temple[6][0],)))
+                            if gold >= 8:
+                                if self.temple[7]:
+                                    ret.append((Move.BUY_FACES, player, (self.temple[7][0],)))
+                                if self.temple[8]:
+                                    ret.append((Move.BUY_FACES, player, (self.temple[8][0],)))
+                                if gold >= 12:
+                                    for face in self.temple[9]:
+                                        ret.append((Move.BUY_FACES, player, (face,)))
+        ret.append((Move.PASS, player, ()))
+        return tuple(ret)
+
+    def generateTridentAction(self, playerID):
+        ret = []
+        for pool in self.temple:
+            for face in pool:
+                next = Move.BUY_FACES, playerID, (face,)
+                if not next in ret:
+                    ret.append(next)
+        times3 = boar = ship = shield = mirror = False
+        for island in self.islands:
+            for feat in island:
+                if feat == Data.HeroicFeat.HELMET_OF_INVISIBILITY:
+                    times3 = True
+                elif feat == Data.HeroicFeat.TENACIOUS_BOAR_RED or feat == Data.HeroicFeat.TENACIOUS_BOAR_RED or feat == Data.HeroicFeat.TENACIOUS_BOAR_YELLOW or feat == Data.HeroicFeat.TENACIOUS_BOAR_GREEN:
+                    boar = True
+                elif feat == Data.HeroicFeat.CELESTIAL_SHIP:
+                    ship = True
+                elif feat == Data.HeroicFeat.THE_GUARDIANS_SHIELD:
+                    shield = True
+                elif feat == Data.HeroicFeat.MIRROR_OF_THE_ABYSS:
+                    mirror = True
+        for player in self.players:
+            for feat in player.feats:
+                if feat == Data.HeroicFeat.HELMET_OF_INVISIBILITY:
+                    times3 = True
+                elif feat == Data.HeroicFeat.TENACIOUS_BOAR_RED or feat == Data.HeroicFeat.TENACIOUS_BOAR_RED or feat == Data.HeroicFeat.TENACIOUS_BOAR_YELLOW or feat == Data.HeroicFeat.TENACIOUS_BOAR_GREEN:
+                    boar = True
+                elif feat == Data.HeroicFeat.CELESTIAL_SHIP:
+                    ship = True
+                elif feat == Data.HeroicFeat.THE_GUARDIANS_SHIELD:
+                    shield = True
+                elif feat == Data.HeroicFeat.MIRROR_OF_THE_ABYSS:
+                    mirror = True
+        if not times3:
+            ret.append((Move.BUY_FACES, playerID, (Data.DieFace.TIMES3,)))
+        if not boar:
+            ret.append((Move.BUY_FACES, playerID, (Data.DieFace.BOAR,)))
+        if not ship:
+            ret.append((Move.BUY_FACES, playerID, (Data.DieFace.SHIP,)))
+        if not shield:
+            for face in self.shields:
+                ret.append((Move.BUY_FACES, playerID, (face,)))
+        if not mirror:
+            ret.append((Move.BUY_FACES, playerID, (Data.DieFace.MIRROR,)))
+        if not ret:
+            ret.append((Move.PASS, playerID, ()))
+        return tuple(ret)
+
+    def generatePerformFeats(self):
+        ret = []
+        sun = self.players[self.activePlayer].getEffectiveSun()
+        moon = self.players[self.activePlayer].getEffectiveMoon()
+        if sun >= 1:
+            if self.islands[0]:
+                ret.append((Move.PERFORM_FEAT, self.activePlayer, (self.islands[0][0],)))
+            if self.islands[1]:
+                ret.append((Move.PERFORM_FEAT, self.activePlayer, (self.islands[1][0],)))
+            if sun >= 2:
+                if self.islands[2]:
+                    ret.append((Move.PERFORM_FEAT, self.activePlayer, (self.islands[2][0],)))
+                if sun >= 3:
+                    if self.islands[3]:
+                        ret.append((Move.PERFORM_FEAT, self.activePlayer, (self.islands[3][0],)))
+                    if sun >= 4:
+                        if self.islands[4]:
+                            ret.append((Move.PERFORM_FEAT, self.activePlayer, (self.islands[4][0],)))
+                        if sun >= 5:
+                            if self.islands[5]:
+                                ret.append((Move.PERFORM_FEAT, self.activePlayer, (self.islands[5][0],)))
+                            if sun >= 6:
+                                if self.islands[6]:
+                                    ret.append((Move.PERFORM_FEAT, self.activePlayer, (self.islands[6][0],)))
+        if moon >= 1:
+            if self.islands[14]:
+                ret.append((Move.PERFORM_FEAT, self.activePlayer, (self.islands[14][0],)))
+            if self.islands[13]:
+                ret.append((Move.PERFORM_FEAT, self.activePlayer, (self.islands[13][0],)))
+            if moon >= 2:
+                if self.islands[12]:
+                    ret.append((Move.PERFORM_FEAT, self.activePlayer, (self.islands[12][0],)))
+                if moon >= 3:
+                    if self.islands[11]:
+                        ret.append((Move.PERFORM_FEAT, self.activePlayer, (self.islands[11][0],)))
+                    if moon >= 4:
+                        if self.islands[10]:
+                            ret.append((Move.PERFORM_FEAT, self.activePlayer, (self.islands[10][0],)))
+                        if moon >= 5:
+                            if self.islands[9]:
+                                ret.append((Move.PERFORM_FEAT, self.activePlayer, (self.islands[9][0],)))
+                            if moon >= 6:
+                                if self.islands[8]:
+                                    ret.append((Move.PERFORM_FEAT, self.activePlayer, (self.islands[8][0],)))
+        if self.islands[7] and self.players[self.activePlayer].canBuy55Feat():
+            ret.append((Move.PERFORM_FEAT, self.activePlayer, (self.islands[7][0],)))
+        ret.append((Move.PASS, self.activePlayer, ()))
+        return tuple(ret)
+
+    def generateForgeFace(self, player):
+        ret = []
+        face = self.players[player].unforgedFaces[0]
+        for existingFace in self.players[player].die1.faces:
+            if not Data.isBoarFace(existingFace) and not Data.isMisfortuneFace(existingFace):
+                ret.append((Move.FORGE_FACE, player, (True, face, existingFace)))
+        for existingFace in self.players[player].die2.faces:
+            if not Data.isBoarFace(existingFace) and not Data.isMisfortuneFace(existingFace):
+                ret.append((Move.FORGE_FACE, player, (False, face, existingFace)))
+        ret = set(ret)  # remove duplicates
+        return tuple(ret)
+
+    def generateForgeBoarMisfortuneFace(self):
+        ret = []
+        for existingFace in self.players[self.blessingPlayer].die1.faces:
+            if not Data.isBoarFace(existingFace):
+                ret.append((Move.FORGE_FACE, self.blessingPlayer, (True, self.faceToForge, existingFace)))
+        for existingFace in self.players[self.blessingPlayer].die2.faces:
+            if not Data.isBoarFace(existingFace):
+                ret.append((Move.FORGE_FACE, self.blessingPlayer, (False, self.faceToForge, existingFace)))
+        ret = set(ret)  # remove duplicates
+        return tuple(ret)
+
+    def generateBoarChoice(self, face):
+        match face:
+            case Data.DieFace.REDBOAR:
+                feat = Data.HeroicFeat.TENACIOUS_BOAR_RED
+            case Data.DieFace.BLUEBOAR:
+                feat = Data.HeroicFeat.TENACIOUS_BOAR_BLUE
+            case Data.DieFace.YELLOWBOAR:
+                feat = Data.HeroicFeat.TENACIOUS_BOAR_YELLOW
+            case _:
+                feat = Data.HeroicFeat.TENACIOUS_BOAR_GREEN
+        for p in self.players:
+            if p.hasFeat(feat):
+                player = p.playerID
+                break
+        ret = [(Move.BOAR_CHOICE, player, ("vp",))]
+        if not self.players[player].hasMaxSun():
+            ret.append((Move.BOAR_CHOICE, player, ("sun",)))
+        if not self.players[player].hasMaxMoon():
+            ret.append((Move.BOAR_CHOICE, player, ("moon",)))
+        return tuple(ret)
+
+    def decideMisfortunePlayer(self, face):
+        match face:
+            case Data.DieFace.REDMISFORTUNE:
+                feat = Data.HeroicFeat.MIRROR_OF_MISFORTUNE_RED
+            case Data.DieFace.BLUEMISFORTUNE:
+                feat = Data.HeroicFeat.MIRROR_OF_MISFORTUNE_BLUE
+            case Data.DieFace.YELLOWMISFORTUNE:
+                feat = Data.HeroicFeat.MIRROR_OF_MISFORTUNE_YELLOW
+            case _:
+                feat = Data.HeroicFeat.MIRROR_OF_MISFORTUNE_GREEN
+        for p in self.players:
+            if p.hasFeat(feat):
+                return p.playerID
+
+    def generateMisfortune1Choice(self):  # misfortune face on die 1
+        self.misfortunePlayer = self.decideMisfortunePlayer(self.players[self.blessingPlayer].getDie1Result())
+        self.players[self.misfortunePlayer].die1ResultBuffer = self.players[self.blessingPlayer].getDie1Result()
+        self.players[self.misfortunePlayer].die2ResultBuffer = self.players[self.blessingPlayer].getDie2Result()
+        return self.players[self.misfortunePlayer].getDieOptions(True)
+
+    def generateMisfortune2Choice(self):  # misfortune face on die 2
+        self.misfortunePlayer = self.decideMisfortunePlayer(self.players[self.blessingPlayer].getDie2Result())
+        self.players[self.misfortunePlayer].die1ResultBuffer = self.players[self.blessingPlayer].getDie1Result()
+        self.players[self.misfortunePlayer].die2ResultBuffer = self.players[self.blessingPlayer].getDie2Result()
+        return self.players[self.misfortunePlayer].getDieOptions(False)
+
+    def generateCelestialMisfortuneChoice(self):
+        self.misfortunePlayer = self.decideMisfortunePlayer(self.players[self.celestialPlayer].celestialResultBuffer)
+        self.players[self.misfortunePlayer].die1ResultBuffer = self.players[self.celestialPlayer].celestialResultBuffer
+        for player in self.players:
+            if player.getDie1UpFace() == self.players[self.celestialPlayer].celestialResultBuffer:
+                self.players[self.misfortunePlayer].die2ResultBuffer = player.getDie2UpFace()
+                break
+            elif player.getDie2UpFace() == self.players[self.celestialPlayer].celestialResultBuffer:
+                self.players[self.misfortunePlayer].die2ResultBuffer = player.getDie1UpFace()
+                break
+        return self.players[self.misfortunePlayer].getDieOptions(True)
+
+    def generateChooseShield(self):
+        ret = []
+        for face in self.shields:
+            ret.append((Move.BUY_FACES, self.activePlayer, (face,)))
+        return tuple(ret)
+
+    def generateChooseChaos(self):
+        ret = []
+        for face in self.chaos:
+            ret.append((Move.BUY_FACES, self.activePlayer, (face,)))
+        return tuple(ret)
+
+    def generateChooseDogged(self):
+        ret = []
+        for face in self.dogged:
+            ret.append((Move.BUY_FACES, self.activePlayer, (face,)))
+        ret = set(ret)  # remove duplicates
+        return tuple(ret)
+
+    def generateGoddessChoice(self, player):
+        # choose a face on each die to place face up
+        die1Faces = set(player.die1.faces)  # don't need duplicates
+        die2Faces = set(player.die2.faces)
+        ret = []
+        for face1 in die1Faces:
+            for face2 in die2Faces:
+                ret.append((Move.CHOOSE_FACES, player.playerID, (face1, face2)))
+        return tuple(ret)
+
+    def generateRightHandChoice(self, player):
+        ret = []
+        i = 0
+        max = player.getEffectiveGold()
+        while i <= max:
+            ret.append((Move.RIGHTHAND_SPEND, player.playerID, (i,)))
+            i += 1
+        return tuple(ret)
+
+    def generateAncestorChoice(self, player):
+        if Data.DieFace.VP1SUN1 in self.temple[4]:
+            return (Move.BUY_FACES, player.playerID, (Data.DieFace.VP1SUN1,)),
+        if self.temple[5]:
+            return (Move.BUY_FACES, player.playerID, (self.temple[5][0],)),
+        if self.temple[8]:
+            return (Move.BUY_FACES, player.playerID, (self.temple[8][0],)),
+        ret = []
+        for face in self.temple[9]:
+            if not face == Data.DieFace.GOLD2SUN2MOON2OR:
+                ret.append((Move.BUY_FACES, player.playerID, (face,)))
+        if not ret:
+            return (Move.PASS, player.playerID, ()),
+        return tuple(ret)
+
+    def generateTitanChoice(self, player):
+        ret = []
+        if self.islands[0]:
+            ret.append((Move.PERFORM_FEAT, player, (self.islands[0][0],)))
+        if self.islands[1]:
+            ret.append((Move.PERFORM_FEAT, player, (self.islands[1][0],)))
+        if self.islands[13]:
+            ret.append((Move.PERFORM_FEAT, player, (self.islands[13][0],)))
+        if self.islands[14]:
+            ret.append((Move.PERFORM_FEAT, player, (self.islands[14][0],)))
+        if not ret:
+            ret.append((Move.PASS, player, ()))
+        return tuple(ret)
+
+    def getSpendGoldOptions(self, player):
+        ret = []
+        i = player.goldToSpend - player.gold
+        while i <= player.getScepterGold() and i <= player.goldToSpend:
+            ret.append((Move.SPEND_GOLD, player.playerID,
+                        (i,)))  # spend this amount from scepters, spend the rest from main reserve
+            i += 1
+        return tuple(ret)
+
+    def getSpendSunOptions(self, player):
+        ret = []
+        i = 0  # counts scepter spends
+        while i <= player.getScepterSunMoon() and i <= player.sunToSpend:
+            j = 0  # counts ancient shards
+            while j <= player.ancientShards and i + j <= player.sunToSpend:
+                if i + j + player.sun >= player.sunToSpend and (
+                        player.moonToSpend == 0 or player.canBuy55FeatAfterSunSpend(i, j)):
+                    ret.append((Move.SPEND_SUN, player.playerID, (
+                        i, j)))  # spend i from scepters, j ancient shards, and spend the rest from main reserve
+                j += 1
+            i += 1
+        return tuple(ret)
+
+    def getSpendMoonOptions(self, player):
+        ret = []
+        i = 0  # counts scepter spends
+        while i <= player.getScepterSunMoon() and i <= player.moonToSpend:
+            j = 0  # counts ancient shards
+            while j <= player.ancientShards and i + j <= player.moonToSpend:
+                if i + j + player.moon >= player.moonToSpend:
+                    ret.append((Move.SPEND_MOON, player.playerID,
+                                (
+                                    i,
+                                    j)))  # spend i from scepters, j ancient shards, and spend the rest from main reserve
+                j += 1
+            i += 1
+        return tuple(ret)
+
+    def generateRollDieOptions(self, player, die):
+        faces = {}
+        for face in die.faces:
+            if face in faces:
+                faces[face] = faces[face] + 1
+            else:
+                faces[face] = 1
+        ret = []
+        for face, freq in faces.items():
+            ret.append((Move.ROLL, player, (face, freq)))
+        ret.append((Move.RANDOM_ROLL, player, ()))
+        # ret.append((Move.EV_ROLL, player, ())) todo: expected value roll
+        return tuple(ret)
+
+    def generateCelestialDieDecision(self, player):
+        return (Move.ROLL, player, (Data.DieFace.CELESTIAL12GOLD, 1)), (
+            Move.ROLL, player, (Data.DieFace.CELESTIAL5VP, 1)), (
+            Move.ROLL, player, (Data.DieFace.CELESTIAL3VPAND3GOLD1SUN1MOONOR, 1)), (
+            Move.ROLL, player, (Data.DieFace.CELESTIALMIRROR, 1)), (
+            Move.ROLL, player, (Data.DieFace.CELESTIALGODDESS, 1)), (
+            Move.ROLL, player, (Data.DieFace.CELESTIALUPGRADE, 1)), (Move.RANDOM_ROLL, player, ())
+
+    def celestialDieRandomRoll(self):
+        return random.choice((Data.DieFace.CELESTIAL12GOLD, Data.DieFace.CELESTIAL5VP,
+                              Data.DieFace.CELESTIAL3VPAND3GOLD1SUN1MOONOR, Data.DieFace.CELESTIALGODDESS,
+                              Data.DieFace.CELESTIALUPGRADE))
+
+    def getMirrorChoices(self, choicePlayer):
+        ret = []
+        for player in self.players:
+            if player.playerID == choicePlayer:
+                continue
+            if player.getDie1UpFace() == Data.DieFace.MIRROR:
+                if self.players[choicePlayer].getDie1UpFace() != Data.DieFace.MIRROR:
+                    ret.append(
+                        (Move.MIRROR_CHOICE, choicePlayer, (self.players[choicePlayer].getDie1UpFace(),)))
+                if self.players[choicePlayer].getDie2UpFace() != Data.DieFace.MIRROR:
+                    ret.append(
+                        (Move.MIRROR_CHOICE, choicePlayer, (self.players[choicePlayer].getDie2UpFace(),)))
+            else:
+                ret.append((Move.MIRROR_CHOICE, choicePlayer, (player.getDie1UpFace(),)))
+            if player.getDie2UpFace() == Data.DieFace.MIRROR:
+                if self.players[choicePlayer].getDie1UpFace() != Data.DieFace.MIRROR:
+                    ret.append(
+                        (Move.MIRROR_CHOICE, choicePlayer, (self.players[choicePlayer].getDie1UpFace(),)))
+                if self.players[choicePlayer].getDie2UpFace() != Data.DieFace.MIRROR:
+                    ret.append(
+                        (Move.MIRROR_CHOICE, choicePlayer, (self.players[choicePlayer].getDie2UpFace(),)))
+            else:
+                ret.append((Move.MIRROR_CHOICE, choicePlayer, (player.getDie2UpFace(),)))
+        ret = set(ret)  # remove duplicates
+        return tuple(ret)
+
+    def getHammerScepterChoices(self, player):
+        if self.players[player].canAddHammer():
+            return self.getHammerChoices(player)
+        return self.getScepterChoices(player)
+
+    def generateMemoryChoices(self, playerID):
+        ret = []
+        i = 1
+        while i < 8:
+            j = 1
+            while j < 8:
+                if i == j:
+                    continue
+                ret.append((Move.CHOOSE_MEMORY, playerID, (True, i, True, j)))
+                ret.append((Move.CHOOSE_MEMORY, playerID, (True, i, False, j)))
+                ret.append((Move.CHOOSE_MEMORY, playerID, (False, i, True, j)))
+                ret.append((Move.CHOOSE_MEMORY, playerID, (False, i, False, j)))
+                j += 1
+            i += 1
+        return tuple(ret)
+
+    def getCelestialUpgradeChoices(self, player):
+        ret = []
+        faces = set(player.die1.faces)
+        for face in faces:
+            level = Data.getLevel(face)
+            if level > 5:
+                continue
+            pool = self.getUpgradePool(level + 2)
+            for upgradeFace in pool:
+                ret.append(
+                    (Move.CELESTIAL_UPGRADE, player.playerID, (True, face, upgradeFace)))
+        faces = set(player.die2.faces)
+        for face in faces:
+            level = Data.getLevel(face)
+            if level > 5:
+                continue
+            pool = self.getUpgradePool(level + 2)
+            for upgradeFace in pool:
+                ret.append((Move.CELESTIAL_UPGRADE, player.playerID, (False, face, upgradeFace)))
+        if not ret:
+            return (Move.PASS, player.playerID, ()),
+        return tuple(ret)
+
+    def getCelestialMirrorChoices(self, playerID):
+        ret = []
+        for player in self.players:
+            if player.getDie1UpFace() != Data.DieFace.MIRROR:
+                ret.append((Move.CELESTIAL_MIRROR_CHOICE, playerID, (player.getDie1UpFace(),)))
+            if player.getDie2UpFace() != Data.DieFace.MIRROR:
+                ret.append((Move.CELESTIAL_MIRROR_CHOICE, playerID, (player.getDie2UpFace(),)))
+        ret = set(ret)  # remove duplicates
+        return tuple(ret)
+
+    def getCelestialGoddessChoices(self, player):
+        ret = []
+        faces = set(player.die1.faces)
+        for face in faces:
+            ret.append((Move.CELESTIAL_GODDESS, player.playerID, (True, face)))
+        faces = set(player.die2.faces)
+        for face in faces:
+            ret.append((Move.CELESTIAL_GODDESS, player.playerID, (False, face)))
+        return tuple(ret)
+
+    def generateMerchantChoices(self, player):
+        ret = []
+        levels = player.getMerchantCount()
+        faces = set(player.die1.faces)
+        for face in faces:
+            level = Data.getLevel(face)
+            if level == 7:
+                continue
+            upgrade = 1
+            while upgrade <= levels:
+                pool = self.getUpgradePool(level + upgrade)
+                for upgradeFace in pool:
+                    ret.append(
+                        (Move.MERCHANT_UPGRADE, player.playerID, (2 * (levels - upgrade), True, face, upgradeFace)))
+                upgrade += 1
+        faces = set(player.die2.faces)
+        for face in faces:
+            level = Data.getLevel(face)
+            if level == 7:
+                continue
+            upgrade = 1
+            while upgrade <= levels:
+                pool = self.getUpgradePool(level + upgrade)
+                for upgradeFace in pool:
+                    ret.append(
+                        (Move.MERCHANT_UPGRADE, player.playerID, (2 * (levels - upgrade), False, face, upgradeFace)))
+                upgrade += 1
+        ret.append((Move.MERCHANT_UPGRADE, player.playerID, (2 * levels,)))
+        return tuple(ret)
+
+    def getUpgradePool(self, level):
+        ret = []
+        match level:
+            case 1:
+                if self.temple[0]:
+                    ret.append(self.temple[0][0])
+                if self.temple[1]:
+                    ret.append(self.temple[1][0])
+            case 2:
+                if self.temple[2]:
+                    ret.append(self.temple[2][0])
+                if self.temple[3]:
+                    ret.append(self.temple[3][0])
+            case 3:
+                for face in self.temple[4]:
+                    ret.append(face)
+            case 4:
+                if self.temple[5]:
+                    ret.append(self.temple[5][0])
+            case 5:
+                if self.temple[6]:
+                    ret.append(self.temple[6][0])
+            case 6:
+                if self.temple[7]:
+                    ret.append(self.temple[7][0])
+                if self.temple[8]:
+                    ret.append(self.temple[8][0])
+            case 7:
+                if self.temple[9]:
+                    ret.append(self.temple[9][0])
+            case _:
+                return tuple()
+        if not ret:
+            return self.getUpgradePool(level + 1)
+        return tuple(ret)
+
+    def getMazeMoveChoices(self, player):
+        ret = []
+        if player.mazeMoves > 0:
+            options = Data.getMazeMoveOptions(player.mazePosition)
+        else:
+            options = Data.getReverseMazeMoveOptions(player.mazePosition)
+        for move in options:
+            ret.append((Move.MAZE_MOVE, player.playerID, (move,)))
+        return tuple(ret)
+
+    def getMazeEffectOrChoices(self, player):
+        ret = []
+        resources = Data.getMazeOrEffects(player.mazePosition)
+        if resources[0] > 0:
+            ret.append((Move.CHOOSE_MAZE_OR, player.playerID, (0,)))
+        if resources[1] > 0:
+            ret.append((Move.CHOOSE_MAZE_OR, player.playerID, (1,)))
+        if resources[2] > 0:
+            ret.append((Move.CHOOSE_MAZE_OR, player.playerID, (2,)))
+        if resources[3] > 0:
+            ret.append((Move.CHOOSE_MAZE_OR, player.playerID, (3,)))
+        return tuple(ret)
+
+    def getHammerChoices(self, player):
+        hammerLeft = self.players[player].getMaxHammer() - self.players[player].hammerTrack
+        goldToSpend = self.players[player].goldToGain
+        ret = []
+        i = max(goldToSpend - (self.players[player].maxGold - self.players[player].gold), 0)
+        while i <= hammerLeft and i <= goldToSpend:
+            ret.append((Move.CHOOSE_ADD_HAMMER_SCEPTER, player, (i,)))  # spend i gold on hammer, remainder is gained
+            i += 1
+        if not ret:
+            ret.append((Move.CHOOSE_ADD_HAMMER_SCEPTER, player, (i,)))  # this will happen if both can be maxed out
+        return tuple(ret)
+
+    def getScepterChoices(self, player):
+        scepterSpace = self.players[player].getScepterSpace()
+        goldToSpend = self.players[player].goldToGain
+        ret = []
+        i = max(goldToSpend - (self.players[player].maxGold - self.players[player].gold), 0)
+        while i <= scepterSpace and i <= goldToSpend:
+            ret.append((Move.CHOOSE_ADD_HAMMER_SCEPTER, player, (i,)))  # spend i gold on scepter, remainder is gained
+            i += 1
+        if not ret:
+            ret.append((Move.CHOOSE_ADD_HAMMER_SCEPTER, player, (i,)))  # this will happen if both can be maxed out
+        return tuple(ret)
+
+    def generateSatyrsChooseDie(self, die1):
+        picked = -1
+        if not die1:
+            picked = self.players[self.activePlayer].orChoice1
+        ret = []
+        for player in self.players:
+            if player.playerID == self.activePlayer:
+                continue
+            next = player.playerID * 2
+            if not picked == next:
+                ret.append((Move.SATYRS_CHOOSE_DIE, self.activePlayer, (next,)))
+            if not picked == next + 1:
+                ret.append((Move.SATYRS_CHOOSE_DIE, self.activePlayer, (next + 1,)))
+        return tuple(ret)
+
+    def generateLightChoices(self):
+        ret = []
+        for player in self.players:
+            if player.getDie1UpFace() != Data.DieFace.MIRROR:
+                move = Move.USE_LIGHT, self.activePlayer, (True, player.getDie1UpFace())
+                if not move in ret:
+                    ret.append(move)
+            if player.getDie2UpFace() != Data.DieFace.MIRROR:
+                move = Move.USE_LIGHT, self.activePlayer, (True, player.getDie2UpFace())
+                if not move in ret:
+                    ret.append(move)
+        ret.append((Move.USE_LIGHT, self.activePlayer, (False,)))
+        return tuple(ret)
+
+    def makeReturnMove(self, player):
+        self.sentinel = False
+        self.cyclops = False
+        match self.returnPhase:
+            case Phase.ACTIVE_PLAYER_PERFORM_FEAT_1 | Phase.ACTIVE_PLAYER_PERFORM_FEAT_2:
+                self.makeMove((Move.RETURN_TO_FEAT, player, ()))
+            case _:
+                self.makeMove((Move.PASS, player, ()))
+
+    def checkBasicMazeEffect(self, player):
+        match Data.getMazeEffect(player.mazePosition):
+            case "NONE":
+                return True
+            case "SUN1":
+                print(f"Player {player.playerID} gains 1 sun from the effect of space {player.mazePosition} of the Maze of the Goddess")
+                if self.loggingEnabled:
+                    self.log.write(f"Player {player.playerID} gains 1 sun from the effect of space {player.mazePosition} of the Maze of the Goddess\n")
+                player.gainSun(1, False)
+                return True
+            case "MOON1":
+                print(f"Player {player.playerID} gains 1 moon from the effect of space {player.mazePosition} of the Maze of the Goddess")
+                if self.loggingEnabled:
+                    self.log.write(f"Player {player.playerID} gains 1 moon from the effect of space {player.mazePosition} of the Maze of the Goddess\n")
+                player.gainMoon(1, False)
+                return True
+            case "VP3":
+                print(f"Player {player.playerID} gains 3 vp from the effect of space {player.mazePosition} of the Maze of the Goddess")
+                if self.loggingEnabled:
+                    self.log.write(f"Player {player.playerID} gains 3 vp from the effect of space {player.mazePosition} of the Maze of the Goddess\n")
+                player.gainVP(3)
+                return True
+            case "VP5":
+                print(f"Player {player.playerID} gains 5 vp from the effect of space {player.mazePosition} of the Maze of the Goddess")
+                if self.loggingEnabled:
+                    self.log.write(f"Player {player.playerID} gains 5 vp from the effect of space {player.mazePosition} of the Maze of the Goddess\n")
+                player.gainVP(5)
+                return True
+            case "VP3SUN1MOON1":
+                print(f"Player {player.playerID} gains 3 vp, 1 sun, and 1 moon from the effect of space {player.mazePosition} of the Maze of the Goddess")
+                if self.loggingEnabled:
+                    self.log.write(f"Player {player.playerID} gains 3 vp, 1 sun, and 1 moon from the effect of space {player.mazePosition} of the Maze of the Goddess\n")
+                player.gainVP(3)
+                player.gainSun(1, False)
+                player.gainMoon(1, False)
+                return True
+            case "VP2STEAL":
+                steal = 0
+                for pl in self.players:
+                    if player.playerID == pl.playerID:
+                        continue
+                    print(f"Player {player.playerID} steals {max(2, pl.vp)} vp from player {pl.playerID} due to the effect of space {player.mazePosition} of the Maze of the Goddess")
+                    if self.loggingEnabled:
+                        self.log.write(f"Player {player.playerID} steals {max(2, pl.vp)} vp from player {pl.playerID} due to the effect of space {player.mazePosition} of the Maze of the Goddess\n")
+                    steal += max(2, pl.vp)
+                    pl.gainVP(-2)
+                player.gainVP(steal)
+                return True
+            case "CELESTIALDIE1":
+                print(f"Player {player.playerID} gains one celestial die roll due to the effect of space {player.mazePosition} of the Maze of the Goddess")
+                if self.loggingEnabled:
+                    self.log.write(f"Player {player.playerID} gains one celestial die roll due to the effect of space {player.mazePosition} of the Maze of the Goddess\n")
+                player.celestialRolls += 1
+                return True
+            case "CELESTIALDIE2":
+                print(f"Player {player.playerID} gains two celestial die rolls due to the effect of space {player.mazePosition} of the Maze of the Goddess")
+                if self.loggingEnabled:
+                    self.log.write(f"Player {player.playerID} gains two celestial die rolls due to the effect of space {player.mazePosition} of the Maze of the Goddess\n")
+                player.celestialRolls += 2
+                return True
+            case "GOLD6":
+                print(f"Player {player.playerID} gains 6 gold from the effect of space {player.mazePosition} of the Maze of the Goddess")
+                if self.loggingEnabled:
+                    self.log.write(f"Player {player.playerID} gains 6 gold from the effect of space {player.mazePosition} of the Maze of the Goddess\n")
+                player.gainGold(6, False)
+                return player.goldToGain == 0
+            case "1VPPERFORGE":
+                print(f"Player {player.playerID} gains {player.numForged} vp (1 per forged face) from the effect of space {player.mazePosition} of the Maze of the Goddess")
+                if self.loggingEnabled:
+                    self.log.write(f"Player {player.playerID} gains {player.numForged} vp (1 per forged face) from the effect of space {player.mazePosition} of the Maze of the Goddess\n")
+                player.gainVP(player.numForged)
+                return True
+            case "GODDESS":
+                print(f"Player {player.playerID} gains 15 vp from the effect of space {player.mazePosition} of the Maze of the Goddess")
+                if self.loggingEnabled:
+                    self.log.write(f"Player {player.playerID} gains 15 vp from the effect of space {player.mazePosition} of the Maze of the Goddess\n")
+                player.gainVP(15)
+                for pl in self.players:
+                    if player.playerID == pl.playerID:
+                        continue
+                    if pl.mazePosition == 35:
+                        return True
+            case "TREASUREHALL":
+                for treasure in self.treasures:
+                    if treasure[1] == player.mazePosition:
+                        match treasure[0]:
+                            case Data.Treasure.VP_TREASURE:
+                                print(f"Player {player.playerID} gains 2 vp from the effect of the treasure hall on space {player.mazePosition} of the Maze of the Goddess")
+                                if self.loggingEnabled:
+                                    self.log.write(f"Player {player.playerID} gains 2 vp from the effect of the treasure hall on space {player.mazePosition} of the Maze of the Goddess\n")
+                                player.gainVP(2)
+                            case Data.Treasure.SUN_TREASURE:
+                                print(f"Player {player.playerID} gains 1 sun from the effect of the treasure hall on space {player.mazePosition} of the Maze of the Goddess")
+                                if self.loggingEnabled:
+                                    self.log.write(f"Player {player.playerID} gains 1 sun from the effect of the treasure hall on space {player.mazePosition} of the Maze of the Goddess\n")
+                                player.gainSun(1, False)
+                            case Data.Treasure.MOON_TREASURE:
+                                print(f"Player {player.playerID} gains 1 moon from the effect of the treasure hall on space {player.mazePosition} of the Maze of the Goddess")
+                                if self.loggingEnabled:
+                                    self.log.write(f"Player {player.playerID} gains 1 moon from the effect of the treasure hall on space {player.mazePosition} of the Maze of the Goddess\n")
+                                player.gainMoon(1, False)
+                        return True
+        return False
+
+    def gainTreasureEffect(self, treasure, player):
+        match treasure:
+            case Data.Treasure.VP_TREASURE:
+                player.gainVP(10)
+            case Data.Treasure.SUN_TREASURE:
+                player.gainSun(4, False)
+            case Data.Treasure.MOON_TREASURE:
+                player.gainMoon(4, False)
+
+    def gainSmallTreasureEffect(self, treasure, player):
+        match treasure:
+            case Data.Treasure.VP_TREASURE:
+                player.gainVP(2)
+            case Data.Treasure.SUN_TREASURE:
+                player.gainSun(1, False)
+            case Data.Treasure.MOON_TREASURE:
+                player.gainMoon(1, False)
+
+    def selectReinfState(self, effect):
+        match effect:
+            case "ELDER_REINF":
+                self.phase = Phase.RESOLVE_ELDER_REINF
+            case "OWL_REINF":
+                self.phase = Phase.RESOLVE_OWL_REINF
+            case "HIND_REINF":
+                self.phase = Phase.RESOLVE_HIND_REINF
+            case "TREE_REINF":
+                self.phase = Phase.RESOLVE_TREE_REINF
+            case "MERCHANT_REINF":
+                self.phase = Phase.RESOLVE_MERCHANT_REINF
+            case "LIGHT_REINF":
+                self.phase = Phase.RESOLVE_LIGHT_REINF
+            case "COMPANION_INST_REINF":
+                self.phase = Phase.RESOLVE_COMPANION_REINF
+            case "ORACLE_REINF":
+                self.phase = Phase.RESOLVE_ORACLE_REINF
+            case "GUARDIAN_REINF":
+                self.phase = Phase.RESOLVE_GUARDIAN_REINF
+
+    def resolveInstEffect(self, effect):
+        match effect:
+            case "SPIRITS_INST":
+                if self.players[self.activePlayer].scepters:
+                    # it is possible to spend gold from scepter tracks to pay for the feat
+                    # this can open up space for gold, but happens after this, so delay the gold gain
+                    self.players[self.activePlayer].goldToGain = 3
+                else:
+                    self.players[self.activePlayer].gainGold(3, False)
+                self.players[self.activePlayer].gainMoon(3, False)
+                if self.players[self.activePlayer].goldToGain == 0:
+                    self.makeMove((Move.PASS, self.activePlayer, ()))
+            case "SHIP_INST":
+                self.players[self.activePlayer].unforgedFaces.append(Data.DieFace.SHIP)
+                if self.phase == Phase.ACTIVE_PLAYER_PERFORM_FEAT_1:
+                    self.phase = Phase.FORGE_FEAT_FACE_1
+                else:
+                    self.phase = Phase.FORGE_FEAT_FACE_2
+            case "SHIELD_INST":
+                if self.phase == Phase.ACTIVE_PLAYER_PERFORM_FEAT_1:
+                    self.phase = Phase.CHOOSE_SHIELD_FACE_1
+                else:
+                    self.phase = Phase.CHOOSE_SHIELD_FACE_2
+            case "MINOTAUR_INST":
+                self.minotaur = True
+                if self.phase == Phase.ACTIVE_PLAYER_PERFORM_FEAT_1:
+                    self.returnPhase = Phase.EXTRA_TURN_DECISION
+                else:
+                    self.returnPhase = Phase.END_TURN
+                self.phase = Phase.ROLL_DIE_1
+                self.blessingPlayer = (self.activePlayer + 1) % len(self.players)
+            case "TRITON_INST":
+                self.players[self.activePlayer].tritonTokens += 1
+                self.makeMove((Move.PASS, self.activePlayer, ()))
+            case "MIRROR_INST":
+                self.players[self.activePlayer].unforgedFaces.append(Data.DieFace.MIRROR)
+                if self.phase == Phase.ACTIVE_PLAYER_PERFORM_FEAT_1:
+                    self.phase = Phase.FORGE_FEAT_FACE_1
+                else:
+                    self.phase = Phase.FORGE_FEAT_FACE_2
+            case "CYCLOPS_INST":
+                self.extraRolls = 3
+                self.cyclops = True
+                if self.phase == Phase.ACTIVE_PLAYER_PERFORM_FEAT_1:
+                    self.returnPhase = Phase.EXTRA_TURN_DECISION
+                else:
+                    self.returnPhase = Phase.END_TURN
+                self.blessing = True
+                self.blessingPlayer = self.activePlayer
+                self.phase = Phase.MINOR_CHOOSE_DIE
+            case "SPHINX_INST":
+                self.extraRolls = 3
+                if self.phase == Phase.ACTIVE_PLAYER_PERFORM_FEAT_1:
+                    self.returnPhase = Phase.EXTRA_TURN_DECISION
+                else:
+                    self.returnPhase = Phase.END_TURN
+                self.blessing = True
+                self.blessingPlayer = self.activePlayer
+                self.phase = Phase.MINOR_CHOOSE_DIE
+            case "TYPHON_INST":
+                self.players[self.activePlayer].gainVP(self.players[self.activePlayer].numForged)
+                self.makeMove((Move.PASS, self.activePlayer, ()))
+            case "SENTINEL_INST":
+                self.extraRolls = 1
+                self.sentinel = True
+                if self.phase == Phase.ACTIVE_PLAYER_PERFORM_FEAT_1:
+                    self.returnPhase = Phase.EXTRA_TURN_DECISION
+                else:
+                    self.returnPhase = Phase.END_TURN
+                self.blessing = True
+                self.blessingPlayer = self.activePlayer
+                self.phase = Phase.BLESSING_ROLL_DIE_1
+            case "CANCER_INST":
+                self.extraRolls = 1
+                if self.phase == Phase.ACTIVE_PLAYER_PERFORM_FEAT_1:
+                    self.returnPhase = Phase.EXTRA_TURN_DECISION
+                else:
+                    self.returnPhase = Phase.END_TURN
+                self.blessing = True
+                self.blessingPlayer = self.activePlayer
+                self.phase = Phase.BLESSING_ROLL_DIE_1
+            case "HELMET_INST":
+                self.players[self.activePlayer].unforgedFaces.append(Data.DieFace.TIMES3)
+                if self.phase == Phase.ACTIVE_PLAYER_PERFORM_FEAT_1:
+                    self.phase = Phase.FORGE_FEAT_FACE_1
+                else:
+                    self.phase = Phase.FORGE_FEAT_FACE_2
+            case "CERBERUS_INST":
+                self.players[self.activePlayer].cerberusTokens += 1
+                self.makeMove((Move.PASS, self.activePlayer, ()))
+            case "BOAR_INST_AUTO_RED":
+                self.faceToForge = Data.DieFace.REDBOAR
+                if self.phase == Phase.ACTIVE_PLAYER_PERFORM_FEAT_1:
+                    self.phase = Phase.CHOOSE_BOAR_MISFORTUNE_PLAYER_1
+                else:
+                    self.phase = Phase.CHOOSE_BOAR_MISFORTUNE_PLAYER_2
+            case "BOAR_INST_AUTO_BLUE":
+                self.faceToForge = Data.DieFace.BLUEBOAR
+                if self.phase == Phase.ACTIVE_PLAYER_PERFORM_FEAT_1:
+                    self.phase = Phase.CHOOSE_BOAR_MISFORTUNE_PLAYER_1
+                else:
+                    self.phase = Phase.CHOOSE_BOAR_MISFORTUNE_PLAYER_2
+            case "BOAR_INST_AUTO_YELLOW":
+                self.faceToForge = Data.DieFace.YELLOWBOAR
+                if self.phase == Phase.ACTIVE_PLAYER_PERFORM_FEAT_1:
+                    self.phase = Phase.CHOOSE_BOAR_MISFORTUNE_PLAYER_1
+                else:
+                    self.phase = Phase.CHOOSE_BOAR_MISFORTUNE_PLAYER_2
+            case "BOAR_INST_AUTO_GREEN":
+                self.faceToForge = Data.DieFace.GREENBOAR
+                if self.phase == Phase.ACTIVE_PLAYER_PERFORM_FEAT_1:
+                    self.phase = Phase.CHOOSE_BOAR_MISFORTUNE_PLAYER_1
+                else:
+                    self.phase = Phase.CHOOSE_BOAR_MISFORTUNE_PLAYER_2
+            case "SATYRS_INST":
+                self.satyrs = True
+                if self.phase == Phase.ACTIVE_PLAYER_PERFORM_FEAT_1:
+                    self.returnPhase = Phase.EXTRA_TURN_DECISION
+                else:
+                    self.returnPhase = Phase.END_TURN
+                self.phase = Phase.ROLL_DIE_1
+                self.blessingPlayer = (self.activePlayer + 1) % len(self.players)
+            case "CHEST_INST":
+                self.players[self.activePlayer].chestEffect()
+                self.makeMove((Move.PASS, self.activePlayer, ()))
+            case "HAMMER_INST":
+                self.makeMove((Move.PASS, self.activePlayer, ()))  # handled elsewhere
+            case "NYMPH_INST":
+                self.players[self.activePlayer].gainGold(4, False)
+                if self.phase == Phase.ACTIVE_PLAYER_PERFORM_FEAT_1 or self.phase == Phase.TITAN_1:
+                    self.phase = Phase.NYMPH_1
+                else:
+                    self.phase = Phase.NYMPH_2
+            case "OMNISCIENT_INST":
+                vpFaces = 0
+                for face in self.players[self.activePlayer].die1.faces:
+                    if face == Data.DieFace.VP2 or face == Data.DieFace.VP3 or face == Data.DieFace.VP4 or face == Data.DieFace.VP1SUN1 or face == Data.DieFace.GOLD3VP2OR or face == Data.DieFace.GOLD1SUN1MOON1VP1 or face == Data.DieFace.MOON2VP2 or face == Data.DieFace.REDSHIELD or face == Data.DieFace.BLUESHIELD or face == Data.DieFace.YELLOWSHIELD or face == Data.DieFace.GREENSHIELD or face == Data.DieFace.VP1GOLD2LOYALTY1 or face == Data.DieFace.REDCHAOS or face == Data.DieFace.BLUECHAOS or face == Data.DieFace.YELLOWCHAOS or face == Data.DieFace.GREENCHAOS:
+                        vpFaces += 1
+                for face in self.players[self.activePlayer].die2.faces:
+                    if face == Data.DieFace.VP2 or face == Data.DieFace.VP3 or face == Data.DieFace.VP4 or face == Data.DieFace.VP1SUN1 or face == Data.DieFace.GOLD3VP2OR or face == Data.DieFace.GOLD1SUN1MOON1VP1 or face == Data.DieFace.MOON2VP2 or face == Data.DieFace.REDSHIELD or face == Data.DieFace.BLUESHIELD or face == Data.DieFace.YELLOWSHIELD or face == Data.DieFace.GREENSHIELD or face == Data.DieFace.VP1GOLD2LOYALTY1 or face == Data.DieFace.REDCHAOS or face == Data.DieFace.BLUECHAOS or face == Data.DieFace.YELLOWCHAOS or face == Data.DieFace.GREENCHAOS:
+                        vpFaces += 1
+                self.players[self.activePlayer].gainVP(2 * vpFaces)
+                self.makeMove((Move.PASS, self.activePlayer, ()))
+            case "GOLDSMITH_INST":
+                feats = set()
+                for feat in self.players[self.activePlayer].feats:
+                    if feat == Data.HeroicFeat.TENACIOUS_BOAR_RED or feat == Data.HeroicFeat.TENACIOUS_BOAR_BLUE or feat == Data.HeroicFeat.TENACIOUS_BOAR_YELLOW or feat == Data.HeroicFeat.TENACIOUS_BOAR_GREEN:
+                        feats.add(Data.HeroicFeat.TENACIOUS_BOAR)
+                    elif feat == Data.HeroicFeat.MIRROR_OF_MISFORTUNE_RED or feat == Data.HeroicFeat.MIRROR_OF_MISFORTUNE_BLUE or feat == Data.HeroicFeat.MIRROR_OF_MISFORTUNE_YELLOW or feat == Data.HeroicFeat.MIRROR_OF_MISFORTUNE_GREEN:
+                        feats.add(Data.HeroicFeat.THE_MIRROR_OF_MISFORTUNE)
+                    else:
+                        feats.add(feat)
+                self.players[self.activePlayer].gainVP(2 * len(feats))
+                self.makeMove((Move.PASS, self.activePlayer, ()))
+            case "TRIDENT_INST":
+                self.players[self.activePlayer].gold = 0
+                if self.phase == Phase.ACTIVE_PLAYER_PERFORM_FEAT_1:
+                    self.phase = Phase.TRIDENT_1
+                else:
+                    self.phase = Phase.TRIDENT_2
+            case "LEFTHAND_INST":
+                for player in self.players:
+                    if player.location != 0 and player.playerID != self.activePlayer:
+                        # another player will be ousted, so activate bears for active player
+                        self.players[self.activePlayer].checkBears()
+                        break
+                self.players[self.activePlayer].location = 0
+                self.blessingPlayer = self.activePlayer  # active player will always need to be ousted so start there
+                if self.phase == Phase.ACTIVE_PLAYER_PERFORM_FEAT_1:
+                    self.phase = Phase.LEFT_HAND_ROLL_1_1
+                else:
+                    self.phase = Phase.LEFT_HAND_ROLL_1_2
+            case "FIRE_INST":
+                self.eternalFire = True
+                self.phase = Phase.TURN_START
+                self.makeMove((Move.PASS, self.activePlayer, ()))
+            case "TITAN_INST":
+                if self.islands[0] or self.islands[1] or self.islands[13] or self.islands[14]:
+                    if self.phase == Phase.ACTIVE_PLAYER_PERFORM_FEAT_1:
+                        self.phase = Phase.TITAN_1
+                    else:
+                        self.phase = Phase.TITAN_2
+                else:
+                    self.makeMove((Move.PASS, self.activePlayer, ()))
+            case "GODDESS_INST":
+                if self.phase == Phase.ACTIVE_PLAYER_PERFORM_FEAT_1:
+                    self.returnPhase = Phase.EXTRA_TURN_DECISION
+                else:
+                    self.returnPhase = Phase.END_TURN
+                self.phase = Phase.GODDESS_CHOOSE_FACES
+            case "RIGHTHAND_INST":
+                if self.players[self.activePlayer].getEffectiveGold() > 0:
+                    if self.phase == Phase.ACTIVE_PLAYER_PERFORM_FEAT_1:
+                        self.phase = Phase.RIGHTHAND_1
+                    else:
+                        self.phase = Phase.RIGHTHAND_2
+                else:
+                    self.makeMove((Move.PASS, self.activePlayer, ()))
+            case "NIGHT_INST":
+                sunLost = moonLost = 0
+                for player in self.players:
+                    if player.playerID == self.activePlayer:
+                        continue
+                    sunLost += min(1, player.sun)
+                    player.gainSun(-1, True)  # should only come from reserve
+                    moonLost += min(1, player.moon)
+                    player.gainMoon(-1, True)  # should only come from reserve
+                self.players[self.activePlayer].gainSun(sunLost, False)
+                self.players[self.activePlayer].gainMoon(moonLost, False)
+                self.makeMove((Move.PASS, self.activePlayer, ()))
+            case "MISTS_INST":
+                minGold = self.players[0].gold
+                for player in self.players:
+                    if player.gold < minGold:  # only checks regular reserve
+                        minGold = player.gold
+                vpLost = 0
+                for player in self.players:
+                    if player.gold == minGold:
+                        vpLost += min(5, player.vp)
+                        player.gainVP(-5)
+                self.players[self.activePlayer].gainVP(vpLost)
+                self.makeMove((Move.PASS, self.activePlayer, ()))
+            case "ANCESTOR_INST":
+                if self.phase == Phase.ACTIVE_PLAYER_PERFORM_FEAT_1:
+                    self.returnPhase = Phase.EXTRA_TURN_DECISION
+                else:
+                    self.returnPhase = Phase.END_TURN
+                self.blessingPlayer = self.activePlayer
+                self.phase = Phase.USE_ANCESTOR
+            case "WIND_INST":
+                if self.phase == Phase.ACTIVE_PLAYER_PERFORM_FEAT_1:
+                    self.returnPhase = Phase.EXTRA_TURN_DECISION
+                else:
+                    self.returnPhase = Phase.END_TURN
+                self.blessingPlayer = self.activePlayer
+                self.phase = Phase.WIND_ROLL_DIE_1
+            case "DIE_INST":
+                self.players[self.activePlayer].celestialRolls += 1
+                self.celestialPlayer = self.activePlayer
+                if self.phase == Phase.ACTIVE_PLAYER_PERFORM_FEAT_1:
+                    self.celestialReturnPhase = Phase.EXTRA_TURN_DECISION
+                else:
+                    self.celestialReturnPhase = Phase.END_TURN
+                self.phase = Phase.ROLL_CELESTIAL_DIE
+            case "COMPANION_INST_REINF":
+                self.players[self.activePlayer].companions.append(0)
+                self.makeMove((Move.PASS, self.activePlayer, ()))
+            case "SCEPTER_INST":
+                self.players[self.activePlayer].scepters.append(0)
+                self.makeMove((Move.PASS, self.activePlayer, ()))
+            case "MOONGOLEM_INST":
+                self.players[self.activePlayer].unforgedFaces.append(Data.DieFace.MAZEBLUE)
+                if self.phase == Phase.ACTIVE_PLAYER_PERFORM_FEAT_1:
+                    self.phase = Phase.FORGE_FEAT_FACE_1
+                else:
+                    self.phase = Phase.FORGE_FEAT_FACE_2
+            case "GREATGOLEM_INST":
+                self.players[self.activePlayer].mazeMoves = 2
+                self.blessingPlayer = self.activePlayer
+                self.phase = Phase.RESOLVE_MAZE_MOVES
+                if self.phase == Phase.ACTIVE_PLAYER_PERFORM_FEAT_1:
+                    self.mazeReturnPhase = Phase.EXTRA_TURN_DECISION
+                else:
+                    self.mazeReturnPhase = Phase.END_TURN
+                self.makeMove((Move.PASS, self.activePlayer, ()))
+            case "SUNGOLEM_INST":
+                self.players[self.activePlayer].unforgedFaces.append(Data.DieFace.MAZERED)
+                if self.phase == Phase.ACTIVE_PLAYER_PERFORM_FEAT_1:
+                    self.phase = Phase.FORGE_FEAT_FACE_1
+                else:
+                    self.phase = Phase.FORGE_FEAT_FACE_2
+            case "TIMEGOLEM_INST":
+                self.players[self.activePlayer].mazeMoves = -2
+                self.blessingPlayer = self.activePlayer
+                self.phase = Phase.RESOLVE_MAZE_MOVES
+                if self.phase == Phase.ACTIVE_PLAYER_PERFORM_FEAT_1:
+                    self.mazeReturnPhase = Phase.EXTRA_TURN_DECISION
+                else:
+                    self.mazeReturnPhase = Phase.END_TURN
+                self.makeMove((Move.PASS, self.activePlayer, ()))
+            case "MEMORY_INST_AUTO":
+                if self.phase == Phase.ACTIVE_PLAYER_PERFORM_FEAT_1:
+                    self.mazeReturnPhase = Phase.CHOOSE_MEMORY_1
+                else:
+                    self.mazeReturnPhase = Phase.CHOOSE_MEMORY_2
+            case "CHAOS_INST":
+                if self.phase == Phase.ACTIVE_PLAYER_PERFORM_FEAT_1:
+                    self.phase = Phase.CHOOSE_CHAOS_FACE_1
+                else:
+                    self.phase = Phase.CHOOSE_CHAOS_FACE_2
+            case "DOGGED_INST":
+                if self.phase == Phase.ACTIVE_PLAYER_PERFORM_FEAT_1:
+                    self.phase = Phase.CHOOSE_DOGGED_FACE_1
+                else:
+                    self.phase = Phase.CHOOSE_DOGGED_FACE_2
+            case "MISFORTUNE_INST_AUTO_RED":
+                self.faceToForge = Data.DieFace.REDMISFORTUNE
+                if self.phase == Phase.ACTIVE_PLAYER_PERFORM_FEAT_1:
+                    self.phase = Phase.CHOOSE_BOAR_MISFORTUNE_PLAYER_1
+                else:
+                    self.phase = Phase.CHOOSE_BOAR_MISFORTUNE_PLAYER_2
+            case "MISFORTUNE_INST_AUTO_BLUE":
+                self.faceToForge = Data.DieFace.BLUEMISFORTUNE
+                if self.phase == Phase.ACTIVE_PLAYER_PERFORM_FEAT_1:
+                    self.phase = Phase.CHOOSE_BOAR_MISFORTUNE_PLAYER_1
+                else:
+                    self.phase = Phase.CHOOSE_BOAR_MISFORTUNE_PLAYER_2
+            case "MISFORTUNE_INST_AUTO_YELLOW":
+                self.faceToForge = Data.DieFace.YELLOWMISFORTUNE
+                if self.phase == Phase.ACTIVE_PLAYER_PERFORM_FEAT_1:
+                    self.phase = Phase.CHOOSE_BOAR_MISFORTUNE_PLAYER_1
+                else:
+                    self.phase = Phase.CHOOSE_BOAR_MISFORTUNE_PLAYER_2
+            case "MISFORTUNE_INST_AUTO_GREEN":
+                self.faceToForge = Data.DieFace.GREENMISFORTUNE
+                if self.phase == Phase.ACTIVE_PLAYER_PERFORM_FEAT_1:
+                    self.phase = Phase.CHOOSE_BOAR_MISFORTUNE_PLAYER_1
+                else:
+                    self.phase = Phase.CHOOSE_BOAR_MISFORTUNE_PLAYER_2
+
+    def checkRebellionEffects(self, player, feat):
+        featPerformed = False
+        for pl in self.players:
+            if pl.playerID == player.playerID:
+                continue
+            if feat in pl.feats or (Data.isBoarFeat(feat) and Data.containsBoarFeat(pl.feats)) or (Data.isMisfortuneFeat(feat) and Data.containsMisfortuneFeat(pl.feats)):
+                featPerformed = True
+                break
+        if featPerformed:
+            if not (feat in player.feats or (Data.isBoarFeat(feat) and Data.containsBoarFeat(player.feats)) or (Data.isMisfortuneFeat(feat) and Data.containsMisfortuneFeat(player.feats))):
+                if Data.getEffectLevel(player.allegiance) == -2:
+                    player.gainVP(3)
+                else:  # -1
+                    player.gainVP(2)
+        else:
+            if Data.getEffectLevel(player.allegiance) == -2:
+                player.gainVP(5)
+            else:  # -1
+                player.gainVP(3)
+
+    def checkMemories(self, feat, playerID):
+        island = Data.getIsland(feat)
+        while True:
+            found = False
+            for memory in self.memories:
+                if memory[2] == playerID and memory[1] == island:
+                    found = True
+                    next = memory
+                    break
+            if found:
+                self.memories.remove(next)
+                if next[0]:
+                    self.players[playerID].gainAncientShard(2)
+                    self.players[playerID].gainMoon(1, False)
+                else:
+                    self.players[playerID].gainLoyalty(2)
+                    self.players[playerID].gainSun(1, False)
+            else:
+                break
+
+    def oust(self, player, actionNum):
+        player.location = 0
+        self.phase = Phase.BLESSING_ROLL_DIE_1
+        self.blessingPlayer = player.playerID
+        self.blessing = True
+        if actionNum == 1:
+            self.returnPhase = Phase.ACTIVE_PLAYER_PERFORM_FEAT_1
+        else:
+            self.returnPhase = Phase.ACTIVE_PLAYER_PERFORM_FEAT_2
+        player.checkBears()
+        self.players[self.activePlayer].checkBears()
+
+    def advanceActivePlayer(self, prevPlayer):
+        self.activePlayer += 1
+        if self.activePlayer >= len(self.players):
+            self.activePlayer = 0
+            self.round += 1
+        if self.isOver():
+            for player in self.players:
+                player.gainVP(Data.getAllegiancePoints(player.allegiance))
+        else:
+            self.makeMove((Move.PASS, prevPlayer, ()))
+
+    def getWinners(self):
+        ret = []
+        scores = self.getScores()
+        bestScore = max(scores)
+        for player in self.players:
+            if player.vp == bestScore:
+                ret.append(1)
+            else:
+                ret.append(0)
+        return tuple(ret)
+
+    def getScores(self):
+        scores = []
+        for player in self.players:
+            scores.append(player.vp)
+        return tuple(scores)
+
+    def printBoardState(self):
+        print(f"Round: {self.round}")
+        print(f"Player {self.activePlayer} is the active player.")
+        print("Players:")
+        for p in self.players:
+            p.printPlayerInfo()
+        print("Temple Pools:")
+        i = 1
+        for pool in self.temple:
+            print(f"Pool {i}:")
+            for face in pool:
+                print(face)
+            i += 1
+        print("Islands:")
+        i = 1
+        for featPool in self.islands:
+            print(f"Feat {i}:")
+            if featPool:
+                print(f"{featPool[0]} (x{len(featPool)})")
+            else:
+                print("Empty")
+            i += 1
+
+    def logBoardState(self):
+        self.log.write(f"Round: {self.round}\n")
+        self.log.write(f"Player {self.activePlayer} is the active player.\n")
+        self.log.write("Players:\n")
+        for p in self.players:
+            p.logPlayerInfo(self.log)
+        self.log.write("Temple Pools:\n")
+        i = 1
+        for pool in self.temple:
+            self.log.write(f"Pool {i}:\n")
+            for face in pool:
+                self.log.write(f"{face}\n")
+            i += 1
+        self.log.write("Islands:\n")
+        i = 1
+        for featPool in self.islands:
+            self.log.write(f"Feat {i}:\n")
+            if featPool:
+                self.log.write(f"{featPool[0]} (x{len(featPool)})\n")
+            else:
+                self.log.write("Empty\n")
+            i += 1
+
+    def printPlayersInfo(self):
+        print(f"Player {self.activePlayer} is the active player.")
+        print(f"Current blessing player: {self.blessingPlayer}")
+        print("Players:")
+        for p in self.players:
+            p.printPlayerInfo()
+            print(f"die 1 result buffer: {p.die1ResultBuffer}")
+            print(f"die 2 result buffer: {p.die2ResultBuffer}")
+            print(f"or choice 1: {p.orChoice1}")
+            print(f"or choice 2: {p.orChoice2}")
+            print(f"mirror choice 1: {p.mirrorChoice1}")
+            print(f"mirror choice 2: {p.mirrorChoice2}")
+
+    def printPoints(self):
+        print("Victory Points:")
+        for player in self.players:
+            print(f"Player {player.playerID}: {player.vp}")
+
+    def logPoints(self):
+        self.log.write("Victory Points:\n")
+        for player in self.players:
+            self.log.write(f"Player {player.playerID}: {player.vp}\n")
+
+    def setup(self):
+        self.selectRandomFeats()
+        self.players[0].gainGold(3, False)
+        self.players[1].gainGold(2, False)
+        if len(self.players) > 2:
+            self.players[2].gainGold(1, False)
+        if len(self.players) == 2:
+            for pool in self.temple:
+                if Data.DieFace.GOLD6 in pool:
+                    pool.remove(Data.DieFace.GOLD6)
+                else:
+                    pool.remove(random.choice(pool))
+                pool.remove(random.choice(pool))
+        if self.module == 1:
+            self.treasures = [Data.Treasure.VP_TREASURE, -1], [Data.Treasure.SUN_TREASURE, -1], [
+                Data.Treasure.MOON_TREASURE, -1]
+
+    def selectRandomFeats(self):
+        i = 0
+        while i < 15:
+            if i == 2 and self.module == 1:
+                self.addFeat(i, Data.HeroicFeat.THE_SUN_GOLEM)
+                i += 1
+                continue
+            if i == 3 and self.module == 1:
+                self.addFeat(i, Data.HeroicFeat.THE_TIME_GOLEM)
+                i += 1
+                continue
+            if i == 9 and self.module == 1:
+                self.addFeat(i, Data.HeroicFeat.THE_GREAT_GOLEM)
+                i += 1
+                continue
+            if i == 12 and self.module == 1:
+                self.addFeat(i, Data.HeroicFeat.THE_MOON_GOLEM)
+                i += 1
+                continue
+            if i == 1 and self.module == 2:
+                self.addFeat(i, Data.HeroicFeat.THE_DOGGED)
+                i += 1
+                continue
+            if i == 2 and self.module == 2:
+                self.addFeat(i, Data.HeroicFeat.THE_GUARDIAN)
+                i += 1
+                continue
+            if i == 5 and self.module == 2:
+                self.addFeat(i, Data.HeroicFeat.THE_MIRROR_OF_MISFORTUNE)
+                i += 1
+                continue
+            if i == 9 and self.module == 2:
+                self.addFeat(i, Data.HeroicFeat.THE_CHAOS)
+                i += 1
+                continue
+            if i == 12 and self.module == 2:
+                self.addFeat(i, Data.HeroicFeat.THE_ORACLE)
+                i += 1
+                continue
+            if i == 13 and self.module == 2:
+                self.addFeat(i, Data.HeroicFeat.THE_MEMORY)
+                i += 1
+                continue
+            feats = Data.getFeatsByPosition(i)
+            self.addFeat(i, feats[random.randrange(len(feats))])
+            i += 1
+        self.shields = [Data.DieFace.REDSHIELD, Data.DieFace.YELLOWSHIELD, Data.DieFace.GREENSHIELD,
+                        Data.DieFace.BLUESHIELD]  # always need these in case of abyssal trident
+
+    def addFeat(self, island, feat):
+        if feat == Data.HeroicFeat.TENACIOUS_BOAR:
+            self.islands[island].append(Data.HeroicFeat.TENACIOUS_BOAR_RED)
+            self.islands[island].append(Data.HeroicFeat.TENACIOUS_BOAR_BLUE)
+            if len(self.players) > 2:
+                self.islands[island].append(Data.HeroicFeat.TENACIOUS_BOAR_GREEN)
+                if len(self.players) > 3:
+                    self.islands[island].append(Data.HeroicFeat.TENACIOUS_BOAR_YELLOW)
+        elif feat == Data.HeroicFeat.THE_MIRROR_OF_MISFORTUNE:
+            self.islands[island].append(Data.HeroicFeat.MIRROR_OF_MISFORTUNE_RED)
+            self.islands[island].append(Data.HeroicFeat.MIRROR_OF_MISFORTUNE_BLUE)
+            if len(self.players) > 2:
+                self.islands[island].append(Data.HeroicFeat.MIRROR_OF_MISFORTUNE_GREEN)
+                if len(self.players) > 3:
+                    self.islands[island].append(Data.HeroicFeat.MIRROR_OF_MISFORTUNE_YELLOW)
+        else:
+            if feat == Data.HeroicFeat.THE_CHAOS:
+                self.chaos = [Data.DieFace.REDCHAOS, Data.DieFace.YELLOWCHAOS, Data.DieFace.GREENCHAOS,
+                              Data.DieFace.BLUECHAOS]
+            elif feat == Data.HeroicFeat.THE_DOGGED:
+                self.dogged = [Data.DieFace.GOLD3ANCIENTSHARD1, Data.DieFace.GOLD3ANCIENTSHARD1,
+                               Data.DieFace.VP1GOLD2LOYALTY1, Data.DieFace.VP1GOLD2LOYALTY1]
+            j = 0
+            while j < len(self.players):
+                self.islands[island].append(feat)
+                j += 1
+
 
 class Player:
     def __init__(self, playerID, ai, module):
@@ -3883,7 +7497,7 @@ class Player:
             toSpend -= spend
             i += 1
 
-    def useHammerOrScepter(self, amount):  # spend hammerAmount on hammer or scepter, gain remainder as gold
+    def useHammerOrScepter(self, amount):  # spend amount on hammer or scepter, gain remainder as gold
         if self.canAddScepter():
             self.addScepter(amount)
         else:
@@ -4445,7 +8059,7 @@ class Player:
         self.numForged += 1
 
     def forgeBoarMisfortuneFace(self, forgeInfo):
-        if forgeInfo[0] == 1:
+        if forgeInfo[0]:
             die = self.die1
         else:
             die = self.die2
@@ -4647,6 +8261,32 @@ class Player:
             print(face)
         print(f"Scepter gold: {self.getScepterGold()}")
 
+    def logPlayerInfo(self, log):
+        log.write(f"Player {self.playerID}:\nGold: {self.gold}/{self.maxGold}\nSun: {self.sun}/{self.maxSun}\n")
+        log.write(f"Moon: {self.moon}/{self.maxMoon}\nVictory Points: {self.vp}\n")
+        log.write(f"Ancient Shards: {self.ancientShards}/6\n")
+        log.write("Heroic Feats:\n")
+        for feat in self.feats:
+            log.write(f"{feat.name}\n")
+        log.write("Dice:\n")
+        log.write(f"{self.die1}\n")
+        log.write(f"{self.die2}\n")
+        if self.location == 0:
+            log.write("Location: portal\n")
+        else:
+            log.write(f"Location: Island {self.location}\n")
+        log.write(f"Maze location: {self.mazePosition}\n")
+        log.write(f"Allegiance: {self.allegiance}\n")
+        log.write(f"Hammer: {self.hammerTrack} / {self.getMaxHammer()}\n")
+        for companion in self.companions:
+            log.write(f"Companion: {companion}\n")
+        for scepter in self.scepters:
+            log.write(f"Scepter: {scepter}\n")
+        log.write(f"Number of faces forged: {self.numForged}\n")
+        log.write("Unforged Faces:\n")
+        for face in self.unforgedFaces:
+            log.write(f"{face}\n")
+        log.write(f"Scepter gold: {self.getScepterGold()}\n")
 
 class Die:
     def __init__(self, face1, face2, face3, face4, face5, face6):
