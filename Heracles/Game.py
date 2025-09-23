@@ -200,6 +200,7 @@ class Move(Enum):
     MAZE_SPEND = 45
     CHOOSE_MAZE_OR = 46
     CHOOSE_MEMORY = 47
+    CHOOSE_RESOLVE_ORDER = 48
 
 
 class BoardState:
@@ -555,8 +556,8 @@ class BoardState:
                     self.players[self.blessingPlayer].useHammerOrScepter(move[2][0])
                     self.phase = Phase.CHOOSE_MAZE_ORDER
                     self.makeMove((Move.PASS, move[1], ()))
-                else:
-                    self.players[self.blessingPlayer].gainDiceEffects(self.minotaur, self.sentinel, self.blessing)
+                elif move[0] == Move.CHOOSE_RESOLVE_ORDER:
+                    self.players[self.blessingPlayer].gainDiceEffects(self.minotaur, self.sentinel, self.blessing, move[2][0])
                     if self.players[self.blessingPlayer].goldToGain == 0:
                         self.phase = Phase.CHOOSE_MAZE_ORDER
                         self.makeMove((Move.PASS, move[1], ()))
@@ -742,8 +743,8 @@ class BoardState:
                     self.players[self.blessingPlayer].useHammerOrScepter(move[2][0])
                     self.phase = Phase.MAZE_BOAR_CHOICE_1
                     self.makeMove((Move.PASS, move[1], ()))
-                else:
-                    self.players[self.blessingPlayer].gainMazeDiceEffects()
+                elif move[0] == Move.CHOOSE_RESOLVE_ORDER:
+                    self.players[self.blessingPlayer].gainMazeDiceEffects(move[2][0])
                     if self.players[self.blessingPlayer].goldToGain == 0:
                         self.phase = Phase.MAZE_BOAR_CHOICE_1
                         self.makeMove((Move.PASS, move[1], ()))
@@ -867,8 +868,8 @@ class BoardState:
                     else:
                         self.phase = Phase.MISFORTUNE_1_RESOLVE_SHIPS
                         self.makeMove((Move.PASS, move[1], ()))
-                else:
-                    self.players[self.misfortunePlayer].gainDiceEffects(False, False, False)
+                elif move[0] == Move.CHOOSE_RESOLVE_ORDER:
+                    self.players[self.misfortunePlayer].gainDiceEffects(False, False, False, move[2][0])
                     if self.players[self.misfortunePlayer].goldToGain == 0:
                         if self.players[self.misfortunePlayer].shipsToResolve == 0:
                             self.phase = Phase.MISFORTUNE_1_BOAR_CHOICE
@@ -935,8 +936,8 @@ class BoardState:
                     else:
                         self.phase = Phase.MISFORTUNE_2_RESOLVE_SHIPS
                         self.makeMove((Move.PASS, move[1], ()))
-                else:
-                    self.players[self.misfortunePlayer].gainDiceEffects(False, False, False)
+                elif move[0] == Move.CHOOSE_RESOLVE_ORDER:
+                    self.players[self.misfortunePlayer].gainDiceEffects(False, False, False, move[2][0])
                     if self.players[self.misfortunePlayer].goldToGain == 0:
                         if self.players[self.misfortunePlayer].shipsToResolve == 0:
                             self.phase = Phase.MISFORTUNE_2_BOAR_CHOICE
@@ -1290,8 +1291,8 @@ class BoardState:
                     else:
                         self.phase = Phase.MINOR_MISFORTUNE_SHIPS
                         self.makeMove((Move.PASS, move[1], ()))
-                else:
-                    self.players[self.misfortunePlayer].gainDiceEffects(False, False, False)
+                elif move[0] == Move.CHOOSE_RESOLVE_ORDER:
+                    self.players[self.misfortunePlayer].gainDiceEffects(False, False, False, move[2][0])
                     if self.players[self.misfortunePlayer].goldToGain == 0:
                         if self.players[self.misfortunePlayer].shipsToResolve == 0:
                             self.phase = Phase.MINOR_CERBERUS_DECISION
@@ -1987,8 +1988,8 @@ class BoardState:
                     else:
                         self.phase = Phase.CELESTIAL_MISFORTUNE_SHIPS
                         self.makeMove((Move.PASS, move[1], ()))
-                else:
-                    self.players[self.misfortunePlayer].gainDiceEffects(False, False, False)
+                elif move[0] == Move.CHOOSE_RESOLVE_ORDER:
+                    self.players[self.misfortunePlayer].gainDiceEffects(False, False, False, move[2][0])
                     if self.players[self.misfortunePlayer].goldToGain == 0:
                         if self.players[self.misfortunePlayer].shipsToResolve == 0:
                             self.phase = Phase.ROLL_CELESTIAL_DIE
@@ -2123,8 +2124,6 @@ class BoardState:
                 ret = self.generateCelestialMisfortuneChoice()
             case Phase.CELESTIAL_MISFORTUNE_OR:
                 ret = self.players[self.misfortunePlayer].getDieOptions(False)
-            case Phase.CELESTIAL_MISFORTUNE_EFFECTS:
-                ret = self.getHammerScepterChoices(self.misfortunePlayer)
             case Phase.DIE_1_CHOOSE_OR:
                 ret = self.players[self.blessingPlayer].getDieOptions(True)
             case Phase.DIE_2_CHOOSE_OR:
@@ -2134,7 +2133,10 @@ class BoardState:
             case Phase.MAZE_DIE_2_CHOOSE_OR:
                 ret = self.players[self.blessingPlayer].getMazeDieOptions(False)
             case Phase.APPLY_DICE_EFFECTS | Phase.MAZE_APPLY_DICE_EFFECTS:
-                ret = self.getHammerScepterChoices(self.blessingPlayer)
+                if self.players[self.blessingPlayer].goldToGain > 0:
+                    ret = self.getHammerScepterChoices(self.blessingPlayer)
+                else:
+                    ret = (Move.CHOOSE_RESOLVE_ORDER, self.blessingPlayer, (True, )), (Move.CHOOSE_RESOLVE_ORDER, self.blessingPlayer, (False, ))
             case Phase.BOAR_CHOICE_1 | Phase.MISFORTUNE_2_BOAR_CHOICE:
                 ret = self.generateBoarChoice(self.players[self.blessingPlayer].getDie1Result())
             case Phase.BOAR_CHOICE_2 | Phase.MISFORTUNE_1_BOAR_CHOICE:
@@ -2151,8 +2153,11 @@ class BoardState:
                 ret = self.generateMisfortune2Choice()
             case Phase.MISFORTUNE_2_CHOOSE_OR | Phase.MINOR_MISFORTUNE_1_OR:
                 ret = self.players[self.misfortunePlayer].getDieOptions(True)
-            case Phase.MISFORTUNE_1_APPLY_EFFECTS | Phase.MISFORTUNE_2_APPLY_EFFECTS:
-                ret = self.getHammerScepterChoices(self.misfortunePlayer)
+            case Phase.MISFORTUNE_1_APPLY_EFFECTS | Phase.MISFORTUNE_2_APPLY_EFFECTS | Phase.MINOR_MISFORTUNE_RESOLVE | Phase.CELESTIAL_MISFORTUNE_EFFECTS:
+                if self.players[self.blessingPlayer].goldToGain > 0:
+                    ret = self.getHammerScepterChoices(self.misfortunePlayer)
+                else:
+                    ret = (Move.CHOOSE_RESOLVE_ORDER, self.misfortunePlayer, (True, )), (Move.CHOOSE_RESOLVE_ORDER, self.misfortunePlayer, (False, ))
             case Phase.DIE_1_CHOOSE_SENTINEL | Phase.DIE_2_CHOOSE_SENTINEL:
                 ret = (Move.CHOOSE_USE_SENTINEL, self.blessingPlayer, (True,)), (
                     Move.CHOOSE_USE_SENTINEL, self.blessingPlayer, (False,))
@@ -2183,8 +2188,6 @@ class BoardState:
                     ret = self.generateBoarChoice(self.players[self.blessingPlayer].getDie1Result())
                 else:
                     ret = self.generateBoarChoice(self.players[self.blessingPlayer].getDie2Result())
-            case Phase.MINOR_MISFORTUNE_RESOLVE:
-                ret = self.getHammerScepterChoices(self.misfortunePlayer)
             case Phase.CHOOSE_REINF_EFFECT:
                 ret = self.players[self.activePlayer].getReinfOptions()
             case Phase.RESOLVE_ELDER_REINF:
@@ -4058,11 +4061,11 @@ class LoggingBoardState:
                     self.players[self.blessingPlayer].useHammerOrScepter(move[2][0])
                     self.phase = Phase.CHOOSE_MAZE_ORDER
                     self.makeMove((Move.PASS, move[1], ()))
-                else:
+                elif move[0] == Move.CHOOSE_RESOLVE_ORDER:
                     print(f"Player {move[1]} applies the effects of their dice faces")
                     if self.loggingEnabled:
                         self.log.write(f"Player {move[1]} applies the effects of their dice faces\n")
-                    self.players[self.blessingPlayer].gainDiceEffects(self.minotaur, self.sentinel, self.blessing)
+                    self.players[self.blessingPlayer].gainDiceEffects(self.minotaur, self.sentinel, self.blessing, move[2][0])
                     if self.players[self.blessingPlayer].goldToGain == 0:
                         self.phase = Phase.CHOOSE_MAZE_ORDER
                         self.makeMove((Move.PASS, move[1], ()))
@@ -4221,9 +4224,9 @@ class LoggingBoardState:
                     else:
                         discount = 2
                     for face in move[2]:
-                        print(f"Player {move[1]} buys the die face {face} for {Data.faceCosts[face] - discount} gold")
+                        print(f"Player {move[1]} buys the die face {face} for {max(Data.faceCosts[face] - discount, 0)} gold")
                         if self.loggingEnabled:
-                            self.log.write(f"Player {move[1]} buys the die face {face} for {Data.faceCosts[face] - discount} gold\n")
+                            self.log.write(f"Player {move[1]} buys the die face {face} for {max(Data.faceCosts[face] - discount, 0)} gold\n")
                         self.temple[Data.getPool(face)].remove(face)
                         self.players[self.blessingPlayer].buyFaceShip(face, discount)
                 elif move[0] == Move.PASS:
@@ -4316,11 +4319,11 @@ class LoggingBoardState:
                     self.players[self.blessingPlayer].useHammerOrScepter(move[2][0])
                     self.phase = Phase.MAZE_BOAR_CHOICE_1
                     self.makeMove((Move.PASS, move[1], ()))
-                else:
+                elif move[0] == Move.CHOOSE_RESOLVE_ORDER:
                     print(f"Player {move[1]} applies the effects of their dice faces")
                     if self.loggingEnabled:
                         self.log.write(f"Player {move[1]} applies the effects of their dice faces\n")
-                    self.players[self.blessingPlayer].gainMazeDiceEffects()
+                    self.players[self.blessingPlayer].gainMazeDiceEffects(move[2][0])
                     if self.players[self.blessingPlayer].goldToGain == 0:
                         self.phase = Phase.MAZE_BOAR_CHOICE_1
                         self.makeMove((Move.PASS, move[1], ()))
@@ -4391,16 +4394,22 @@ class LoggingBoardState:
                             self.gainTreasureEffect(treasure[0], self.players[self.blessingPlayer])
                     self.phase = Phase.RESOLVE_MAZE_MOVES
                     self.makeMove((Move.PASS, move[1], ()))
-            case Phase.RESOLVE_SHIPS: # todo: next
+            case Phase.RESOLVE_SHIPS:
                 if move[0] == Move.BUY_FACES:
                     if self.players[self.blessingPlayer].times3ShipsToResolve > 0:
                         self.players[self.blessingPlayer].times3ShipsToResolve -= 1
                         for face in move[2]:
+                            print(f"Player {move[1]} buys the die face {face} for {max(Data.faceCosts[face] - 6, 0)} gold")
+                            if self.loggingEnabled:
+                                self.log.write(f"Player {move[1]} buys the die face {face} for {max(Data.faceCosts[face] - 6, 0)} gold\n")
                             self.temple[Data.getPool(face)].remove(face)
                             self.players[self.blessingPlayer].buyFaceShip(face, 6)
                     else:
                         self.players[self.blessingPlayer].shipsToResolve -= 1
                         for face in move[2]:
+                            print(f"Player {move[1]} buys the die face {face} for {max(Data.faceCosts[face] - 2, 0)} gold")
+                            if self.loggingEnabled:
+                                self.log.write(f"Player {move[1]} buys the die face {face} for {max(Data.faceCosts[face] - 2, 0)} gold\n")
                             self.temple[Data.getPool(face)].remove(face)
                             self.players[self.blessingPlayer].buyFaceShip(face, 2)
                     self.phase = Phase.RESOLVE_SHIPS_FORGE
@@ -4415,6 +4424,13 @@ class LoggingBoardState:
                         self.makeMove((Move.PASS, move[1], ()))
             case Phase.RESOLVE_SHIPS_FORGE:
                 if move[0] == Move.FORGE_FACE:
+                    if move[2][0]:
+                        die = 1
+                    else:
+                        die = 2
+                    print(f"Player {move[1]} forges the die face {move[2][1]} over die face {move[2][2]} on their die {die}")
+                    if self.loggingEnabled:
+                        self.log.write(f"Player {move[1]} forges the die face {move[2][1]} over die face {move[2][2]} on their die {die}\n")
                     self.players[self.blessingPlayer].forgeFace(move[2])
                     if self.players[self.blessingPlayer].shipsToResolve > 0 or self.players[
                         self.blessingPlayer].times3ShipsToResolve > 0:
@@ -4426,10 +4442,19 @@ class LoggingBoardState:
                 if move[0] == Move.BOAR_CHOICE:
                     match move[2][0]:
                         case "sun":
+                            print(f"Player {move[1]} gains 1 sun due to a boar face being resolved")
+                            if self.loggingEnabled:
+                                self.log.write(f"Player {move[1]} gains 1 sun due to a boar face being resolved\n")
                             self.players[move[1]].gainSun(1, False)
                         case "moon":
+                            print(f"Player {move[1]} gains 1 moon due to a boar face being resolved")
+                            if self.loggingEnabled:
+                                self.log.write(f"Player {move[1]} gains 1 moon due to a boar face being resolved\n")
                             self.players[move[1]].gainMoon(1, False)
                         case "vp":
+                            print(f"Player {move[1]} gains 3 vp due to a boar face being resolved")
+                            if self.loggingEnabled:
+                                self.log.write(f"Player {move[1]} gains 3 vp due to a boar face being resolved\n")
                             self.players[move[1]].gainVP(3)
                     self.phase = Phase.BOAR_CHOICE_2
                     self.makeMove((Move.PASS, move[1], ()))
@@ -4440,17 +4465,26 @@ class LoggingBoardState:
                 if move[0] == Move.BOAR_CHOICE:
                     match move[2][0]:
                         case "sun":
+                            print(f"Player {move[1]} gains 1 sun due to a boar face being resolved")
+                            if self.loggingEnabled:
+                                self.log.write(f"Player {move[1]} gains 1 sun due to a boar face being resolved\n")
                             self.players[move[1]].gainSun(1, False)
                         case "moon":
+                            print(f"Player {move[1]} gains 1 moon due to a boar face being resolved")
+                            if self.loggingEnabled:
+                                self.log.write(f"Player {move[1]} gains 1 moon due to a boar face being resolved\n")
                             self.players[move[1]].gainMoon(1, False)
                         case "vp":
+                            print(f"Player {move[1]} gains 3 vp due to a boar face being resolved")
+                            if self.loggingEnabled:
+                                self.log.write(f"Player {move[1]} gains 3 vp due to a boar face being resolved\n")
                             self.players[move[1]].gainVP(3)
                     self.phase = Phase.MISFORTUNE_1
                     self.makeMove((Move.PASS, move[1], ()))
                 elif not self.players[self.blessingPlayer].die2IsBoar():
                     self.phase = Phase.MISFORTUNE_1
                     self.makeMove((Move.PASS, move[1], ()))
-            case Phase.MISFORTUNE_1:
+            case Phase.MISFORTUNE_1: # todo: next
                 if move[0] == Move.CHOOSE_DIE_OR:
                     self.players[self.misfortunePlayer].orChoice1 = move[2][0]
                     self.phase = Phase.MISFORTUNE_1_CHOOSE_OR
@@ -4475,8 +4509,8 @@ class LoggingBoardState:
                     else:
                         self.phase = Phase.MISFORTUNE_1_RESOLVE_SHIPS
                         self.makeMove((Move.PASS, move[1], ()))
-                else:
-                    self.players[self.misfortunePlayer].gainDiceEffects(False, False, False)
+                elif move[0] == Move.CHOOSE_RESOLVE_ORDER:
+                    self.players[self.misfortunePlayer].gainDiceEffects(False, False, False, move[2][0])
                     if self.players[self.misfortunePlayer].goldToGain == 0:
                         if self.players[self.misfortunePlayer].shipsToResolve == 0:
                             self.phase = Phase.MISFORTUNE_1_BOAR_CHOICE
@@ -4543,8 +4577,8 @@ class LoggingBoardState:
                     else:
                         self.phase = Phase.MISFORTUNE_2_RESOLVE_SHIPS
                         self.makeMove((Move.PASS, move[1], ()))
-                else:
-                    self.players[self.misfortunePlayer].gainDiceEffects(False, False, False)
+                elif move[0] == Move.CHOOSE_RESOLVE_ORDER:
+                    self.players[self.misfortunePlayer].gainDiceEffects(False, False, False, move[2][0])
                     if self.players[self.misfortunePlayer].goldToGain == 0:
                         if self.players[self.misfortunePlayer].shipsToResolve == 0:
                             self.phase = Phase.MISFORTUNE_2_BOAR_CHOICE
@@ -4898,8 +4932,8 @@ class LoggingBoardState:
                     else:
                         self.phase = Phase.MINOR_MISFORTUNE_SHIPS
                         self.makeMove((Move.PASS, move[1], ()))
-                else:
-                    self.players[self.misfortunePlayer].gainDiceEffects(False, False, False)
+                elif move[0] == Move.CHOOSE_RESOLVE_ORDER:
+                    self.players[self.misfortunePlayer].gainDiceEffects(False, False, False, move[2][0])
                     if self.players[self.misfortunePlayer].goldToGain == 0:
                         if self.players[self.misfortunePlayer].shipsToResolve == 0:
                             self.phase = Phase.MINOR_CERBERUS_DECISION
@@ -5595,8 +5629,8 @@ class LoggingBoardState:
                     else:
                         self.phase = Phase.CELESTIAL_MISFORTUNE_SHIPS
                         self.makeMove((Move.PASS, move[1], ()))
-                else:
-                    self.players[self.misfortunePlayer].gainDiceEffects(False, False, False)
+                elif move[0] == Move.CHOOSE_RESOLVE_ORDER:
+                    self.players[self.misfortunePlayer].gainDiceEffects(False, False, False, move[2][0])
                     if self.players[self.misfortunePlayer].goldToGain == 0:
                         if self.players[self.misfortunePlayer].shipsToResolve == 0:
                             self.phase = Phase.ROLL_CELESTIAL_DIE
@@ -5731,8 +5765,6 @@ class LoggingBoardState:
                 ret = self.generateCelestialMisfortuneChoice()
             case Phase.CELESTIAL_MISFORTUNE_OR:
                 ret = self.players[self.misfortunePlayer].getDieOptions(False)
-            case Phase.CELESTIAL_MISFORTUNE_EFFECTS:
-                ret = self.getHammerScepterChoices(self.misfortunePlayer)
             case Phase.DIE_1_CHOOSE_OR:
                 ret = self.players[self.blessingPlayer].getDieOptions(True)
             case Phase.DIE_2_CHOOSE_OR:
@@ -5742,7 +5774,10 @@ class LoggingBoardState:
             case Phase.MAZE_DIE_2_CHOOSE_OR:
                 ret = self.players[self.blessingPlayer].getMazeDieOptions(False)
             case Phase.APPLY_DICE_EFFECTS | Phase.MAZE_APPLY_DICE_EFFECTS:
-                ret = self.getHammerScepterChoices(self.blessingPlayer)
+                if self.players[self.blessingPlayer].goldToGain > 0:
+                    ret = self.getHammerScepterChoices(self.blessingPlayer)
+                else:
+                    ret = (Move.CHOOSE_RESOLVE_ORDER, self.blessingPlayer, (True, )), (Move.CHOOSE_RESOLVE_ORDER, self.blessingPlayer, (False, ))
             case Phase.BOAR_CHOICE_1 | Phase.MISFORTUNE_2_BOAR_CHOICE:
                 ret = self.generateBoarChoice(self.players[self.blessingPlayer].getDie1Result())
             case Phase.BOAR_CHOICE_2 | Phase.MISFORTUNE_1_BOAR_CHOICE:
@@ -5759,8 +5794,11 @@ class LoggingBoardState:
                 ret = self.generateMisfortune2Choice()
             case Phase.MISFORTUNE_2_CHOOSE_OR | Phase.MINOR_MISFORTUNE_1_OR:
                 ret = self.players[self.misfortunePlayer].getDieOptions(True)
-            case Phase.MISFORTUNE_1_APPLY_EFFECTS | Phase.MISFORTUNE_2_APPLY_EFFECTS:
-                ret = self.getHammerScepterChoices(self.misfortunePlayer)
+            case Phase.MISFORTUNE_1_APPLY_EFFECTS | Phase.MISFORTUNE_2_APPLY_EFFECTS | Phase.MINOR_MISFORTUNE_RESOLVE | Phase.CELESTIAL_MISFORTUNE_EFFECTS:
+                if self.players[self.blessingPlayer].goldToGain > 0:
+                    ret = self.getHammerScepterChoices(self.misfortunePlayer)
+                else:
+                    ret = (Move.CHOOSE_RESOLVE_ORDER, self.misfortunePlayer, (True, )), (Move.CHOOSE_RESOLVE_ORDER, self.misfortunePlayer, (False, ))
             case Phase.DIE_1_CHOOSE_SENTINEL | Phase.DIE_2_CHOOSE_SENTINEL:
                 ret = (Move.CHOOSE_USE_SENTINEL, self.blessingPlayer, (True,)), (
                     Move.CHOOSE_USE_SENTINEL, self.blessingPlayer, (False,))
@@ -5791,8 +5829,6 @@ class LoggingBoardState:
                     ret = self.generateBoarChoice(self.players[self.blessingPlayer].getDie1Result())
                 else:
                     ret = self.generateBoarChoice(self.players[self.blessingPlayer].getDie2Result())
-            case Phase.MINOR_MISFORTUNE_RESOLVE:
-                ret = self.getHammerScepterChoices(self.misfortunePlayer)
             case Phase.CHOOSE_REINF_EFFECT:
                 ret = self.players[self.activePlayer].getReinfOptions()
             case Phase.RESOLVE_ELDER_REINF:
@@ -7835,11 +7871,17 @@ class Player:
                 self.mazeMoves += 1
         return gainedASorLoyalty
 
-    def gainDiceEffects(self, minotaur, sentinel, blessing):
-        self.gainDiceEffectsInternal(self.getDie1Result(), self.getDie2Result(), minotaur, sentinel, blessing)
+    def gainDiceEffects(self, minotaur, sentinel, blessing, order):
+        if order: # default order
+            self.gainDiceEffectsInternal(self.getDie1Result(), self.getDie2Result(), minotaur, sentinel, blessing)
+        else: # reverse order
+            self.gainDiceEffectsInternal(self.getDie2Result(), self.getDie1Result(), minotaur, sentinel, blessing)
 
-    def gainMazeDiceEffects(self):
-        self.gainDiceEffectsInternal(self.getMazeDie1Result(), self.getMazeDie2Result(), False, False, False)
+    def gainMazeDiceEffects(self, order):
+        if order: # default order
+            self.gainDiceEffectsInternal(self.getMazeDie1Result(), self.getMazeDie2Result(), False, False, False)
+        else: # reverse order
+            self.gainDiceEffectsInternal(self.getMazeDie2Result(), self.getMazeDie1Result(), False, False, False)
 
     def gainDiceEffectsInternal(self, die1, die2, minotaur, sentinel, blessing):
         mult = 1
@@ -8107,7 +8149,7 @@ class Player:
         self.unforgedFaces.append(face)
 
     def buyFaceShip(self, face, bonusGold):
-        self.gainGold(-(Data.faceCosts[face] - bonusGold), False)
+        self.gainGold(max(-(Data.faceCosts[face] - bonusGold), 0), False)
         self.unforgedFaces.append(face)
 
     def forgeFace(self, forgeInfo):

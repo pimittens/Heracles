@@ -263,6 +263,11 @@ def printOptions(options, boardState):
                 print(f"{i}: Place a(n) {token1} memory token on island {option[2][1]} and a {token2} memory token on island {option[2][3]}")
             case Game.Move.GUARDIAN_CHOICE:
                 print(f"{i}: Gain one {option[2][0]} from the effect of The Guardian")
+            case Game.Move.CHOOSE_RESOLVE_ORDER:
+                if option[2][0]:
+                    print(f"{i}: Resolve die 1 then die 2")
+                else:
+                    print(f"{i}: Resolve die 2 then die 1")
             case _:
                 print(f"{i}: Unhandled move type {option[0]}")
         i += 1
