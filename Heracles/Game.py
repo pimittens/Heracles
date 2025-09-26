@@ -557,7 +557,8 @@ class BoardState:
                     self.phase = Phase.CHOOSE_MAZE_ORDER
                     self.makeMove((Move.PASS, move[1], ()))
                 elif move[0] == Move.CHOOSE_RESOLVE_ORDER:
-                    self.players[self.blessingPlayer].gainDiceEffects(self.minotaur, self.sentinel, self.blessing, move[2][0])
+                    self.players[self.blessingPlayer].gainDiceEffects(self.minotaur, self.sentinel, self.blessing,
+                                                                      move[2][0])
                     if self.players[self.blessingPlayer].goldToGain == 0:
                         self.phase = Phase.CHOOSE_MAZE_ORDER
                         self.makeMove((Move.PASS, move[1], ()))
@@ -2136,7 +2137,8 @@ class BoardState:
                 if self.players[self.blessingPlayer].goldToGain > 0:
                     ret = self.getHammerScepterChoices(self.blessingPlayer)
                 else:
-                    ret = (Move.CHOOSE_RESOLVE_ORDER, self.blessingPlayer, (True, )), (Move.CHOOSE_RESOLVE_ORDER, self.blessingPlayer, (False, ))
+                    ret = (Move.CHOOSE_RESOLVE_ORDER, self.blessingPlayer, (True,)), (
+                        Move.CHOOSE_RESOLVE_ORDER, self.blessingPlayer, (False,))
             case Phase.BOAR_CHOICE_1 | Phase.MISFORTUNE_2_BOAR_CHOICE:
                 ret = self.generateBoarChoice(self.players[self.blessingPlayer].getDie1Result())
             case Phase.BOAR_CHOICE_2 | Phase.MISFORTUNE_1_BOAR_CHOICE:
@@ -2157,7 +2159,8 @@ class BoardState:
                 if self.players[self.blessingPlayer].goldToGain > 0:
                     ret = self.getHammerScepterChoices(self.misfortunePlayer)
                 else:
-                    ret = (Move.CHOOSE_RESOLVE_ORDER, self.misfortunePlayer, (True, )), (Move.CHOOSE_RESOLVE_ORDER, self.misfortunePlayer, (False, ))
+                    ret = (Move.CHOOSE_RESOLVE_ORDER, self.misfortunePlayer, (True,)), (
+                        Move.CHOOSE_RESOLVE_ORDER, self.misfortunePlayer, (False,))
             case Phase.DIE_1_CHOOSE_SENTINEL | Phase.DIE_2_CHOOSE_SENTINEL:
                 ret = (Move.CHOOSE_USE_SENTINEL, self.blessingPlayer, (True,)), (
                     Move.CHOOSE_USE_SENTINEL, self.blessingPlayer, (False,))
@@ -3374,11 +3377,13 @@ class BoardState:
         for pl in self.players:
             if pl.playerID == player.playerID:
                 continue
-            if feat in pl.feats or (Data.isBoarFeat(feat) and Data.containsBoarFeat(pl.feats)) or (Data.isMisfortuneFeat(feat) and Data.containsMisfortuneFeat(pl.feats)):
+            if feat in pl.feats or (Data.isBoarFeat(feat) and Data.containsBoarFeat(pl.feats)) or (
+                    Data.isMisfortuneFeat(feat) and Data.containsMisfortuneFeat(pl.feats)):
                 featPerformed = True
                 break
         if featPerformed:
-            if not (feat in player.feats or (Data.isBoarFeat(feat) and Data.containsBoarFeat(player.feats)) or (Data.isMisfortuneFeat(feat) and Data.containsMisfortuneFeat(player.feats))):
+            if not (feat in player.feats or (Data.isBoarFeat(feat) and Data.containsBoarFeat(player.feats)) or (
+                    Data.isMisfortuneFeat(feat) and Data.containsMisfortuneFeat(player.feats))):
                 if Data.getEffectLevel(player.allegiance) == -2:
                     player.gainVP(3)
                 else:  # -1
@@ -3583,6 +3588,7 @@ class BoardState:
                 self.islands[island].append(feat)
                 j += 1
 
+
 class LoggingBoardState:
     def __init__(self, players, initialState, module):
         self.players = players
@@ -3726,21 +3732,27 @@ class LoggingBoardState:
         #    self.log.write(f"Player {move[1]} makes move: {move}\n")
         self.lastPlayer = move[1]
         if move[0] == Move.SPEND_GOLD:
-            print(f"Player {move[1]} spends {self.players[move[1]].goldToSpend - move[2][0]} gold from their main track and {move[2][0]} from their scepters")
+            print(
+                f"Player {move[1]} spends {self.players[move[1]].goldToSpend - move[2][0]} gold from their main track and {move[2][0]} from their scepters")
             if self.loggingEnabled:
-                self.log.write(f"Player {move[1]} spends {self.players[move[1]].goldToSpend - move[2][0]} gold from their main track and {move[2][0]} from their scepters\n")
+                self.log.write(
+                    f"Player {move[1]} spends {self.players[move[1]].goldToSpend - move[2][0]} gold from their main track and {move[2][0]} from their scepters\n")
             self.players[move[1]].spendGold(move[2][0])
             return
         if move[0] == Move.SPEND_SUN:
-            print(f"Player {move[1]} spends {self.players[move[1]].sunToSpend - move[2][0] - move[2][1]} sun from their main track, {move[2][0]} from their scepters, and {move[2][1]} ancient shard(s)")
+            print(
+                f"Player {move[1]} spends {self.players[move[1]].sunToSpend - move[2][0] - move[2][1]} sun from their main track, {move[2][0]} from their scepters, and {move[2][1]} ancient shard(s)")
             if self.loggingEnabled:
-                self.log.write(f"Player {move[1]} spends {self.players[move[1]].sunToSpend - move[2][0] - move[2][1]} sun from their main track, {move[2][0]} from their scepters, and {move[2][1]} ancient shard(s)\n")
+                self.log.write(
+                    f"Player {move[1]} spends {self.players[move[1]].sunToSpend - move[2][0] - move[2][1]} sun from their main track, {move[2][0]} from their scepters, and {move[2][1]} ancient shard(s)\n")
             self.players[move[1]].spendSun(move[2][0], move[2][1])
             return
         if move[0] == Move.SPEND_MOON:
-            print(f"Player {move[1]} spends {self.players[move[1]].moonToSpend - move[2][0] - move[2][1]} moon from their main track, {move[2][0]} from their scepters, and {move[2][1]} ancient shard(s)")
+            print(
+                f"Player {move[1]} spends {self.players[move[1]].moonToSpend - move[2][0] - move[2][1]} moon from their main track, {move[2][0]} from their scepters, and {move[2][1]} ancient shard(s)")
             if self.loggingEnabled:
-                self.log.write(f"Player {move[1]} spends {self.players[move[1]].moonToSpend - move[2][0] - move[2][1]} moon from their main track, {move[2][0]} from their scepters, and {move[2][1]} ancient shard(s)\n")
+                self.log.write(
+                    f"Player {move[1]} spends {self.players[move[1]].moonToSpend - move[2][0] - move[2][1]} moon from their main track, {move[2][0]} from their scepters, and {move[2][1]} ancient shard(s)\n")
             self.players[move[1]].spendMoon(move[2][0], move[2][1])
             return
         if move[0] == Move.USE_TRITON_TOKEN:
@@ -3786,7 +3798,8 @@ class LoggingBoardState:
                     self.players[self.blessingPlayer].die1.roll()
                     print(f"Player {move[1]} rolls die 1 and gets {self.players[self.blessingPlayer].getDie1UpFace()}")
                     if self.loggingEnabled:
-                        self.log.write(f"Player {move[1]} rolls die 1 and gets {self.players[self.blessingPlayer].getDie1UpFace()}\n")
+                        self.log.write(
+                            f"Player {move[1]} rolls die 1 and gets {self.players[self.blessingPlayer].getDie1UpFace()}\n")
                     self.phase = Phase.ROLL_DIE_2
             case Phase.ROLL_DIE_2:
                 if move[0] == Move.ROLL:
@@ -3813,7 +3826,8 @@ class LoggingBoardState:
                     self.players[self.blessingPlayer].die2.roll()
                     print(f"Player {move[1]} rolls die 2 and gets {self.players[self.blessingPlayer].getDie2UpFace()}")
                     if self.loggingEnabled:
-                        self.log.write(f"Player {move[1]} rolls die 2 and gets {self.players[self.blessingPlayer].getDie2UpFace()}\n")
+                        self.log.write(
+                            f"Player {move[1]} rolls die 2 and gets {self.players[self.blessingPlayer].getDie2UpFace()}\n")
                     if not self.eternalFire:
                         self.blessingPlayer = (self.blessingPlayer + 1) % len(self.players)
                     if self.blessingPlayer == self.activePlayer:
@@ -3840,7 +3854,8 @@ class LoggingBoardState:
                     self.players[self.blessingPlayer].die1.roll()
                     print(f"Player {move[1]} rolls die 1 and gets {self.players[self.blessingPlayer].getDie1UpFace()}")
                     if self.loggingEnabled:
-                        self.log.write(f"Player {move[1]} rolls die 1 and gets {self.players[self.blessingPlayer].getDie1UpFace()}\n")
+                        self.log.write(
+                            f"Player {move[1]} rolls die 1 and gets {self.players[self.blessingPlayer].getDie1UpFace()}\n")
                     self.phase = Phase.BLESSING_ROLL_DIE_2
             case Phase.BLESSING_ROLL_DIE_2:
                 if move[0] == Move.ROLL:
@@ -3855,7 +3870,8 @@ class LoggingBoardState:
                     self.players[self.blessingPlayer].die2.roll()
                     print(f"Player {move[1]} rolls die 2 and gets {self.players[self.blessingPlayer].getDie2UpFace()}")
                     if self.loggingEnabled:
-                        self.log.write(f"Player {move[1]} rolls die 2 and gets {self.players[self.blessingPlayer].getDie2UpFace()}\n")
+                        self.log.write(
+                            f"Player {move[1]} rolls die 2 and gets {self.players[self.blessingPlayer].getDie2UpFace()}\n")
                     self.players[self.blessingPlayer].populateTwins()
                     self.phase = Phase.USE_TWINS_CHOICE
                     self.makeMove((Move.PASS, move[1], ()))
@@ -3906,7 +3922,8 @@ class LoggingBoardState:
                     self.players[self.blessingPlayer].die1.roll()
                     print(f"Player {move[1]} rolls die 1 and gets {self.players[self.blessingPlayer].getDie1UpFace()}")
                     if self.loggingEnabled:
-                        self.log.write(f"Player {move[1]} rolls die 1 and gets {self.players[self.blessingPlayer].getDie1UpFace()}\n")
+                        self.log.write(
+                            f"Player {move[1]} rolls die 1 and gets {self.players[self.blessingPlayer].getDie1UpFace()}\n")
                     if self.players[self.blessingPlayer].hasMaxMoon():  # max moon so gain vp
                         print(f"Player {move[1]} gains 1 vp from the effect of The Twins")
                         if self.loggingEnabled:
@@ -3935,7 +3952,8 @@ class LoggingBoardState:
                     self.players[self.blessingPlayer].die2.roll()
                     print(f"Player {move[1]} rolls die 2 and gets {self.players[self.blessingPlayer].getDie2UpFace()}")
                     if self.loggingEnabled:
-                        self.log.write(f"Player {move[1]} rolls die 2 and gets {self.players[self.blessingPlayer].getDie2UpFace()}\n")
+                        self.log.write(
+                            f"Player {move[1]} rolls die 2 and gets {self.players[self.blessingPlayer].getDie2UpFace()}\n")
                     if self.players[self.blessingPlayer].hasMaxMoon():  # max moon so gain vp
                         print(f"Player {move[1]} gains 1 vp from the effect of The Twins")
                         if self.loggingEnabled:
@@ -3976,9 +3994,11 @@ class LoggingBoardState:
                     self.makeMove((Move.PASS, move[1], ()))
             case Phase.MIRROR_1_CHOICE:
                 if move[0] == Move.MIRROR_CHOICE:
-                    print(f"Player {move[1]} uses the effect of The Mirror of the Abyss to copy the die face {move[2][0]} on die 1")
+                    print(
+                        f"Player {move[1]} uses the effect of The Mirror of the Abyss to copy the die face {move[2][0]} on die 1")
                     if self.loggingEnabled:
-                        self.log.write(f"Player {move[1]} uses the effect of The Mirror of the Abyss to copy the die face {move[2][0]} on die 1\n")
+                        self.log.write(
+                            f"Player {move[1]} uses the effect of The Mirror of the Abyss to copy the die face {move[2][0]} on die 1\n")
                     self.players[self.blessingPlayer].mirrorChoice1 = move[2][0]
                     self.phase = Phase.MIRROR_2_CHOICE
                     self.makeMove((Move.PASS, move[1], ()))
@@ -3987,9 +4007,11 @@ class LoggingBoardState:
                     self.makeMove((Move.PASS, move[1], ()))
             case Phase.MIRROR_2_CHOICE:
                 if move[0] == Move.MIRROR_CHOICE:
-                    print(f"Player {move[1]} uses the effect of The Mirror of the Abyss to copy the die face {move[2][0]} on die 2")
+                    print(
+                        f"Player {move[1]} uses the effect of The Mirror of the Abyss to copy the die face {move[2][0]} on die 2")
                     if self.loggingEnabled:
-                        self.log.write(f"Player {move[1]} uses the effect of The Mirror of the Abyss to copy the die face {move[2][0]} on die 2\n")
+                        self.log.write(
+                            f"Player {move[1]} uses the effect of The Mirror of the Abyss to copy the die face {move[2][0]} on die 2\n")
                     self.players[self.blessingPlayer].mirrorChoice2 = move[2][0]
                     self.phase = Phase.DIE_1_CHOOSE_OR
                     self.makeMove((Move.PASS, move[1], ()))
@@ -3998,9 +4020,11 @@ class LoggingBoardState:
                     self.makeMove((Move.PASS, move[1], ()))
             case Phase.DIE_1_CHOOSE_OR:
                 if move[0] == Move.CHOOSE_DIE_OR:
-                    print(f"Player {move[1]} chooses to gain {Data.getResourceType(move[2][0])} from their die face {self.players[self.blessingPlayer].getDie1Result()} on die 1")
+                    print(
+                        f"Player {move[1]} chooses to gain {Data.getResourceType(move[2][0])} from their die face {self.players[self.blessingPlayer].getDie1Result()} on die 1")
                     if self.loggingEnabled:
-                        self.log.write(f"Player {move[1]} chooses to gain {Data.getResourceType(move[2][0])} from their die face {self.players[self.blessingPlayer].getDie1Result()} on die 1\n")
+                        self.log.write(
+                            f"Player {move[1]} chooses to gain {Data.getResourceType(move[2][0])} from their die face {self.players[self.blessingPlayer].getDie1Result()} on die 1\n")
                     self.players[self.blessingPlayer].orChoice1 = move[2][0]
                     self.phase = Phase.DIE_2_CHOOSE_OR
                     self.makeMove((Move.PASS, move[1], ()))
@@ -4009,9 +4033,11 @@ class LoggingBoardState:
                     self.makeMove((Move.PASS, move[1], ()))
             case Phase.DIE_2_CHOOSE_OR:
                 if move[0] == Move.CHOOSE_DIE_OR:
-                    print(f"Player {move[1]} chooses to gain {Data.getResourceType(move[2][0])} from their die face {self.players[self.blessingPlayer].getDie2Result()} on die 2")
+                    print(
+                        f"Player {move[1]} chooses to gain {Data.getResourceType(move[2][0])} from their die face {self.players[self.blessingPlayer].getDie2Result()} on die 2")
                     if self.loggingEnabled:
-                        self.log.write(f"Player {move[1]} chooses to gain {Data.getResourceType(move[2][0])} from their die face {self.players[self.blessingPlayer].getDie2Result()} on die 2\n")
+                        self.log.write(
+                            f"Player {move[1]} chooses to gain {Data.getResourceType(move[2][0])} from their die face {self.players[self.blessingPlayer].getDie2Result()} on die 2\n")
                     self.players[self.blessingPlayer].orChoice2 = move[2][0]
                     if self.sentinel:
                         self.phase = Phase.DIE_1_CHOOSE_SENTINEL
@@ -4027,9 +4053,11 @@ class LoggingBoardState:
             case Phase.DIE_1_CHOOSE_SENTINEL:
                 if move[0] == Move.CHOOSE_USE_SENTINEL:
                     if move[2][0]:
-                        print(f"Player {move[1]} chooses to use the effect of The Sentinel to convert resources gained from their die 1 into vp")
+                        print(
+                            f"Player {move[1]} chooses to use the effect of The Sentinel to convert resources gained from their die 1 into vp")
                         if self.loggingEnabled:
-                            self.log.write(f"Player {move[1]} chooses to use the effect of The Sentinel to convert resources gained from their die 1 into vp\n")
+                            self.log.write(
+                                f"Player {move[1]} chooses to use the effect of The Sentinel to convert resources gained from their die 1 into vp\n")
                     self.players[self.blessingPlayer].sentinel1Choice = move[2][0]
                     self.phase = Phase.DIE_2_CHOOSE_SENTINEL
                     self.makeMove((Move.PASS, move[1], ()))
@@ -4039,9 +4067,11 @@ class LoggingBoardState:
             case Phase.DIE_2_CHOOSE_SENTINEL:
                 if move[0] == Move.CHOOSE_USE_SENTINEL:
                     if move[2][0]:
-                        print(f"Player {move[1]} chooses to use the effect of The Sentinel to convert resources gained from their die 2 into vp")
+                        print(
+                            f"Player {move[1]} chooses to use the effect of The Sentinel to convert resources gained from their die 2 into vp")
                         if self.loggingEnabled:
-                            self.log.write(f"Player {move[1]} chooses to use the effect of The Sentinel to convert resources gained from their die 2 into vp\n")
+                            self.log.write(
+                                f"Player {move[1]} chooses to use the effect of The Sentinel to convert resources gained from their die 2 into vp\n")
                     self.players[self.blessingPlayer].sentinel2Choice = move[2][0]
                     self.phase = Phase.APPLY_DICE_EFFECTS
                     self.makeMove((Move.PASS, move[1], ()))
@@ -4051,13 +4081,17 @@ class LoggingBoardState:
             case Phase.APPLY_DICE_EFFECTS:
                 if move[0] == Move.CHOOSE_ADD_HAMMER_SCEPTER:
                     if self.players[self.blessingPlayer].canAddScepter():
-                        print(f"Player {move[1]} chooses to add {move[2][0]} gold to their scepter(s) and gain {self.players[self.blessingPlayer].goldToGain - move[2][0]} gold to their main track")
+                        print(
+                            f"Player {move[1]} chooses to add {move[2][0]} gold to their scepter(s) and gain {self.players[self.blessingPlayer].goldToGain - move[2][0]} gold to their main track")
                         if self.loggingEnabled:
-                            self.log.write(f"Player {move[1]} chooses to add {move[2][0]} gold to their scepter(s) and gain {self.players[self.blessingPlayer].goldToGain - move[2][0]} gold to their main track\n")
+                            self.log.write(
+                                f"Player {move[1]} chooses to add {move[2][0]} gold to their scepter(s) and gain {self.players[self.blessingPlayer].goldToGain - move[2][0]} gold to their main track\n")
                     else:
-                        print(f"Player {move[1]} chooses to add {move[2][0]} gold to their hammer track and gain {self.players[self.blessingPlayer].goldToGain - move[2][0]} gold to their main track")
+                        print(
+                            f"Player {move[1]} chooses to add {move[2][0]} gold to their hammer track and gain {self.players[self.blessingPlayer].goldToGain - move[2][0]} gold to their main track")
                         if self.loggingEnabled:
-                            self.log.write(f"Player {move[1]} chooses to add {move[2][0]} gold to their hammer track and gain {self.players[self.blessingPlayer].goldToGain - move[2][0]} gold to their main track\n")
+                            self.log.write(
+                                f"Player {move[1]} chooses to add {move[2][0]} gold to their hammer track and gain {self.players[self.blessingPlayer].goldToGain - move[2][0]} gold to their main track\n")
                     self.players[self.blessingPlayer].useHammerOrScepter(move[2][0])
                     self.phase = Phase.CHOOSE_MAZE_ORDER
                     self.makeMove((Move.PASS, move[1], ()))
@@ -4065,7 +4099,8 @@ class LoggingBoardState:
                     print(f"Player {move[1]} applies the effects of their dice faces")
                     if self.loggingEnabled:
                         self.log.write(f"Player {move[1]} applies the effects of their dice faces\n")
-                    self.players[self.blessingPlayer].gainDiceEffects(self.minotaur, self.sentinel, self.blessing, move[2][0])
+                    self.players[self.blessingPlayer].gainDiceEffects(self.minotaur, self.sentinel, self.blessing,
+                                                                      move[2][0])
                     if self.players[self.blessingPlayer].goldToGain == 0:
                         self.phase = Phase.CHOOSE_MAZE_ORDER
                         self.makeMove((Move.PASS, move[1], ()))
@@ -4102,9 +4137,11 @@ class LoggingBoardState:
             case Phase.RESOLVE_MAZE_MOVES:
                 if move[0] == Move.MAZE_MOVE:
                     self.players[self.blessingPlayer].mazePosition = move[2][0]
-                    print(f"Player {move[1]} moves to space {self.players[self.blessingPlayer].mazePosition} in the Maze of the Goddess")
+                    print(
+                        f"Player {move[1]} moves to space {self.players[self.blessingPlayer].mazePosition} in the Maze of the Goddess")
                     if self.loggingEnabled:
-                        self.log.write(f"Player {move[1]} moves to space {self.players[self.blessingPlayer].mazePosition} in the Maze of the Goddess\n")
+                        self.log.write(
+                            f"Player {move[1]} moves to space {self.players[self.blessingPlayer].mazePosition} in the Maze of the Goddess\n")
                     if self.players[self.blessingPlayer].mazeMoves > 0:
                         self.players[self.blessingPlayer].mazeMoves -= 1
                     else:
@@ -4127,9 +4164,11 @@ class LoggingBoardState:
                         Data.getMazeMoveOptions(self.players[self.blessingPlayer].mazePosition)) == 1:
                     self.players[self.blessingPlayer].mazePosition = \
                         Data.getMazeMoveOptions(self.players[self.blessingPlayer].mazePosition)[0]
-                    print(f"Player {move[1]} moves to space {self.players[self.blessingPlayer].mazePosition} in the Maze of the Goddess")
+                    print(
+                        f"Player {move[1]} moves to space {self.players[self.blessingPlayer].mazePosition} in the Maze of the Goddess")
                     if self.loggingEnabled:
-                        self.log.write(f"Player {move[1]} moves to space {self.players[self.blessingPlayer].mazePosition} in the Maze of the Goddess\n")
+                        self.log.write(
+                            f"Player {move[1]} moves to space {self.players[self.blessingPlayer].mazePosition} in the Maze of the Goddess\n")
                     self.players[self.blessingPlayer].mazeMoves -= 1
                     self.phase = Phase.MAZE_EFFECT
                     self.makeMove((Move.PASS, move[1], ()))
@@ -4137,22 +4176,28 @@ class LoggingBoardState:
                         Data.getReverseMazeMoveOptions(self.players[self.blessingPlayer].mazePosition)) == 1:
                     self.players[self.blessingPlayer].mazePosition = \
                         Data.getReverseMazeMoveOptions(self.players[self.blessingPlayer].mazePosition)[0]
-                    print(f"Player {move[1]} moves to space {self.players[self.blessingPlayer].mazePosition} in the Maze of the Goddess")
+                    print(
+                        f"Player {move[1]} moves to space {self.players[self.blessingPlayer].mazePosition} in the Maze of the Goddess")
                     if self.loggingEnabled:
-                        self.log.write(f"Player {move[1]} moves to space {self.players[self.blessingPlayer].mazePosition} in the Maze of the Goddess\n")
+                        self.log.write(
+                            f"Player {move[1]} moves to space {self.players[self.blessingPlayer].mazePosition} in the Maze of the Goddess\n")
                     self.players[self.blessingPlayer].mazeMoves += 1
                     self.phase = Phase.MAZE_EFFECT
                     self.makeMove((Move.PASS, move[1], ()))
             case Phase.MAZE_EFFECT:
                 if move[0] == Move.CHOOSE_ADD_HAMMER_SCEPTER:
                     if self.players[self.blessingPlayer].canAddScepter():
-                        print(f"Player {move[1]} chooses to add {move[2][0]} gold to their scepter(s) and gain {self.players[self.blessingPlayer].goldToGain - move[2][0]} gold to their main track")
+                        print(
+                            f"Player {move[1]} chooses to add {move[2][0]} gold to their scepter(s) and gain {self.players[self.blessingPlayer].goldToGain - move[2][0]} gold to their main track")
                         if self.loggingEnabled:
-                            self.log.write(f"Player {move[1]} chooses to add {move[2][0]} gold to their scepter(s) and gain {self.players[self.blessingPlayer].goldToGain - move[2][0]} gold to their main track\n")
+                            self.log.write(
+                                f"Player {move[1]} chooses to add {move[2][0]} gold to their scepter(s) and gain {self.players[self.blessingPlayer].goldToGain - move[2][0]} gold to their main track\n")
                     else:
-                        print(f"Player {move[1]} chooses to add {move[2][0]} gold to their hammer track and gain {self.players[self.blessingPlayer].goldToGain - move[2][0]} gold to their main track")
+                        print(
+                            f"Player {move[1]} chooses to add {move[2][0]} gold to their hammer track and gain {self.players[self.blessingPlayer].goldToGain - move[2][0]} gold to their main track")
                         if self.loggingEnabled:
-                            self.log.write(f"Player {move[1]} chooses to add {move[2][0]} gold to their hammer track and gain {self.players[self.blessingPlayer].goldToGain - move[2][0]} gold to their main track\n")
+                            self.log.write(
+                                f"Player {move[1]} chooses to add {move[2][0]} gold to their hammer track and gain {self.players[self.blessingPlayer].goldToGain - move[2][0]} gold to their main track\n")
                     self.players[self.blessingPlayer].useHammerOrScepter(move[2][0])
                     self.phase = Phase.RESOLVE_MAZE_MOVES
                     self.makeMove((Move.PASS, move[1], ()))
@@ -4160,24 +4205,32 @@ class LoggingBoardState:
                     resources = Data.getMazeOrEffects(self.players[self.blessingPlayer].mazePosition)
                     match move[2][0]:
                         case 0:
-                            print(f"Player {move[1]} chooses to gain {resources[0]} gold from the effect of space {self.players[self.blessingPlayer].mazePosition} of the Maze of the Goddess")
+                            print(
+                                f"Player {move[1]} chooses to gain {resources[0]} gold from the effect of space {self.players[self.blessingPlayer].mazePosition} of the Maze of the Goddess")
                             if self.loggingEnabled:
-                                self.log.write(f"Player {move[1]} chooses to gain {resources[0]} gold from the effect of space {self.players[self.blessingPlayer].mazePosition} of the Maze of the Goddess\n")
+                                self.log.write(
+                                    f"Player {move[1]} chooses to gain {resources[0]} gold from the effect of space {self.players[self.blessingPlayer].mazePosition} of the Maze of the Goddess\n")
                             self.players[self.blessingPlayer].gainGold(resources[0], False)
                         case 1:
-                            print(f"Player {move[1]} chooses to gain {resources[0]} sun from the effect of space {self.players[self.blessingPlayer].mazePosition} of the Maze of the Goddess")
+                            print(
+                                f"Player {move[1]} chooses to gain {resources[0]} sun from the effect of space {self.players[self.blessingPlayer].mazePosition} of the Maze of the Goddess")
                             if self.loggingEnabled:
-                                self.log.write(f"Player {move[1]} chooses to gain {resources[0]} sun from the effect of space {self.players[self.blessingPlayer].mazePosition} of the Maze of the Goddess\n")
+                                self.log.write(
+                                    f"Player {move[1]} chooses to gain {resources[0]} sun from the effect of space {self.players[self.blessingPlayer].mazePosition} of the Maze of the Goddess\n")
                             self.players[self.blessingPlayer].gainSun(resources[1], False)
                         case 2:
-                            print(f"Player {move[1]} chooses to gain {resources[0]} moon from the effect of space {self.players[self.blessingPlayer].mazePosition} of the Maze of the Goddess")
+                            print(
+                                f"Player {move[1]} chooses to gain {resources[0]} moon from the effect of space {self.players[self.blessingPlayer].mazePosition} of the Maze of the Goddess")
                             if self.loggingEnabled:
-                                self.log.write(f"Player {move[1]} chooses to gain {resources[0]} moon from the effect of space {self.players[self.blessingPlayer].mazePosition} of the Maze of the Goddess\n")
+                                self.log.write(
+                                    f"Player {move[1]} chooses to gain {resources[0]} moon from the effect of space {self.players[self.blessingPlayer].mazePosition} of the Maze of the Goddess\n")
                             self.players[self.blessingPlayer].gainMoon(resources[2], False)
                         case 3:
-                            print(f"Player {move[1]} chooses to gain {resources[0]} vp from the effect of space {self.players[self.blessingPlayer].mazePosition} of the Maze of the Goddess")
+                            print(
+                                f"Player {move[1]} chooses to gain {resources[0]} vp from the effect of space {self.players[self.blessingPlayer].mazePosition} of the Maze of the Goddess")
                             if self.loggingEnabled:
-                                self.log.write(f"Player {move[1]} chooses to gain {resources[0]} vp from the effect of space {self.players[self.blessingPlayer].mazePosition} of the Maze of the Goddess\n")
+                                self.log.write(
+                                    f"Player {move[1]} chooses to gain {resources[0]} vp from the effect of space {self.players[self.blessingPlayer].mazePosition} of the Maze of the Goddess\n")
                             self.players[self.blessingPlayer].gainVP(resources[3])
                     if self.players[self.blessingPlayer].goldToGain == 0:
                         self.phase = Phase.RESOLVE_MAZE_MOVES
@@ -4212,9 +4265,11 @@ class LoggingBoardState:
                         die = 1
                     else:
                         die = 2
-                    print(f"Player {move[1]} forges the die face {move[2][1]} over die face {move[2][2]} on their die {die}")
+                    print(
+                        f"Player {move[1]} forges the die face {move[2][1]} over die face {move[2][2]} on their die {die}")
                     if self.loggingEnabled:
-                        self.log.write(f"Player {move[1]} forges the die face {move[2][1]} over die face {move[2][2]} on their die {die}\n")
+                        self.log.write(
+                            f"Player {move[1]} forges the die face {move[2][1]} over die face {move[2][2]} on their die {die}\n")
                     self.players[self.blessingPlayer].forgeFace(move[2])
                     self.phase = Phase.RESOLVE_MAZE_MOVES
                     self.makeMove((Move.PASS, move[1], ()))
@@ -4224,9 +4279,11 @@ class LoggingBoardState:
                     else:
                         discount = 2
                     for face in move[2]:
-                        print(f"Player {move[1]} buys the die face {face} for {max(Data.faceCosts[face] - discount, 0)} gold")
+                        print(
+                            f"Player {move[1]} buys the die face {face} for {max(Data.faceCosts[face] - discount, 0)} gold")
                         if self.loggingEnabled:
-                            self.log.write(f"Player {move[1]} buys the die face {face} for {max(Data.faceCosts[face] - discount, 0)} gold\n")
+                            self.log.write(
+                                f"Player {move[1]} buys the die face {face} for {max(Data.faceCosts[face] - discount, 0)} gold\n")
                         self.temple[Data.getPool(face)].remove(face)
                         self.players[self.blessingPlayer].buyFaceShip(face, discount)
                 elif move[0] == Move.PASS:
@@ -4235,9 +4292,11 @@ class LoggingBoardState:
             case Phase.MAZE_EFFECT_SPEND_GOLD:
                 if move[0] == Move.MAZE_SPEND:
                     if move[2][0]:
-                        print(f"Player {move[1]} chooses to spend 6 gold to gain 6 vp due to the effect of space {self.players[self.blessingPlayer].mazePosition} of the Maze of the Goddess")
+                        print(
+                            f"Player {move[1]} chooses to spend 6 gold to gain 6 vp due to the effect of space {self.players[self.blessingPlayer].mazePosition} of the Maze of the Goddess")
                         if self.loggingEnabled:
-                            self.log.write(f"Player {move[1]} chooses to spend 6 gold to gain 6 vp due to the effect of space {self.players[self.blessingPlayer].mazePosition} of the Maze of the Goddess\n")
+                            self.log.write(
+                                f"Player {move[1]} chooses to spend 6 gold to gain 6 vp due to the effect of space {self.players[self.blessingPlayer].mazePosition} of the Maze of the Goddess\n")
                         self.players[self.blessingPlayer].gainGold(-6, False)
                         self.players[self.blessingPlayer].gainVP(6)
                     self.phase = Phase.RESOLVE_MAZE_MOVES
@@ -4245,18 +4304,22 @@ class LoggingBoardState:
             case Phase.MAZE_EFFECT_SPEND_MOON:
                 if move[0] == Move.MAZE_SPEND:
                     if move[2][0]:
-                        print(f"Player {move[1]} chooses to spend 2 moon to gain 8 vp due to the effect of space {self.players[self.blessingPlayer].mazePosition} of the Maze of the Goddess")
+                        print(
+                            f"Player {move[1]} chooses to spend 2 moon to gain 8 vp due to the effect of space {self.players[self.blessingPlayer].mazePosition} of the Maze of the Goddess")
                         if self.loggingEnabled:
-                            self.log.write(f"Player {move[1]} chooses to spend 2 moon to gain 8 vp due to the effect of space {self.players[self.blessingPlayer].mazePosition} of the Maze of the Goddess\n")
+                            self.log.write(
+                                f"Player {move[1]} chooses to spend 2 moon to gain 8 vp due to the effect of space {self.players[self.blessingPlayer].mazePosition} of the Maze of the Goddess\n")
                         self.players[self.blessingPlayer].gainMoon(-2, False)
                         self.players[self.blessingPlayer].gainVP(8)
                     self.phase = Phase.RESOLVE_MAZE_MOVES
                     self.makeMove((Move.PASS, move[1], ()))
             case Phase.MAZE_EFFECT_GODDESS:
                 if move[0] == Move.CHOOSE_FACES:
-                    print(f"Player {move[1]} sets their dice to the faces {move[2][0]} (die 1) and {move[2][1]} (die 2) due to the effect of space {self.players[self.blessingPlayer].mazePosition} of the Maze of the Goddess")
+                    print(
+                        f"Player {move[1]} sets their dice to the faces {move[2][0]} (die 1) and {move[2][1]} (die 2) due to the effect of space {self.players[self.blessingPlayer].mazePosition} of the Maze of the Goddess")
                     if self.loggingEnabled:
-                        self.log.write(f"Player {move[1]} sets their dice to the faces {move[2][0]} (die 1) and {move[2][1]} (die 2) due to the effect of space {self.players[self.blessingPlayer].mazePosition} of the Maze of the Goddess\n")
+                        self.log.write(
+                            f"Player {move[1]} sets their dice to the faces {move[2][0]} (die 1) and {move[2][1]} (die 2) due to the effect of space {self.players[self.blessingPlayer].mazePosition} of the Maze of the Goddess\n")
                     self.players[self.blessingPlayer].die1.setToFace(move[2][0])
                     self.players[self.blessingPlayer].die2.setToFace(move[2][1])
                     self.players[self.blessingPlayer].setMazeBuffers()
@@ -4264,9 +4327,11 @@ class LoggingBoardState:
                     self.makeMove((Move.PASS, move[1], ()))
             case Phase.MAZE_MIRROR_1:
                 if move[0] == Move.MIRROR_CHOICE:
-                    print(f"Player {move[1]} uses the effect of The Mirror of the Abyss to copy the die face {move[2][0]} on die 1")
+                    print(
+                        f"Player {move[1]} uses the effect of The Mirror of the Abyss to copy the die face {move[2][0]} on die 1")
                     if self.loggingEnabled:
-                        self.log.write(f"Player {move[1]} uses the effect of The Mirror of the Abyss to copy the die face {move[2][0]} on die 1\n")
+                        self.log.write(
+                            f"Player {move[1]} uses the effect of The Mirror of the Abyss to copy the die face {move[2][0]} on die 1\n")
                     self.players[self.blessingPlayer].mirrorMazeChoice1 = move[2][0]
                     self.phase = Phase.MAZE_MIRROR_2
                     self.makeMove((Move.PASS, move[1], ()))
@@ -4275,9 +4340,11 @@ class LoggingBoardState:
                     self.makeMove((Move.PASS, move[1], ()))
             case Phase.MAZE_MIRROR_2:
                 if move[0] == Move.MIRROR_CHOICE:
-                    print(f"Player {move[1]} uses the effect of The Mirror of the Abyss to copy the die face {move[2][0]} on die 2")
+                    print(
+                        f"Player {move[1]} uses the effect of The Mirror of the Abyss to copy the die face {move[2][0]} on die 2")
                     if self.loggingEnabled:
-                        self.log.write(f"Player {move[1]} uses the effect of The Mirror of the Abyss to copy the die face {move[2][0]} on die 2\n")
+                        self.log.write(
+                            f"Player {move[1]} uses the effect of The Mirror of the Abyss to copy the die face {move[2][0]} on die 2\n")
                     self.players[self.blessingPlayer].mirrorMazeChoice2 = move[2][0]
                     self.phase = Phase.MAZE_DIE_1_CHOOSE_OR
                     self.makeMove((Move.PASS, move[1], ()))
@@ -4286,9 +4353,11 @@ class LoggingBoardState:
                     self.makeMove((Move.PASS, move[1], ()))
             case Phase.MAZE_DIE_1_CHOOSE_OR:
                 if move[0] == Move.CHOOSE_DIE_OR:
-                    print(f"Player {move[1]} chooses to gain {Data.getResourceType(move[2][0])} from their die face {self.players[self.blessingPlayer].getDie1Result()} on die 1")
+                    print(
+                        f"Player {move[1]} chooses to gain {Data.getResourceType(move[2][0])} from their die face {self.players[self.blessingPlayer].getDie1Result()} on die 1")
                     if self.loggingEnabled:
-                        self.log.write(f"Player {move[1]} chooses to gain {Data.getResourceType(move[2][0])} from their die face {self.players[self.blessingPlayer].getDie1Result()} on die 1\n")
+                        self.log.write(
+                            f"Player {move[1]} chooses to gain {Data.getResourceType(move[2][0])} from their die face {self.players[self.blessingPlayer].getDie1Result()} on die 1\n")
                     self.players[self.blessingPlayer].orMazeChoice1 = move[2][0]
                     self.phase = Phase.MAZE_DIE_2_CHOOSE_OR
                     self.makeMove((Move.PASS, move[1], ()))
@@ -4297,9 +4366,11 @@ class LoggingBoardState:
                     self.makeMove((Move.PASS, move[1], ()))
             case Phase.MAZE_DIE_2_CHOOSE_OR:
                 if move[0] == Move.CHOOSE_DIE_OR:
-                    print(f"Player {move[1]} chooses to gain {Data.getResourceType(move[2][0])} from their die face {self.players[self.blessingPlayer].getDie2Result()} on die 2")
+                    print(
+                        f"Player {move[1]} chooses to gain {Data.getResourceType(move[2][0])} from their die face {self.players[self.blessingPlayer].getDie2Result()} on die 2")
                     if self.loggingEnabled:
-                        self.log.write(f"Player {move[1]} chooses to gain {Data.getResourceType(move[2][0])} from their die face {self.players[self.blessingPlayer].getDie2Result()} on die 2\n")
+                        self.log.write(
+                            f"Player {move[1]} chooses to gain {Data.getResourceType(move[2][0])} from their die face {self.players[self.blessingPlayer].getDie2Result()} on die 2\n")
                     self.players[self.blessingPlayer].orMazeChoice2 = move[2][0]
                     self.phase = Phase.MAZE_APPLY_DICE_EFFECTS
                     self.makeMove((Move.PASS, move[1], ()))
@@ -4309,13 +4380,17 @@ class LoggingBoardState:
             case Phase.MAZE_APPLY_DICE_EFFECTS:
                 if move[0] == Move.CHOOSE_ADD_HAMMER_SCEPTER:
                     if self.players[self.blessingPlayer].canAddScepter():
-                        print(f"Player {move[1]} chooses to add {move[2][0]} gold to their scepter(s) and gain {self.players[self.blessingPlayer].goldToGain - move[2][0]} gold to their main track")
+                        print(
+                            f"Player {move[1]} chooses to add {move[2][0]} gold to their scepter(s) and gain {self.players[self.blessingPlayer].goldToGain - move[2][0]} gold to their main track")
                         if self.loggingEnabled:
-                            self.log.write(f"Player {move[1]} chooses to add {move[2][0]} gold to their scepter(s) and gain {self.players[self.blessingPlayer].goldToGain - move[2][0]} gold to their main track\n")
+                            self.log.write(
+                                f"Player {move[1]} chooses to add {move[2][0]} gold to their scepter(s) and gain {self.players[self.blessingPlayer].goldToGain - move[2][0]} gold to their main track\n")
                     else:
-                        print(f"Player {move[1]} chooses to add {move[2][0]} gold to their hammer track and gain {self.players[self.blessingPlayer].goldToGain - move[2][0]} gold to their main track")
+                        print(
+                            f"Player {move[1]} chooses to add {move[2][0]} gold to their hammer track and gain {self.players[self.blessingPlayer].goldToGain - move[2][0]} gold to their main track")
                         if self.loggingEnabled:
-                            self.log.write(f"Player {move[1]} chooses to add {move[2][0]} gold to their hammer track and gain {self.players[self.blessingPlayer].goldToGain - move[2][0]} gold to their main track\n")
+                            self.log.write(
+                                f"Player {move[1]} chooses to add {move[2][0]} gold to their hammer track and gain {self.players[self.blessingPlayer].goldToGain - move[2][0]} gold to their main track\n")
                     self.players[self.blessingPlayer].useHammerOrScepter(move[2][0])
                     self.phase = Phase.MAZE_BOAR_CHOICE_1
                     self.makeMove((Move.PASS, move[1], ()))
@@ -4379,17 +4454,23 @@ class LoggingBoardState:
                         if treasure[0] == move[2][0]:
                             match treasure:
                                 case Data.Treasure.VP_TREASURE:
-                                    print(f"Player {move[1]} chooses the vp Treasure Hall for space {self.players[self.blessingPlayer].mazePosition} of the Maze of the Goddess and gains 10 vp")
+                                    print(
+                                        f"Player {move[1]} chooses the vp Treasure Hall for space {self.players[self.blessingPlayer].mazePosition} of the Maze of the Goddess and gains 10 vp")
                                     if self.loggingEnabled:
-                                        self.log.write(f"Player {move[1]} chooses the vp Treasure Hall for space {self.players[self.blessingPlayer].mazePosition} of the Maze of the Goddess and gains 10 vp\n")
+                                        self.log.write(
+                                            f"Player {move[1]} chooses the vp Treasure Hall for space {self.players[self.blessingPlayer].mazePosition} of the Maze of the Goddess and gains 10 vp\n")
                                 case Data.Treasure.SUN_TREASURE:
-                                    print(f"Player {move[1]} chooses the sun Treasure Hall for space {self.players[self.blessingPlayer].mazePosition} of the Maze of the Goddess and gains 4 sun")
+                                    print(
+                                        f"Player {move[1]} chooses the sun Treasure Hall for space {self.players[self.blessingPlayer].mazePosition} of the Maze of the Goddess and gains 4 sun")
                                     if self.loggingEnabled:
-                                        self.log.write(f"Player {move[1]} chooses the sun Treasure Hall for space {self.players[self.blessingPlayer].mazePosition} of the Maze of the Goddess and gains 4 sun\n")
+                                        self.log.write(
+                                            f"Player {move[1]} chooses the sun Treasure Hall for space {self.players[self.blessingPlayer].mazePosition} of the Maze of the Goddess and gains 4 sun\n")
                                 case Data.Treasure.MOON_TREASURE:
-                                    print(f"Player {move[1]} chooses the moon Treasure Hall for space {self.players[self.blessingPlayer].mazePosition} of the Maze of the Goddess and gains 4 moon")
+                                    print(
+                                        f"Player {move[1]} chooses the moon Treasure Hall for space {self.players[self.blessingPlayer].mazePosition} of the Maze of the Goddess and gains 4 moon")
                                     if self.loggingEnabled:
-                                        self.log.write(f"Player {move[1]} chooses the moon Treasure Hall for space {self.players[self.blessingPlayer].mazePosition} of the Maze of the Goddess and gains 4 moon\n")
+                                        self.log.write(
+                                            f"Player {move[1]} chooses the moon Treasure Hall for space {self.players[self.blessingPlayer].mazePosition} of the Maze of the Goddess and gains 4 moon\n")
                             treasure[1] = self.players[self.blessingPlayer].mazePosition
                             self.gainTreasureEffect(treasure[0], self.players[self.blessingPlayer])
                     self.phase = Phase.RESOLVE_MAZE_MOVES
@@ -4399,17 +4480,21 @@ class LoggingBoardState:
                     if self.players[self.blessingPlayer].times3ShipsToResolve > 0:
                         self.players[self.blessingPlayer].times3ShipsToResolve -= 1
                         for face in move[2]:
-                            print(f"Player {move[1]} buys the die face {face} for {max(Data.faceCosts[face] - 6, 0)} gold")
+                            print(
+                                f"Player {move[1]} buys the die face {face} for {max(Data.faceCosts[face] - 6, 0)} gold")
                             if self.loggingEnabled:
-                                self.log.write(f"Player {move[1]} buys the die face {face} for {max(Data.faceCosts[face] - 6, 0)} gold\n")
+                                self.log.write(
+                                    f"Player {move[1]} buys the die face {face} for {max(Data.faceCosts[face] - 6, 0)} gold\n")
                             self.temple[Data.getPool(face)].remove(face)
                             self.players[self.blessingPlayer].buyFaceShip(face, 6)
                     else:
                         self.players[self.blessingPlayer].shipsToResolve -= 1
                         for face in move[2]:
-                            print(f"Player {move[1]} buys the die face {face} for {max(Data.faceCosts[face] - 2, 0)} gold")
+                            print(
+                                f"Player {move[1]} buys the die face {face} for {max(Data.faceCosts[face] - 2, 0)} gold")
                             if self.loggingEnabled:
-                                self.log.write(f"Player {move[1]} buys the die face {face} for {max(Data.faceCosts[face] - 2, 0)} gold\n")
+                                self.log.write(
+                                    f"Player {move[1]} buys the die face {face} for {max(Data.faceCosts[face] - 2, 0)} gold\n")
                             self.temple[Data.getPool(face)].remove(face)
                             self.players[self.blessingPlayer].buyFaceShip(face, 2)
                     self.phase = Phase.RESOLVE_SHIPS_FORGE
@@ -4428,9 +4513,11 @@ class LoggingBoardState:
                         die = 1
                     else:
                         die = 2
-                    print(f"Player {move[1]} forges the die face {move[2][1]} over die face {move[2][2]} on their die {die}")
+                    print(
+                        f"Player {move[1]} forges the die face {move[2][1]} over die face {move[2][2]} on their die {die}")
                     if self.loggingEnabled:
-                        self.log.write(f"Player {move[1]} forges the die face {move[2][1]} over die face {move[2][2]} on their die {die}\n")
+                        self.log.write(
+                            f"Player {move[1]} forges the die face {move[2][1]} over die face {move[2][2]} on their die {die}\n")
                     self.players[self.blessingPlayer].forgeFace(move[2])
                     if self.players[self.blessingPlayer].shipsToResolve > 0 or self.players[
                         self.blessingPlayer].times3ShipsToResolve > 0:
@@ -4486,9 +4573,11 @@ class LoggingBoardState:
                     self.makeMove((Move.PASS, move[1], ()))
             case Phase.MISFORTUNE_1:
                 if move[0] == Move.CHOOSE_DIE_OR:
-                    print(f"Player {move[1]} chooses to gain {Data.getResourceType(move[2][0])} from their die face {self.players[self.misfortunePlayer].getDie1Result()} on die 1")
+                    print(
+                        f"Player {move[1]} chooses to gain {Data.getResourceType(move[2][0])} from their die face {self.players[self.misfortunePlayer].getDie1Result()} on die 1")
                     if self.loggingEnabled:
-                        self.log.write(f"Player {move[1]} chooses to gain {Data.getResourceType(move[2][0])} from their die face {self.players[self.misfortunePlayer].getDie1Result()} on die 1\n")
+                        self.log.write(
+                            f"Player {move[1]} chooses to gain {Data.getResourceType(move[2][0])} from their die face {self.players[self.misfortunePlayer].getDie1Result()} on die 1\n")
                     self.players[self.misfortunePlayer].orChoice1 = move[2][0]
                     self.phase = Phase.MISFORTUNE_1_CHOOSE_OR
                     self.makeMove((Move.PASS, move[1], ()))
@@ -4497,9 +4586,11 @@ class LoggingBoardState:
                     self.makeMove((Move.PASS, move[1], ()))
             case Phase.MISFORTUNE_1_CHOOSE_OR:
                 if move[0] == Move.CHOOSE_DIE_OR:
-                    print(f"Player {move[1]} chooses to gain {Data.getResourceType(move[2][0])} from their die face {self.players[self.misfortunePlayer].getDie2Result()} on die 2")
+                    print(
+                        f"Player {move[1]} chooses to gain {Data.getResourceType(move[2][0])} from their die face {self.players[self.misfortunePlayer].getDie2Result()} on die 2")
                     if self.loggingEnabled:
-                        self.log.write(f"Player {move[1]} chooses to gain {Data.getResourceType(move[2][0])} from their die face {self.players[self.misfortunePlayer].getDie2Result()} on die 2\n")
+                        self.log.write(
+                            f"Player {move[1]} chooses to gain {Data.getResourceType(move[2][0])} from their die face {self.players[self.misfortunePlayer].getDie2Result()} on die 2\n")
                     self.players[self.misfortunePlayer].orChoice2 = move[2][0]
                     self.phase = Phase.MISFORTUNE_1_APPLY_EFFECTS
                     self.makeMove((Move.PASS, move[1], ()))
@@ -4509,13 +4600,17 @@ class LoggingBoardState:
             case Phase.MISFORTUNE_1_APPLY_EFFECTS:
                 if move[0] == Move.CHOOSE_ADD_HAMMER_SCEPTER:
                     if self.players[self.misfortunePlayer].canAddScepter():
-                        print(f"Player {move[1]} chooses to add {move[2][0]} gold to their scepter(s) and gain {self.players[self.misfortunePlayer].goldToGain - move[2][0]} gold to their main track")
+                        print(
+                            f"Player {move[1]} chooses to add {move[2][0]} gold to their scepter(s) and gain {self.players[self.misfortunePlayer].goldToGain - move[2][0]} gold to their main track")
                         if self.loggingEnabled:
-                            self.log.write(f"Player {move[1]} chooses to add {move[2][0]} gold to their scepter(s) and gain {self.players[self.misfortunePlayer].goldToGain - move[2][0]} gold to their main track\n")
+                            self.log.write(
+                                f"Player {move[1]} chooses to add {move[2][0]} gold to their scepter(s) and gain {self.players[self.misfortunePlayer].goldToGain - move[2][0]} gold to their main track\n")
                     else:
-                        print(f"Player {move[1]} chooses to add {move[2][0]} gold to their hammer track and gain {self.players[self.misfortunePlayer].goldToGain - move[2][0]} gold to their main track")
+                        print(
+                            f"Player {move[1]} chooses to add {move[2][0]} gold to their hammer track and gain {self.players[self.misfortunePlayer].goldToGain - move[2][0]} gold to their main track")
                         if self.loggingEnabled:
-                            self.log.write(f"Player {move[1]} chooses to add {move[2][0]} gold to their hammer track and gain {self.players[self.misfortunePlayer].goldToGain - move[2][0]} gold to their main track\n")
+                            self.log.write(
+                                f"Player {move[1]} chooses to add {move[2][0]} gold to their hammer track and gain {self.players[self.misfortunePlayer].goldToGain - move[2][0]} gold to their main track\n")
                     self.players[self.misfortunePlayer].useHammerOrScepter(move[2][0])
                     if self.players[self.misfortunePlayer].shipsToResolve == 0:
                         self.phase = Phase.MISFORTUNE_1_BOAR_CHOICE
@@ -4541,7 +4636,8 @@ class LoggingBoardState:
                     for face in move[2]:
                         print(f"Player {move[1]} buys the die face {face} for {max(Data.faceCosts[face] - 2, 0)} gold")
                         if self.loggingEnabled:
-                            self.log.write(f"Player {move[1]} buys the die face {face} for {max(Data.faceCosts[face] - 2, 0)} gold\n")
+                            self.log.write(
+                                f"Player {move[1]} buys the die face {face} for {max(Data.faceCosts[face] - 2, 0)} gold\n")
                         self.temple[Data.getPool(face)].remove(face)
                         self.players[self.blessingPlayer].buyFaceShip(face, 2)
                     self.phase = Phase.MISFORTUNE_1_RESOLVE_SHIPS_FORGE
@@ -4556,9 +4652,11 @@ class LoggingBoardState:
                         die = 1
                     else:
                         die = 2
-                    print(f"Player {move[1]} forges the die face {move[2][1]} over die face {move[2][2]} on their die {die}")
+                    print(
+                        f"Player {move[1]} forges the die face {move[2][1]} over die face {move[2][2]} on their die {die}")
                     if self.loggingEnabled:
-                        self.log.write(f"Player {move[1]} forges the die face {move[2][1]} over die face {move[2][2]} on their die {die}\n")
+                        self.log.write(
+                            f"Player {move[1]} forges the die face {move[2][1]} over die face {move[2][2]} on their die {die}\n")
                     self.players[self.misfortunePlayer].forgeFace(move[2])
                     if self.players[self.misfortunePlayer].shipsToResolve > 0:
                         self.phase = Phase.MISFORTUNE_1_RESOLVE_SHIPS
@@ -4590,9 +4688,11 @@ class LoggingBoardState:
                     self.makeMove((Move.PASS, move[1], ()))
             case Phase.MISFORTUNE_2:
                 if move[0] == Move.CHOOSE_DIE_OR:
-                    print(f"Player {move[1]} chooses to gain {Data.getResourceType(move[2][0])} from their die face {self.players[self.misfortunePlayer].getDie2Result()} on die 2")
+                    print(
+                        f"Player {move[1]} chooses to gain {Data.getResourceType(move[2][0])} from their die face {self.players[self.misfortunePlayer].getDie2Result()} on die 2")
                     if self.loggingEnabled:
-                        self.log.write(f"Player {move[1]} chooses to gain {Data.getResourceType(move[2][0])} from their die face {self.players[self.misfortunePlayer].getDie2Result()} on die 2\n")
+                        self.log.write(
+                            f"Player {move[1]} chooses to gain {Data.getResourceType(move[2][0])} from their die face {self.players[self.misfortunePlayer].getDie2Result()} on die 2\n")
                     self.players[self.misfortunePlayer].orChoice2 = move[2][0]
                     self.phase = Phase.MISFORTUNE_2_CHOOSE_OR
                     self.makeMove((Move.PASS, move[1], ()))
@@ -4601,9 +4701,11 @@ class LoggingBoardState:
                     self.makeMove((Move.PASS, move[1], ()))
             case Phase.MISFORTUNE_2_CHOOSE_OR:
                 if move[0] == Move.CHOOSE_DIE_OR:
-                    print(f"Player {move[1]} chooses to gain {Data.getResourceType(move[2][0])} from their die face {self.players[self.misfortunePlayer].getDie1Result()} on die 1")
+                    print(
+                        f"Player {move[1]} chooses to gain {Data.getResourceType(move[2][0])} from their die face {self.players[self.misfortunePlayer].getDie1Result()} on die 1")
                     if self.loggingEnabled:
-                        self.log.write(f"Player {move[1]} chooses to gain {Data.getResourceType(move[2][0])} from their die face {self.players[self.misfortunePlayer].getDie1Result()} on die 1\n")
+                        self.log.write(
+                            f"Player {move[1]} chooses to gain {Data.getResourceType(move[2][0])} from their die face {self.players[self.misfortunePlayer].getDie1Result()} on die 1\n")
                     self.players[self.misfortunePlayer].orChoice1 = move[2][0]
                     self.phase = Phase.MISFORTUNE_2_APPLY_EFFECTS
                     self.makeMove((Move.PASS, move[1], ()))
@@ -4613,13 +4715,17 @@ class LoggingBoardState:
             case Phase.MISFORTUNE_2_APPLY_EFFECTS:
                 if move[0] == Move.CHOOSE_ADD_HAMMER_SCEPTER:
                     if self.players[self.misfortunePlayer].canAddScepter():
-                        print(f"Player {move[1]} chooses to add {move[2][0]} gold to their scepter(s) and gain {self.players[self.misfortunePlayer].goldToGain - move[2][0]} gold to their main track")
+                        print(
+                            f"Player {move[1]} chooses to add {move[2][0]} gold to their scepter(s) and gain {self.players[self.misfortunePlayer].goldToGain - move[2][0]} gold to their main track")
                         if self.loggingEnabled:
-                            self.log.write(f"Player {move[1]} chooses to add {move[2][0]} gold to their scepter(s) and gain {self.players[self.misfortunePlayer].goldToGain - move[2][0]} gold to their main track\n")
+                            self.log.write(
+                                f"Player {move[1]} chooses to add {move[2][0]} gold to their scepter(s) and gain {self.players[self.misfortunePlayer].goldToGain - move[2][0]} gold to their main track\n")
                     else:
-                        print(f"Player {move[1]} chooses to add {move[2][0]} gold to their hammer track and gain {self.players[self.misfortunePlayer].goldToGain - move[2][0]} gold to their main track")
+                        print(
+                            f"Player {move[1]} chooses to add {move[2][0]} gold to their hammer track and gain {self.players[self.misfortunePlayer].goldToGain - move[2][0]} gold to their main track")
                         if self.loggingEnabled:
-                            self.log.write(f"Player {move[1]} chooses to add {move[2][0]} gold to their hammer track and gain {self.players[self.misfortunePlayer].goldToGain - move[2][0]} gold to their main track\n")
+                            self.log.write(
+                                f"Player {move[1]} chooses to add {move[2][0]} gold to their hammer track and gain {self.players[self.misfortunePlayer].goldToGain - move[2][0]} gold to their main track\n")
                     self.players[self.misfortunePlayer].useHammerOrScepter(move[2][0])
                     if self.players[self.misfortunePlayer].shipsToResolve == 0:
                         self.phase = Phase.MISFORTUNE_2_BOAR_CHOICE
@@ -4645,7 +4751,8 @@ class LoggingBoardState:
                     for face in move[2]:
                         print(f"Player {move[1]} buys the die face {face} for {max(Data.faceCosts[face] - 2, 0)} gold")
                         if self.loggingEnabled:
-                            self.log.write(f"Player {move[1]} buys the die face {face} for {max(Data.faceCosts[face] - 2, 0)} gold\n")
+                            self.log.write(
+                                f"Player {move[1]} buys the die face {face} for {max(Data.faceCosts[face] - 2, 0)} gold\n")
                         self.temple[Data.getPool(face)].remove(face)
                         self.players[self.blessingPlayer].buyFaceShip(face, 2)
                     self.phase = Phase.MISFORTUNE_2_RESOLVE_SHIPS_FORGE
@@ -4660,9 +4767,11 @@ class LoggingBoardState:
                         die = 1
                     else:
                         die = 2
-                    print(f"Player {move[1]} forges the die face {move[2][1]} over die face {move[2][2]} on their die {die}")
+                    print(
+                        f"Player {move[1]} forges the die face {move[2][1]} over die face {move[2][2]} on their die {die}")
                     if self.loggingEnabled:
-                        self.log.write(f"Player {move[1]} forges the die face {move[2][1]} over die face {move[2][2]} on their die {die}\n")
+                        self.log.write(
+                            f"Player {move[1]} forges the die face {move[2][1]} over die face {move[2][2]} on their die {die}\n")
                     self.players[self.misfortunePlayer].forgeFace(move[2])
                     if self.players[self.misfortunePlayer].shipsToResolve > 0:
                         self.phase = Phase.MISFORTUNE_1_RESOLVE_SHIPS
@@ -4752,16 +4861,20 @@ class LoggingBoardState:
                     self.makeReturnMove(move[1])
             case Phase.SATYRS_CHOOSE_DIE_1:
                 if move[0] == Move.SATYRS_CHOOSE_DIE:
-                    print(f"Player {move[1]} chooses to resolve the die face {move[2][0]} using the effect of The Satyrs")
+                    print(
+                        f"Player {move[1]} chooses to resolve the die face {move[2][0]} using the effect of The Satyrs")
                     if self.loggingEnabled:
-                        self.log.write(f"Player {move[1]} chooses to resolve the die face {move[2][0]} using the effect of The Satyrs\n")
+                        self.log.write(
+                            f"Player {move[1]} chooses to resolve the die face {move[2][0]} using the effect of The Satyrs\n")
                     self.players[self.activePlayer].orChoice1 = move[2][0]
                     self.phase = Phase.SATYRS_CHOOSE_DIE_2
             case Phase.SATYRS_CHOOSE_DIE_2:
                 if move[0] == Move.SATYRS_CHOOSE_DIE:
-                    print(f"Player {move[1]} chooses to resolve the die face {move[2][0]} using the effect of The Satyrs")
+                    print(
+                        f"Player {move[1]} chooses to resolve the die face {move[2][0]} using the effect of The Satyrs")
                     if self.loggingEnabled:
-                        self.log.write(f"Player {move[1]} chooses to resolve the die face {move[2][0]} using the effect of The Satyrs\n")
+                        self.log.write(
+                            f"Player {move[1]} chooses to resolve the die face {move[2][0]} using the effect of The Satyrs\n")
                     self.players[self.activePlayer].orChoice2 = move[2][0]
                     if self.players[self.activePlayer].orChoice1 % 2 == 0:
                         self.players[self.activePlayer].die1ResultBuffer = self.players[
@@ -4806,14 +4919,18 @@ class LoggingBoardState:
                 elif move[0] == Move.RANDOM_ROLL:
                     if self.players[self.blessingPlayer].dieChoice:
                         self.players[self.blessingPlayer].die1.roll()
-                        print(f"Player {move[1]} rolls die 1 and gets {self.players[self.blessingPlayer].getDie1UpFace()}")
+                        print(
+                            f"Player {move[1]} rolls die 1 and gets {self.players[self.blessingPlayer].getDie1UpFace()}")
                         if self.loggingEnabled:
-                            self.log.write(f"Player {move[1]} rolls die 1 and gets {self.players[self.blessingPlayer].getDie1UpFace()}\n")
+                            self.log.write(
+                                f"Player {move[1]} rolls die 1 and gets {self.players[self.blessingPlayer].getDie1UpFace()}\n")
                     else:
                         self.players[self.blessingPlayer].die2.roll()
-                        print(f"Player {move[1]} rolls die 2 and gets {self.players[self.blessingPlayer].getDie2UpFace()}")
+                        print(
+                            f"Player {move[1]} rolls die 2 and gets {self.players[self.blessingPlayer].getDie2UpFace()}")
                         if self.loggingEnabled:
-                            self.log.write(f"Player {move[1]} rolls die 2 and gets {self.players[self.blessingPlayer].getDie2UpFace()}\n")
+                            self.log.write(
+                                f"Player {move[1]} rolls die 2 and gets {self.players[self.blessingPlayer].getDie2UpFace()}\n")
                     self.players[self.blessingPlayer].populateTwins()
                     self.phase = Phase.MINOR_TWINS_CHOICE
                     self.makeMove((Move.PASS, move[1], ()))
@@ -4857,14 +4974,18 @@ class LoggingBoardState:
                 elif move[0] == Move.RANDOM_ROLL:
                     if self.players[self.blessingPlayer].dieChoice:
                         self.players[self.blessingPlayer].die1.roll()
-                        print(f"Player {move[1]} rolls die 1 and gets {self.players[self.blessingPlayer].getDie1UpFace()}")
+                        print(
+                            f"Player {move[1]} rolls die 1 and gets {self.players[self.blessingPlayer].getDie1UpFace()}")
                         if self.loggingEnabled:
-                            self.log.write(f"Player {move[1]} rolls die 1 and gets {self.players[self.blessingPlayer].getDie1UpFace()}\n")
+                            self.log.write(
+                                f"Player {move[1]} rolls die 1 and gets {self.players[self.blessingPlayer].getDie1UpFace()}\n")
                     else:
                         self.players[self.blessingPlayer].die2.roll()
-                        print(f"Player {move[1]} rolls die 2 and gets {self.players[self.blessingPlayer].getDie2UpFace()}")
+                        print(
+                            f"Player {move[1]} rolls die 2 and gets {self.players[self.blessingPlayer].getDie2UpFace()}")
                         if self.loggingEnabled:
-                            self.log.write(f"Player {move[1]} rolls die 2 and gets {self.players[self.blessingPlayer].getDie2UpFace()}\n")
+                            self.log.write(
+                                f"Player {move[1]} rolls die 2 and gets {self.players[self.blessingPlayer].getDie2UpFace()}\n")
                     if self.players[self.blessingPlayer].hasMaxMoon():  # max moon so gain vp
                         self.players[self.blessingPlayer].gainVP(1)
                         self.phase = Phase.MINOR_TWINS_CHOICE
@@ -4903,9 +5024,11 @@ class LoggingBoardState:
             case Phase.MINOR_MIRROR_CHOICE:
                 if self.players[self.blessingPlayer].dieChoice:
                     if move[0] == Move.MIRROR_CHOICE:
-                        print(f"Player {move[1]} uses the effect of The Mirror of the Abyss to copy the die face {move[2][0]} on die 1")
+                        print(
+                            f"Player {move[1]} uses the effect of The Mirror of the Abyss to copy the die face {move[2][0]} on die 1")
                         if self.loggingEnabled:
-                            self.log.write(f"Player {move[1]} uses the effect of The Mirror of the Abyss to copy the die face {move[2][0]} on die 1\n")
+                            self.log.write(
+                                f"Player {move[1]} uses the effect of The Mirror of the Abyss to copy the die face {move[2][0]} on die 1\n")
                         self.players[self.blessingPlayer].mirrorChoice1 = move[2][0]
                         self.phase = Phase.MINOR_CHOOSE_OR
                         self.makeMove((Move.PASS, move[1], ()))
@@ -4914,9 +5037,11 @@ class LoggingBoardState:
                         self.makeMove((Move.PASS, move[1], ()))
                 else:
                     if move[0] == Move.MIRROR_CHOICE:
-                        print(f"Player {move[1]} uses the effect of The Mirror of the Abyss to copy the die face {move[2][0]} on die 2")
+                        print(
+                            f"Player {move[1]} uses the effect of The Mirror of the Abyss to copy the die face {move[2][0]} on die 2")
                         if self.loggingEnabled:
-                            self.log.write(f"Player {move[1]} uses the effect of The Mirror of the Abyss to copy the die face {move[2][0]} on die 2\n")
+                            self.log.write(
+                                f"Player {move[1]} uses the effect of The Mirror of the Abyss to copy the die face {move[2][0]} on die 2\n")
                         self.players[self.blessingPlayer].mirrorChoice2 = move[2][0]
                         self.phase = Phase.MINOR_CHOOSE_OR
                         self.makeMove((Move.PASS, move[1], ()))
@@ -4926,9 +5051,11 @@ class LoggingBoardState:
             case Phase.MINOR_CHOOSE_OR:
                 if self.players[self.blessingPlayer].dieChoice:
                     if move[0] == Move.CHOOSE_DIE_OR:
-                        print(f"Player {move[1]} chooses to gain {Data.getResourceType(move[2][0])} from their die face {self.players[self.blessingPlayer].getDie1Result()} on die 1")
+                        print(
+                            f"Player {move[1]} chooses to gain {Data.getResourceType(move[2][0])} from their die face {self.players[self.blessingPlayer].getDie1Result()} on die 1")
                         if self.loggingEnabled:
-                            self.log.write(f"Player {move[1]} chooses to gain {Data.getResourceType(move[2][0])} from their die face {self.players[self.blessingPlayer].getDie1Result()} on die 1\n")
+                            self.log.write(
+                                f"Player {move[1]} chooses to gain {Data.getResourceType(move[2][0])} from their die face {self.players[self.blessingPlayer].getDie1Result()} on die 1\n")
                         self.players[self.blessingPlayer].orChoice1 = move[2][0]
                         if self.cyclops:
                             self.phase = Phase.CHOOSE_CYCLOPS
@@ -4943,9 +5070,11 @@ class LoggingBoardState:
                         self.makeMove((Move.PASS, move[1], ()))
                 else:
                     if move[0] == Move.CHOOSE_DIE_OR:
-                        print(f"Player {move[1]} chooses to gain {Data.getResourceType(move[2][0])} from their die face {self.players[self.blessingPlayer].getDie2Result()} on die 2")
+                        print(
+                            f"Player {move[1]} chooses to gain {Data.getResourceType(move[2][0])} from their die face {self.players[self.blessingPlayer].getDie2Result()} on die 2")
                         if self.loggingEnabled:
-                            self.log.write(f"Player {move[1]} chooses to gain {Data.getResourceType(move[2][0])} from their die face {self.players[self.blessingPlayer].getDie2Result()} on die 2\n")
+                            self.log.write(
+                                f"Player {move[1]} chooses to gain {Data.getResourceType(move[2][0])} from their die face {self.players[self.blessingPlayer].getDie2Result()} on die 2\n")
                         self.players[self.blessingPlayer].orChoice2 = move[2][0]
                         if self.cyclops:
                             self.phase = Phase.CHOOSE_CYCLOPS
@@ -4958,8 +5087,18 @@ class LoggingBoardState:
                         else:
                             self.phase = Phase.MINOR_RESOLVE_EFFECTS
                         self.makeMove((Move.PASS, move[1], ()))
-            case Phase.CHOOSE_CYCLOPS: # todo: next
+            case Phase.CHOOSE_CYCLOPS:
                 if move[0] == Move.CHOOSE_USE_CYCLOPS:
+                    if move[2][0]:
+                        if self.players[self.blessingPlayer].dieChoice:
+                            die = 1
+                        else:
+                            die = 2
+                        print(
+                            f"Player {move[1]} chooses to use the effect of The Cyclops to convert resources gained from their die {die} into vp")
+                        if self.loggingEnabled:
+                            self.log.write(
+                                f"Player {move[1]} chooses to use the effect of The Cyclops to convert resources gained from their die {die} into vp\n")
                     self.players[self.blessingPlayer].sentinel1Choice = move[2][0]  # reuse sentinel1Choice
                     self.phase = Phase.MINOR_RESOLVE_EFFECTS
                     self.makeMove((Move.PASS, move[1], ()))
@@ -4968,10 +5107,25 @@ class LoggingBoardState:
                     self.makeMove((Move.PASS, move[1], ()))
             case Phase.MINOR_RESOLVE_EFFECTS:
                 if move[0] == Move.CHOOSE_ADD_HAMMER_SCEPTER:
+                    if self.players[self.misfortunePlayer].canAddScepter():
+                        print(
+                            f"Player {move[1]} chooses to add {move[2][0]} gold to their scepter(s) and gain {self.players[self.blessingPlayer].goldToGain - move[2][0]} gold to their main track")
+                        if self.loggingEnabled:
+                            self.log.write(
+                                f"Player {move[1]} chooses to add {move[2][0]} gold to their scepter(s) and gain {self.players[self.blessingPlayer].goldToGain - move[2][0]} gold to their main track\n")
+                    else:
+                        print(
+                            f"Player {move[1]} chooses to add {move[2][0]} gold to their hammer track and gain {self.players[self.blessingPlayer].goldToGain - move[2][0]} gold to their main track")
+                        if self.loggingEnabled:
+                            self.log.write(
+                                f"Player {move[1]} chooses to add {move[2][0]} gold to their hammer track and gain {self.players[self.blessingPlayer].goldToGain - move[2][0]} gold to their main track\n")
                     self.players[self.blessingPlayer].useHammerOrScepter(move[2][0])
                     self.phase = Phase.MINOR_MAZE_MOVES
                     self.makeMove((Move.PASS, move[1], ()))
                 else:
+                    print(f"Player {move[1]} applies the effects of their dice faces")
+                    if self.loggingEnabled:
+                        self.log.write(f"Player {move[1]} applies the effects of their dice faces\n")
                     if self.players[self.blessingPlayer].gainMinorBlessingEffect(self.cyclops, self.blessing):
                         for player in self.players:
                             if player.playerID != self.blessingPlayer:
@@ -4994,6 +5148,10 @@ class LoggingBoardState:
                 if move[0] == Move.BUY_FACES:
                     self.players[self.blessingPlayer].shipsToResolve -= 1
                     for face in move[2]:
+                        print(f"Player {move[1]} buys the die face {face} for {max(Data.faceCosts[face] - 2, 0)} gold")
+                        if self.loggingEnabled:
+                            self.log.write(
+                                f"Player {move[1]} buys the die face {face} for {max(Data.faceCosts[face] - 2, 0)} gold\n")
                         self.temple[Data.getPool(face)].remove(face)
                         self.players[self.blessingPlayer].buyFaceShip(face, 2)
                     self.phase = Phase.MINOR_RESOLVE_SHIPS_FORGE
@@ -5004,6 +5162,15 @@ class LoggingBoardState:
                         self.makeMove((Move.PASS, move[1], ()))
             case Phase.MINOR_RESOLVE_SHIPS_FORGE:
                 if move[0] == Move.FORGE_FACE:
+                    if move[2][0]:
+                        die = 1
+                    else:
+                        die = 2
+                    print(
+                        f"Player {move[1]} forges the die face {move[2][1]} over die face {move[2][2]} on their die {die}")
+                    if self.loggingEnabled:
+                        self.log.write(
+                            f"Player {move[1]} forges the die face {move[2][1]} over die face {move[2][2]} on their die {die}\n")
                     self.players[self.blessingPlayer].forgeFace(move[2])
                     if self.players[self.blessingPlayer].shipsToResolve > 0:
                         self.phase = Phase.MINOR_RESOLVE_SHIPS
@@ -5014,10 +5181,19 @@ class LoggingBoardState:
                 if move[0] == Move.BOAR_CHOICE:
                     match move[2][0]:
                         case "sun":
+                            print(f"Player {move[1]} gains 1 sun due to a boar face being resolved")
+                            if self.loggingEnabled:
+                                self.log.write(f"Player {move[1]} gains 1 sun due to a boar face being resolved\n")
                             self.players[move[1]].gainSun(1, False)
                         case "moon":
+                            print(f"Player {move[1]} gains 1 moon due to a boar face being resolved")
+                            if self.loggingEnabled:
+                                self.log.write(f"Player {move[1]} gains 1 moon due to a boar face being resolved\n")
                             self.players[move[1]].gainMoon(1, False)
                         case "vp":
+                            print(f"Player {move[1]} gains 3 vp due to a boar face being resolved")
+                            if self.loggingEnabled:
+                                self.log.write(f"Player {move[1]} gains 3 vp due to a boar face being resolved\n")
                             self.players[move[1]].gainVP(3)
                     self.phase = Phase.MINOR_MISFORTUNE
                     self.makeMove((Move.PASS, move[1], ()))
@@ -5045,6 +5221,11 @@ class LoggingBoardState:
                     self.makeMove((Move.PASS, move[1], ()))
             case Phase.MINOR_MISFORTUNE_1_OR:
                 if move[0] == Move.CHOOSE_DIE_OR:
+                    print(
+                        f"Player {move[1]} chooses to gain {Data.getResourceType(move[2][0])} from their die face {self.players[self.misfortunePlayer].getDie1Result()} on die 1")
+                    if self.loggingEnabled:
+                        self.log.write(
+                            f"Player {move[1]} chooses to gain {Data.getResourceType(move[2][0])} from their die face {self.players[self.misfortunePlayer].getDie1Result()} on die 1\n")
                     self.players[self.misfortunePlayer].orChoice1 = move[2][0]
                     self.phase = Phase.MINOR_MISFORTUNE_2_OR
                     self.makeMove((Move.PASS, move[1], ()))
@@ -5053,6 +5234,11 @@ class LoggingBoardState:
                     self.makeMove((Move.PASS, move[1], ()))
             case Phase.MINOR_MISFORTUNE_2_OR:
                 if move[0] == Move.CHOOSE_DIE_OR:
+                    print(
+                        f"Player {move[1]} chooses to gain {Data.getResourceType(move[2][0])} from their die face {self.players[self.misfortunePlayer].getDie2Result()} on die 2")
+                    if self.loggingEnabled:
+                        self.log.write(
+                            f"Player {move[1]} chooses to gain {Data.getResourceType(move[2][0])} from their die face {self.players[self.misfortunePlayer].getDie2Result()} on die 2\n")
                     self.players[self.misfortunePlayer].orChoice2 = move[2][0]
                     self.phase = Phase.MINOR_MISFORTUNE_RESOLVE
                     self.makeMove((Move.PASS, move[1], ()))
@@ -5061,6 +5247,18 @@ class LoggingBoardState:
                     self.makeMove((Move.PASS, move[1], ()))
             case Phase.MINOR_MISFORTUNE_RESOLVE:
                 if move[0] == Move.CHOOSE_ADD_HAMMER_SCEPTER:
+                    if self.players[self.misfortunePlayer].canAddScepter():
+                        print(
+                            f"Player {move[1]} chooses to add {move[2][0]} gold to their scepter(s) and gain {self.players[self.misfortunePlayer].goldToGain - move[2][0]} gold to their main track")
+                        if self.loggingEnabled:
+                            self.log.write(
+                                f"Player {move[1]} chooses to add {move[2][0]} gold to their scepter(s) and gain {self.players[self.misfortunePlayer].goldToGain - move[2][0]} gold to their main track\n")
+                    else:
+                        print(
+                            f"Player {move[1]} chooses to add {move[2][0]} gold to their hammer track and gain {self.players[self.misfortunePlayer].goldToGain - move[2][0]} gold to their main track")
+                        if self.loggingEnabled:
+                            self.log.write(
+                                f"Player {move[1]} chooses to add {move[2][0]} gold to their hammer track and gain {self.players[self.misfortunePlayer].goldToGain - move[2][0]} gold to their main track\n")
                     self.players[self.misfortunePlayer].useHammerOrScepter(move[2][0])
                     if self.players[self.misfortunePlayer].shipsToResolve == 0:
                         self.phase = Phase.MINOR_CERBERUS_DECISION
@@ -5069,6 +5267,9 @@ class LoggingBoardState:
                         self.phase = Phase.MINOR_MISFORTUNE_SHIPS
                         self.makeMove((Move.PASS, move[1], ()))
                 elif move[0] == Move.CHOOSE_RESOLVE_ORDER:
+                    print(f"Player {move[1]} applies the effects of their dice faces")
+                    if self.loggingEnabled:
+                        self.log.write(f"Player {move[1]} applies the effects of their dice faces\n")
                     self.players[self.misfortunePlayer].gainDiceEffects(False, False, False, move[2][0])
                     if self.players[self.misfortunePlayer].goldToGain == 0:
                         if self.players[self.misfortunePlayer].shipsToResolve == 0:
@@ -5081,6 +5282,10 @@ class LoggingBoardState:
                 if move[0] == Move.BUY_FACES:
                     self.players[self.misfortunePlayer].shipsToResolve -= 1
                     for face in move[2]:
+                        print(f"Player {move[1]} buys the die face {face} for {max(Data.faceCosts[face] - 2, 0)} gold")
+                        if self.loggingEnabled:
+                            self.log.write(
+                                f"Player {move[1]} buys the die face {face} for {max(Data.faceCosts[face] - 2, 0)} gold\n")
                         self.temple[Data.getPool(face)].remove(face)
                         self.players[self.blessingPlayer].buyFaceShip(face, 2)
                     self.phase = Phase.MINOR_MISFORTUNE_SHIPS_FORGE
@@ -5091,6 +5296,15 @@ class LoggingBoardState:
                         self.makeMove((Move.PASS, move[1], ()))
             case Phase.MINOR_MISFORTUNE_SHIPS_FORGE:
                 if move[0] == Move.FORGE_FACE:
+                    if move[2][0]:
+                        die = 1
+                    else:
+                        die = 2
+                    print(
+                        f"Player {move[1]} forges the die face {move[2][1]} over die face {move[2][2]} on their die {die}")
+                    if self.loggingEnabled:
+                        self.log.write(
+                            f"Player {move[1]} forges the die face {move[2][1]} over die face {move[2][2]} on their die {die}\n")
                     self.players[self.misfortunePlayer].forgeFace(move[2])
                     if self.players[self.misfortunePlayer].shipsToResolve > 0:
                         self.phase = Phase.MINOR_MISFORTUNE_SHIPS
@@ -5116,6 +5330,10 @@ class LoggingBoardState:
             case Phase.RESOLVE_ELDER_REINF:
                 if move[0] == Move.USE_ELDER:
                     if move[2][0]:
+                        print(f"Player {move[1]} pays 3 gold to gain 4 vp due to the reinforcement effect of The Elder")
+                        if self.loggingEnabled:
+                            self.log.write(
+                                f"Player {move[1]} pays 3 gold to gain 4 vp due to the reinforcement effect of The Elder\n")
                         self.players[self.activePlayer].gainGold(-3, False)
                         self.players[self.activePlayer].gainVP(4)
                     self.phase = Phase.CHOOSE_REINF_EFFECT
@@ -5124,19 +5342,47 @@ class LoggingBoardState:
                 if move[0] == Move.OWL_CHOICE:
                     match move[2][0]:
                         case "gold":
+                            print(f"Player {move[1]} gains 1 gold due to the reinforcement effect of The Owl")
+                            if self.loggingEnabled:
+                                self.log.write(
+                                    f"Player {move[1]} gains 1 gold due to the reinforcement effect of The Owl\n")
                             self.players[self.activePlayer].gainGold(1, False)
                         case "sun":
+                            print(f"Player {move[1]} gains 1 sun due to the reinforcement effect of The Owl")
+                            if self.loggingEnabled:
+                                self.log.write(
+                                    f"Player {move[1]} gains 1 sun due to the reinforcement effect of The Owl\n")
                             self.players[self.activePlayer].gainSun(1, False)
                         case "moon":
+                            print(f"Player {move[1]} gains 1 moon due to the reinforcement effect of The Owl")
+                            if self.loggingEnabled:
+                                self.log.write(
+                                    f"Player {move[1]} gains 1 moon due to the reinforcement effect of The Owl\n")
                             self.players[self.activePlayer].gainMoon(1, False)
                     if self.players[self.activePlayer].goldToGain == 0:
                         self.phase = Phase.CHOOSE_REINF_EFFECT
                         self.makeMove((Move.PASS, move[1], ()))
                 elif move[0] == Move.CHOOSE_ADD_HAMMER_SCEPTER:
+                    if self.players[self.activePlayer].canAddScepter():
+                        print(
+                            f"Player {move[1]} chooses to add {move[2][0]} gold to their scepter(s) and gain {self.players[self.activePlayer].goldToGain - move[2][0]} gold to their main track")
+                        if self.loggingEnabled:
+                            self.log.write(
+                                f"Player {move[1]} chooses to add {move[2][0]} gold to their scepter(s) and gain {self.players[self.activePlayer].goldToGain - move[2][0]} gold to their main track\n")
+                    else:
+                        print(
+                            f"Player {move[1]} chooses to add {move[2][0]} gold to their hammer track and gain {self.players[self.activePlayer].goldToGain - move[2][0]} gold to their main track")
+                        if self.loggingEnabled:
+                            self.log.write(
+                                f"Player {move[1]} chooses to add {move[2][0]} gold to their hammer track and gain {self.players[self.activePlayer].goldToGain - move[2][0]} gold to their main track\n")
                     self.players[self.activePlayer].useHammerOrScepter(move[2][0])
                     self.phase = Phase.CHOOSE_REINF_EFFECT
                     self.makeMove((Move.PASS, move[1], ()))
             case Phase.RESOLVE_HIND_REINF:
+                print(f"Player {move[1]} gains a minor blessing due to the reinforcement effect of The Silver Hind")
+                if self.loggingEnabled:
+                    self.log.write(
+                        f"Player {move[1]} gains a minor blessing due to the reinforcement effect of The Silver Hind\n")
                 self.phase = Phase.MINOR_CHOOSE_DIE
                 self.blessingPlayer = self.activePlayer
                 self.blessing = True
@@ -5144,18 +5390,37 @@ class LoggingBoardState:
             case Phase.RESOLVE_TREE_REINF:
                 if move[0] == Move.PASS:
                     if self.players[self.activePlayer].gold < 8:  # note: this only checks hero inventory reserve
+                        print(f"Player {move[1]} gains 3 gold and 1 vp due to the reinforcement effect of The Tree")
+                        if self.loggingEnabled:
+                            self.log.write(
+                                f"Player {move[1]} gains 3 gold and 1 vp due to the reinforcement effect of The Tree\n")
                         self.players[self.activePlayer].gainGold(3, False)
                         self.players[self.activePlayer].gainVP(1)
                     else:
+                        print(f"Player {move[1]} gains 2 vp due to the reinforcement effect of The Tree")
+                        if self.loggingEnabled:
+                            self.log.write(f"Player {move[1]} gains 2 vp due to the reinforcement effect of The Tree\n")
                         self.players[self.activePlayer].gainVP(2)
                     if self.players[self.activePlayer].goldToGain == 0:
                         self.phase = Phase.CHOOSE_REINF_EFFECT
                         self.makeMove((Move.PASS, move[1], ()))
                 elif move[0] == Move.CHOOSE_ADD_HAMMER_SCEPTER:
+                    if self.players[self.activePlayer].canAddScepter():
+                        print(
+                            f"Player {move[1]} chooses to add {move[2][0]} gold to their scepter(s) and gain {self.players[self.activePlayer].goldToGain - move[2][0]} gold to their main track")
+                        if self.loggingEnabled:
+                            self.log.write(
+                                f"Player {move[1]} chooses to add {move[2][0]} gold to their scepter(s) and gain {self.players[self.activePlayer].goldToGain - move[2][0]} gold to their main track\n")
+                    else:
+                        print(
+                            f"Player {move[1]} chooses to add {move[2][0]} gold to their hammer track and gain {self.players[self.activePlayer].goldToGain - move[2][0]} gold to their main track")
+                        if self.loggingEnabled:
+                            self.log.write(
+                                f"Player {move[1]} chooses to add {move[2][0]} gold to their hammer track and gain {self.players[self.activePlayer].goldToGain - move[2][0]} gold to their main track\n")
                     self.players[self.activePlayer].useHammerOrScepter(move[2][0])
                     self.phase = Phase.CHOOSE_REINF_EFFECT
                     self.makeMove((Move.PASS, move[1], ()))
-            case Phase.RESOLVE_MERCHANT_REINF:
+            case Phase.RESOLVE_MERCHANT_REINF:  # todo: next
                 if move[0] == Move.MERCHANT_UPGRADE:
                     self.players[self.activePlayer].gainVP(move[2][0])
                     if len(move[2]) > 1:
@@ -5913,7 +6178,8 @@ class LoggingBoardState:
                 if self.players[self.blessingPlayer].goldToGain > 0:
                     ret = self.getHammerScepterChoices(self.blessingPlayer)
                 else:
-                    ret = (Move.CHOOSE_RESOLVE_ORDER, self.blessingPlayer, (True, )), (Move.CHOOSE_RESOLVE_ORDER, self.blessingPlayer, (False, ))
+                    ret = (Move.CHOOSE_RESOLVE_ORDER, self.blessingPlayer, (True,)), (
+                        Move.CHOOSE_RESOLVE_ORDER, self.blessingPlayer, (False,))
             case Phase.BOAR_CHOICE_1 | Phase.MISFORTUNE_2_BOAR_CHOICE:
                 ret = self.generateBoarChoice(self.players[self.blessingPlayer].getDie1Result())
             case Phase.BOAR_CHOICE_2 | Phase.MISFORTUNE_1_BOAR_CHOICE:
@@ -5934,7 +6200,8 @@ class LoggingBoardState:
                 if self.players[self.blessingPlayer].goldToGain > 0:
                     ret = self.getHammerScepterChoices(self.misfortunePlayer)
                 else:
-                    ret = (Move.CHOOSE_RESOLVE_ORDER, self.misfortunePlayer, (True, )), (Move.CHOOSE_RESOLVE_ORDER, self.misfortunePlayer, (False, ))
+                    ret = (Move.CHOOSE_RESOLVE_ORDER, self.misfortunePlayer, (True,)), (
+                        Move.CHOOSE_RESOLVE_ORDER, self.misfortunePlayer, (False,))
             case Phase.DIE_1_CHOOSE_SENTINEL | Phase.DIE_2_CHOOSE_SENTINEL:
                 ret = (Move.CHOOSE_USE_SENTINEL, self.blessingPlayer, (True,)), (
                     Move.CHOOSE_USE_SENTINEL, self.blessingPlayer, (False,))
@@ -6727,33 +6994,43 @@ class LoggingBoardState:
             case "NONE":
                 return True
             case "SUN1":
-                print(f"Player {player.playerID} gains 1 sun from the effect of space {player.mazePosition} of the Maze of the Goddess")
+                print(
+                    f"Player {player.playerID} gains 1 sun from the effect of space {player.mazePosition} of the Maze of the Goddess")
                 if self.loggingEnabled:
-                    self.log.write(f"Player {player.playerID} gains 1 sun from the effect of space {player.mazePosition} of the Maze of the Goddess\n")
+                    self.log.write(
+                        f"Player {player.playerID} gains 1 sun from the effect of space {player.mazePosition} of the Maze of the Goddess\n")
                 player.gainSun(1, False)
                 return True
             case "MOON1":
-                print(f"Player {player.playerID} gains 1 moon from the effect of space {player.mazePosition} of the Maze of the Goddess")
+                print(
+                    f"Player {player.playerID} gains 1 moon from the effect of space {player.mazePosition} of the Maze of the Goddess")
                 if self.loggingEnabled:
-                    self.log.write(f"Player {player.playerID} gains 1 moon from the effect of space {player.mazePosition} of the Maze of the Goddess\n")
+                    self.log.write(
+                        f"Player {player.playerID} gains 1 moon from the effect of space {player.mazePosition} of the Maze of the Goddess\n")
                 player.gainMoon(1, False)
                 return True
             case "VP3":
-                print(f"Player {player.playerID} gains 3 vp from the effect of space {player.mazePosition} of the Maze of the Goddess")
+                print(
+                    f"Player {player.playerID} gains 3 vp from the effect of space {player.mazePosition} of the Maze of the Goddess")
                 if self.loggingEnabled:
-                    self.log.write(f"Player {player.playerID} gains 3 vp from the effect of space {player.mazePosition} of the Maze of the Goddess\n")
+                    self.log.write(
+                        f"Player {player.playerID} gains 3 vp from the effect of space {player.mazePosition} of the Maze of the Goddess\n")
                 player.gainVP(3)
                 return True
             case "VP5":
-                print(f"Player {player.playerID} gains 5 vp from the effect of space {player.mazePosition} of the Maze of the Goddess")
+                print(
+                    f"Player {player.playerID} gains 5 vp from the effect of space {player.mazePosition} of the Maze of the Goddess")
                 if self.loggingEnabled:
-                    self.log.write(f"Player {player.playerID} gains 5 vp from the effect of space {player.mazePosition} of the Maze of the Goddess\n")
+                    self.log.write(
+                        f"Player {player.playerID} gains 5 vp from the effect of space {player.mazePosition} of the Maze of the Goddess\n")
                 player.gainVP(5)
                 return True
             case "VP3SUN1MOON1":
-                print(f"Player {player.playerID} gains 3 vp, 1 sun, and 1 moon from the effect of space {player.mazePosition} of the Maze of the Goddess")
+                print(
+                    f"Player {player.playerID} gains 3 vp, 1 sun, and 1 moon from the effect of space {player.mazePosition} of the Maze of the Goddess")
                 if self.loggingEnabled:
-                    self.log.write(f"Player {player.playerID} gains 3 vp, 1 sun, and 1 moon from the effect of space {player.mazePosition} of the Maze of the Goddess\n")
+                    self.log.write(
+                        f"Player {player.playerID} gains 3 vp, 1 sun, and 1 moon from the effect of space {player.mazePosition} of the Maze of the Goddess\n")
                 player.gainVP(3)
                 player.gainSun(1, False)
                 player.gainMoon(1, False)
@@ -6763,41 +7040,53 @@ class LoggingBoardState:
                 for pl in self.players:
                     if player.playerID == pl.playerID:
                         continue
-                    print(f"Player {player.playerID} steals {max(2, pl.vp)} vp from player {pl.playerID} due to the effect of space {player.mazePosition} of the Maze of the Goddess")
+                    print(
+                        f"Player {player.playerID} steals {max(2, pl.vp)} vp from player {pl.playerID} due to the effect of space {player.mazePosition} of the Maze of the Goddess")
                     if self.loggingEnabled:
-                        self.log.write(f"Player {player.playerID} steals {max(2, pl.vp)} vp from player {pl.playerID} due to the effect of space {player.mazePosition} of the Maze of the Goddess\n")
+                        self.log.write(
+                            f"Player {player.playerID} steals {max(2, pl.vp)} vp from player {pl.playerID} due to the effect of space {player.mazePosition} of the Maze of the Goddess\n")
                     steal += max(2, pl.vp)
                     pl.gainVP(-2)
                 player.gainVP(steal)
                 return True
             case "CELESTIALDIE1":
-                print(f"Player {player.playerID} gains one celestial die roll due to the effect of space {player.mazePosition} of the Maze of the Goddess")
+                print(
+                    f"Player {player.playerID} gains one celestial die roll due to the effect of space {player.mazePosition} of the Maze of the Goddess")
                 if self.loggingEnabled:
-                    self.log.write(f"Player {player.playerID} gains one celestial die roll due to the effect of space {player.mazePosition} of the Maze of the Goddess\n")
+                    self.log.write(
+                        f"Player {player.playerID} gains one celestial die roll due to the effect of space {player.mazePosition} of the Maze of the Goddess\n")
                 player.celestialRolls += 1
                 return True
             case "CELESTIALDIE2":
-                print(f"Player {player.playerID} gains two celestial die rolls due to the effect of space {player.mazePosition} of the Maze of the Goddess")
+                print(
+                    f"Player {player.playerID} gains two celestial die rolls due to the effect of space {player.mazePosition} of the Maze of the Goddess")
                 if self.loggingEnabled:
-                    self.log.write(f"Player {player.playerID} gains two celestial die rolls due to the effect of space {player.mazePosition} of the Maze of the Goddess\n")
+                    self.log.write(
+                        f"Player {player.playerID} gains two celestial die rolls due to the effect of space {player.mazePosition} of the Maze of the Goddess\n")
                 player.celestialRolls += 2
                 return True
             case "GOLD6":
-                print(f"Player {player.playerID} gains 6 gold from the effect of space {player.mazePosition} of the Maze of the Goddess")
+                print(
+                    f"Player {player.playerID} gains 6 gold from the effect of space {player.mazePosition} of the Maze of the Goddess")
                 if self.loggingEnabled:
-                    self.log.write(f"Player {player.playerID} gains 6 gold from the effect of space {player.mazePosition} of the Maze of the Goddess\n")
+                    self.log.write(
+                        f"Player {player.playerID} gains 6 gold from the effect of space {player.mazePosition} of the Maze of the Goddess\n")
                 player.gainGold(6, False)
                 return player.goldToGain == 0
             case "1VPPERFORGE":
-                print(f"Player {player.playerID} gains {player.numForged} vp (1 per forged face) from the effect of space {player.mazePosition} of the Maze of the Goddess")
+                print(
+                    f"Player {player.playerID} gains {player.numForged} vp (1 per forged face) from the effect of space {player.mazePosition} of the Maze of the Goddess")
                 if self.loggingEnabled:
-                    self.log.write(f"Player {player.playerID} gains {player.numForged} vp (1 per forged face) from the effect of space {player.mazePosition} of the Maze of the Goddess\n")
+                    self.log.write(
+                        f"Player {player.playerID} gains {player.numForged} vp (1 per forged face) from the effect of space {player.mazePosition} of the Maze of the Goddess\n")
                 player.gainVP(player.numForged)
                 return True
             case "GODDESS":
-                print(f"Player {player.playerID} gains 15 vp from the effect of space {player.mazePosition} of the Maze of the Goddess")
+                print(
+                    f"Player {player.playerID} gains 15 vp from the effect of space {player.mazePosition} of the Maze of the Goddess")
                 if self.loggingEnabled:
-                    self.log.write(f"Player {player.playerID} gains 15 vp from the effect of space {player.mazePosition} of the Maze of the Goddess\n")
+                    self.log.write(
+                        f"Player {player.playerID} gains 15 vp from the effect of space {player.mazePosition} of the Maze of the Goddess\n")
                 player.gainVP(15)
                 for pl in self.players:
                     if player.playerID == pl.playerID:
@@ -6809,19 +7098,25 @@ class LoggingBoardState:
                     if treasure[1] == player.mazePosition:
                         match treasure[0]:
                             case Data.Treasure.VP_TREASURE:
-                                print(f"Player {player.playerID} gains 2 vp from the effect of the treasure hall on space {player.mazePosition} of the Maze of the Goddess")
+                                print(
+                                    f"Player {player.playerID} gains 2 vp from the effect of the treasure hall on space {player.mazePosition} of the Maze of the Goddess")
                                 if self.loggingEnabled:
-                                    self.log.write(f"Player {player.playerID} gains 2 vp from the effect of the treasure hall on space {player.mazePosition} of the Maze of the Goddess\n")
+                                    self.log.write(
+                                        f"Player {player.playerID} gains 2 vp from the effect of the treasure hall on space {player.mazePosition} of the Maze of the Goddess\n")
                                 player.gainVP(2)
                             case Data.Treasure.SUN_TREASURE:
-                                print(f"Player {player.playerID} gains 1 sun from the effect of the treasure hall on space {player.mazePosition} of the Maze of the Goddess")
+                                print(
+                                    f"Player {player.playerID} gains 1 sun from the effect of the treasure hall on space {player.mazePosition} of the Maze of the Goddess")
                                 if self.loggingEnabled:
-                                    self.log.write(f"Player {player.playerID} gains 1 sun from the effect of the treasure hall on space {player.mazePosition} of the Maze of the Goddess\n")
+                                    self.log.write(
+                                        f"Player {player.playerID} gains 1 sun from the effect of the treasure hall on space {player.mazePosition} of the Maze of the Goddess\n")
                                 player.gainSun(1, False)
                             case Data.Treasure.MOON_TREASURE:
-                                print(f"Player {player.playerID} gains 1 moon from the effect of the treasure hall on space {player.mazePosition} of the Maze of the Goddess")
+                                print(
+                                    f"Player {player.playerID} gains 1 moon from the effect of the treasure hall on space {player.mazePosition} of the Maze of the Goddess")
                                 if self.loggingEnabled:
-                                    self.log.write(f"Player {player.playerID} gains 1 moon from the effect of the treasure hall on space {player.mazePosition} of the Maze of the Goddess\n")
+                                    self.log.write(
+                                        f"Player {player.playerID} gains 1 moon from the effect of the treasure hall on space {player.mazePosition} of the Maze of the Goddess\n")
                                 player.gainMoon(1, False)
                         return True
         return False
@@ -7190,11 +7485,13 @@ class LoggingBoardState:
         for pl in self.players:
             if pl.playerID == player.playerID:
                 continue
-            if feat in pl.feats or (Data.isBoarFeat(feat) and Data.containsBoarFeat(pl.feats)) or (Data.isMisfortuneFeat(feat) and Data.containsMisfortuneFeat(pl.feats)):
+            if feat in pl.feats or (Data.isBoarFeat(feat) and Data.containsBoarFeat(pl.feats)) or (
+                    Data.isMisfortuneFeat(feat) and Data.containsMisfortuneFeat(pl.feats)):
                 featPerformed = True
                 break
         if featPerformed:
-            if not (feat in player.feats or (Data.isBoarFeat(feat) and Data.containsBoarFeat(player.feats)) or (Data.isMisfortuneFeat(feat) and Data.containsMisfortuneFeat(player.feats))):
+            if not (feat in player.feats or (Data.isBoarFeat(feat) and Data.containsBoarFeat(player.feats)) or (
+                    Data.isMisfortuneFeat(feat) and Data.containsMisfortuneFeat(player.feats))):
                 if Data.getEffectLevel(player.allegiance) == -2:
                     player.gainVP(3)
                 else:  # -1
@@ -8008,15 +8305,15 @@ class Player:
         return gainedASorLoyalty
 
     def gainDiceEffects(self, minotaur, sentinel, blessing, order):
-        if order: # default order
+        if order:  # default order
             self.gainDiceEffectsInternal(self.getDie1Result(), self.getDie2Result(), minotaur, sentinel, blessing)
-        else: # reverse order
+        else:  # reverse order
             self.gainDiceEffectsInternal(self.getDie2Result(), self.getDie1Result(), minotaur, sentinel, blessing)
 
     def gainMazeDiceEffects(self, order):
-        if order: # default order
+        if order:  # default order
             self.gainDiceEffectsInternal(self.getMazeDie1Result(), self.getMazeDie2Result(), False, False, False)
-        else: # reverse order
+        else:  # reverse order
             self.gainDiceEffectsInternal(self.getMazeDie2Result(), self.getMazeDie1Result(), False, False, False)
 
     def gainDiceEffectsInternal(self, die1, die2, minotaur, sentinel, blessing):
@@ -8538,6 +8835,7 @@ class Player:
         for face in self.unforgedFaces:
             log.write(f"{face}\n")
         log.write(f"Scepter gold: {self.getScepterGold()}\n")
+
 
 class Die:
     def __init__(self, face1, face2, face3, face4, face5, face6):

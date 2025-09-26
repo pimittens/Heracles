@@ -260,7 +260,8 @@ def printOptions(options, boardState):
                     token2 = "ancient shard"
                 else:
                     token2 = "loyalty"
-                print(f"{i}: Place a(n) {token1} memory token on island {option[2][1]} and a {token2} memory token on island {option[2][3]}")
+                print(
+                    f"{i}: Place a(n) {token1} memory token on island {option[2][1]} and a {token2} memory token on island {option[2][3]}")
             case Game.Move.GUARDIAN_CHOICE:
                 print(f"{i}: Gain one {option[2][0]} from the effect of The Guardian")
             case Game.Move.CHOOSE_RESOLVE_ORDER:

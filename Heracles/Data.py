@@ -198,11 +198,13 @@ def isBoarFace(face):
 def isBoarFeat(feat):
     return feat == HeroicFeat.TENACIOUS_BOAR or feat == HeroicFeat.TENACIOUS_BOAR_RED or feat == HeroicFeat.TENACIOUS_BOAR_BLUE or feat == HeroicFeat.TENACIOUS_BOAR_YELLOW or feat == HeroicFeat.TENACIOUS_BOAR_GREEN
 
+
 def containsBoarFeat(feats):
     for feat in feats:
         if isBoarFeat(feat):
             return True
     return False
+
 
 def isMisfortuneFace(face):
     return face == DieFace.REDMISFORTUNE or face == DieFace.BLUEMISFORTUNE or face == DieFace.YELLOWMISFORTUNE or face == DieFace.GREENMISFORTUNE
@@ -211,11 +213,13 @@ def isMisfortuneFace(face):
 def isMisfortuneFeat(feat):
     return feat == HeroicFeat.THE_MIRROR_OF_MISFORTUNE or feat == HeroicFeat.MIRROR_OF_MISFORTUNE_RED or feat == HeroicFeat.MIRROR_OF_MISFORTUNE_BLUE or feat == HeroicFeat.MIRROR_OF_MISFORTUNE_YELLOW or feat == HeroicFeat.MIRROR_OF_MISFORTUNE_GREEN
 
+
 def containsMisfortuneFeat(feats):
     for feat in feats:
         if isMisfortuneFeat(feat):
             return True
     return False
+
 
 def getPosition(feat):
     for f in featsData:
@@ -308,6 +312,7 @@ def getIsland(feat):
         return 4
     return (pos + 1) // 2
 
+
 def getResourceType(type):
     match type:
         case 0:
@@ -374,13 +379,14 @@ def getMazeMoveOptions(position):
 def getReverseMazeMoveOptions(position):
     return mazeData[position]["prev"]
 
+
 # loyalty track stuff
 
 def getAllegiancePoints(trackSpace):
     if trackSpace < 0:
         if trackSpace == -14:
             return -25
-        return -getAllegiancePoints(-trackSpace) # the points are symmetric except for the 14/-14 spaces
+        return -getAllegiancePoints(-trackSpace)  # the points are symmetric except for the 14/-14 spaces
     if trackSpace < 4:
         return trackSpace
     if 3 < trackSpace < 8:
@@ -392,6 +398,7 @@ def getAllegiancePoints(trackSpace):
     if trackSpace == 13 or trackSpace == 14:
         return 20
     return 25
+
 
 def getEffectLevel(trackSpace):
     if -4 < trackSpace < 4:
@@ -406,10 +413,12 @@ def getEffectLevel(trackSpace):
         return -1
     return -2
 
+
 def getNext(trackSpace):
     if trackSpace == 15:
         return 15
     return trackSpace + 1
+
 
 def getPrev(trackSpace):
     if trackSpace == -15:
