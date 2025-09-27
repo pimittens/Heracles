@@ -1196,7 +1196,7 @@ class BoardState:
                     self.phase = Phase.MINOR_MAZE_MOVES
                     self.makeMove((Move.PASS, move[1], ()))
                 else:
-                    if self.players[self.blessingPlayer].gainMinorBlessingEffect(self.cyclops, self.blessing):
+                    if self.players[self.blessingPlayer].gainMinorBlessingEffect(self.cyclops, self.blessing) and self.oracle:
                         for player in self.players:
                             if player.playerID != self.blessingPlayer:
                                 player.allegiance = Data.getPrev(player.allegiance)
@@ -1329,7 +1329,7 @@ class BoardState:
                 else:
                     self.blessing = False
                     self.phase = self.returnPhase
-                    self.makeMove((Move.PASS, move[1], ()))
+                    self.makeReturnMove(move[1])
             case Phase.CHOOSE_REINF_EFFECT:
                 if not self.players[self.activePlayer].unusedReinfEffects:
                     self.phase = Phase.ACTIVE_PLAYER_CHOICE_1
@@ -2942,6 +2942,7 @@ class BoardState:
     def makeReturnMove(self, player):
         self.sentinel = False
         self.cyclops = False
+        self.oracle = False
         match self.returnPhase:
             case Phase.ACTIVE_PLAYER_PERFORM_FEAT_1 | Phase.ACTIVE_PLAYER_PERFORM_FEAT_2:
                 self.makeMove((Move.RETURN_TO_FEAT, player, ()))
@@ -5252,9 +5253,13 @@ class LoggingBoardState:
                         print(f"Player {move[1]} applies the effects of their dice faces")
                     if self.loggingEnabled:
                         self.log.write(f"Player {move[1]} applies the effects of their dice faces\n")
-                    if self.players[self.blessingPlayer].gainMinorBlessingEffect(self.cyclops, self.blessing):
+                    if self.players[self.blessingPlayer].gainMinorBlessingEffect(self.cyclops, self.blessing) and self.oracle:
                         for player in self.players:
                             if player.playerID != self.blessingPlayer:
+                                if self.printingEnabled:
+                                    print(f"Player {player.playerID} loses 1 loyalty due to the reinforcement effect of The Oracle")
+                                if self.loggingEnabled:
+                                    self.log.write(f"Player {player.playerID} loses 1 loyalty due to the reinforcement effect of The Oracle\n")
                                 player.allegiance = Data.getPrev(player.allegiance)
                     if self.players[self.blessingPlayer].goldToGain == 0:
                         self.phase = Phase.MINOR_MAZE_MOVES
@@ -5457,7 +5462,7 @@ class LoggingBoardState:
                 else:
                     self.blessing = False
                     self.phase = self.returnPhase
-                    self.makeMove((Move.PASS, move[1], ()))
+                    self.makeReturnMove(move[1])
             case Phase.CHOOSE_REINF_EFFECT:
                 if not self.players[self.activePlayer].unusedReinfEffects:
                     self.phase = Phase.ACTIVE_PLAYER_CHOICE_1
@@ -5569,10 +5574,25 @@ class LoggingBoardState:
                     self.players[self.activePlayer].useHammerOrScepter(move[2][0])
                     self.phase = Phase.CHOOSE_REINF_EFFECT
                     self.makeMove((Move.PASS, move[1], ()))
-            case Phase.RESOLVE_MERCHANT_REINF:  # todo: next
+            case Phase.RESOLVE_MERCHANT_REINF:
                 if move[0] == Move.MERCHANT_UPGRADE:
+                    if move[2][0] > 0:
+                        if self.printingEnabled:
+                            print(
+                                f"Player {move[1]} gains {move[2][0]} vp due to the reinforcement effect of The Merchant")
+                        if self.loggingEnabled:
+                            self.log.write(
+                                f"Player {move[1]} gains {move[2][0]} vp due to the reinforcement effect of The Merchant\n")
                     self.players[self.activePlayer].gainVP(move[2][0])
                     if len(move[2]) > 1:
+                        if move[2][1]:
+                            die = 1
+                        else:
+                            die = 2
+                        if self.printingEnabled:
+                            print(f"Player {move[1]} upgrades the die face {move[2][2]} to the die face {move[2][3]} on their die {die} due to the reinforcement effect of The Merchant")
+                        if self.loggingEnabled:
+                            self.log.write(f"Player {move[1]} upgrades the die face {move[2][2]} to the die face {move[2][3]} on their die {die} due to the reinforcement effect of The Merchant\n")
                         self.temple[Data.getPool(move[2][3])].remove(move[2][3])
                         self.players[self.activePlayer].upgradeFace(move[2][1], move[2][2], move[2][3])
                     self.phase = Phase.CHOOSE_REINF_EFFECT
@@ -5580,6 +5600,10 @@ class LoggingBoardState:
             case Phase.RESOLVE_LIGHT_REINF:
                 if move[0] == Move.USE_LIGHT:
                     if move[2][0]:
+                        if self.printingEnabled:
+                            print(f"Player {move[1]} spends 3 gold to resolve the effect of the die face {move[2][1]}")
+                        if self.loggingEnabled:
+                            self.log.write(f"Player {move[1]} spends 3 gold to resolve the effect of the die face {move[2][1]}\n")
                         self.players[self.activePlayer].gainGold(-3, False)
                         self.players[self.activePlayer].die1ResultBuffer = move[2][1]
                         self.players[self.activePlayer].dieChoice = True
@@ -5590,6 +5614,10 @@ class LoggingBoardState:
                         self.phase = Phase.CHOOSE_REINF_EFFECT
                     self.makeMove((Move.PASS, move[1], ()))
             case Phase.RESOLVE_COMPANION_REINF:
+                if self.printingEnabled:
+                    print(f"Player {move[1]} advances each of their companions")
+                if self.loggingEnabled:
+                    self.log.write(f"Player {move[1]} advances each of their companions\n")
                 self.players[self.activePlayer].advanceCompanions()
                 self.phase = Phase.CHOOSE_REINF_EFFECT
                 self.makeMove((Move.PASS, move[1], ()))
@@ -5597,18 +5625,31 @@ class LoggingBoardState:
                 if move[0] == Move.GUARDIAN_CHOICE:
                     match move[2][0]:
                         case "ancientshard":
+                            if self.printingEnabled:
+                                print(f"Player {move[1]} gains 1 ancient shard due to the reinforcement effect of The Guardian")
+                            if self.loggingEnabled:
+                                self.log.write(f"Player {move[1]} gains 1 ancient shard due to the reinforcement effect of The Guardian\n")
                             self.players[self.activePlayer].gainAncientShards(1)
                         case "loyalty":
+                            if self.printingEnabled:
+                                print(f"Player {move[1]} gains 1 loyalty due to the reinforcement effect of The Guardian")
+                            if self.loggingEnabled:
+                                self.log.write(f"Player {move[1]} gains 1 loyalty due to the reinforcement effect of The Guardian\n")
                             self.players[self.activePlayer].gainLoyalty(1)
                     self.phase = Phase.CHOOSE_REINF_EFFECT
                     self.makeMove((Move.PASS, move[1], ()))
             case Phase.RESOLVE_ORACLE_REINF:
+                if self.printingEnabled:
+                    print(f"Player {move[1]} gains a minor blessing due to the reinforcement effect of The Oracle")
+                if self.loggingEnabled:
+                    self.log.write(
+                        f"Player {move[1]} gains a minor blessing due to the reinforcement effect of The Oracle\n")
                 self.phase = Phase.MINOR_CHOOSE_DIE
                 self.oracle = True
                 self.blessingPlayer = self.activePlayer
                 self.blessing = True
                 self.returnPhase = Phase.CHOOSE_REINF_EFFECT
-            case Phase.ACTIVE_PLAYER_CHOICE_1:
+            case Phase.ACTIVE_PLAYER_CHOICE_1:  # todo: next
                 if move[0] == Move.CHOOSE_BUY_FACES:
                     self.phase = Phase.ACTIVE_PLAYER_BUY_FACES_1
                 elif move[0] == Move.CHOOSE_PERFORM_FEAT:
@@ -7132,6 +7173,7 @@ class LoggingBoardState:
     def makeReturnMove(self, player):
         self.sentinel = False
         self.cyclops = False
+        self.oracle = False
         match self.returnPhase:
             case Phase.ACTIVE_PLAYER_PERFORM_FEAT_1 | Phase.ACTIVE_PLAYER_PERFORM_FEAT_2:
                 self.makeMove((Move.RETURN_TO_FEAT, player, ()))
