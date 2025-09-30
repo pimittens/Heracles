@@ -5118,6 +5118,10 @@ class LoggingBoardState:
                             self.log.write(
                                 f"Player {move[1]} rolls die 2 and gets {self.players[self.blessingPlayer].getDie2UpFace().name}\n")
                     if self.players[self.blessingPlayer].hasMaxMoon():  # max moon so gain vp
+                        if self.printingEnabled:
+                            print(f"Player {move[1]} gains 1 vp from the effect of The Twins")
+                        if self.loggingEnabled:
+                            self.log.write(f"Player {move[1]} gains 1 vp from the effect of The Twins\n")
                         self.players[self.blessingPlayer].gainVP(1)
                         self.phase = Phase.MINOR_TWINS_CHOICE
                         self.makeMove((Move.PASS, move[1], ()))
@@ -5246,7 +5250,7 @@ class LoggingBoardState:
                     self.makeMove((Move.PASS, move[1], ()))
             case Phase.MINOR_RESOLVE_EFFECTS:
                 if move[0] == Move.CHOOSE_ADD_HAMMER_SCEPTER:
-                    if self.players[self.misfortunePlayer].canAddScepter():
+                    if self.players[self.blessingPlayer].canAddScepter():
                         if self.printingEnabled:
                             print(
                                 f"Player {move[1]} chooses to add {move[2][0]} gold to their scepter(s) and gain {self.players[self.blessingPlayer].goldToGain - move[2][0]} gold to their main track")
@@ -6462,7 +6466,7 @@ class LoggingBoardState:
                     self.memories.append((move[2][2], move[2][3], self.activePlayer))
                     self.phase = Phase.TURN_START
                     self.advanceActivePlayer(move[1])
-            case Phase.ROLL_CELESTIAL_DIE:  # todo: next
+            case Phase.ROLL_CELESTIAL_DIE:
                 if move[0] == Move.ROLL or move[0] == Move.RANDOM_ROLL:
                     self.players[self.celestialPlayer].celestialRolls -= 1
                     if move[0] == Move.RANDOM_ROLL:
@@ -6497,6 +6501,10 @@ class LoggingBoardState:
             case Phase.CELESTIAL_USE_TWINS_CHOICE:  # call populateTwins() before entering this state for the first time
                 if move[0] == Move.USE_TWINS:
                     if move[2][0]:
+                        if self.printingEnabled:
+                            print(f"Player {move[1]} chooses to spend 3 gold to use the effect of The Twins")
+                        if self.loggingEnabled:
+                            self.log.write(f"Player {move[1]} chooses to spend 3 gold to use the effect of The Twins\n")
                         self.players[self.celestialPlayer].gainGold(-3, False)
                         self.players[self.celestialPlayer].twinsToUse -= 1
                         self.phase = Phase.CELESTIAL_TWINS_REROLL
@@ -6511,9 +6519,25 @@ class LoggingBoardState:
                 if move[0] == Move.ROLL or move[0] == Move.RANDOM_ROLL:
                     if move[0] == Move.RANDOM_ROLL:
                         self.players[self.celestialPlayer].celestialResultBuffer = self.celestialDieRandomRoll()
+                        if self.printingEnabled:
+                            print(
+                                f"Player {move[1]} rolls The Celestial Die and gets {self.players[self.celestialPlayer].celestialResultBuffer.name}")
+                        if self.loggingEnabled:
+                            self.log.write(
+                                f"Player {move[1]} rolls The Celestial Die and gets {self.players[self.celestialPlayer].celestialResultBuffer.name}\n")
                     else:
                         self.players[self.celestialPlayer].celestialResultBuffer = move[2][0]
+                        if self.printingEnabled:
+                            print(
+                                f"Player {move[1]} rolls The Celestial Die and gets {move[2][0].name}")
+                        if self.loggingEnabled:
+                            self.log.write(
+                                f"Player {move[1]} rolls The Celestial Die and gets {move[2][0].name}\n")
                     if self.players[self.celestialPlayer].hasMaxMoon():  # max moon so gain vp
+                        if self.printingEnabled:
+                            print(f"Player {move[1]} gains 1 vp from the effect of The Twins")
+                        if self.loggingEnabled:
+                            self.log.write(f"Player {move[1]} gains 1 vp from the effect of The Twins\n")
                         self.players[self.celestialPlayer].gainVP(1)
                         self.phase = Phase.CELESTIAL_USE_TWINS_CHOICE
                         self.makeMove((Move.PASS, move[1], ()))
@@ -6522,23 +6546,57 @@ class LoggingBoardState:
             case Phase.CELESTIAL_TWINS_RESOURCE_CHOICE:
                 if move[0] == Move.TWINS_CHOOSE_RESOURCE:
                     if move[2][0] == "vp":
+                        if self.printingEnabled:
+                            print(f"Player {move[1]} gains 1 vp from the effect of The Twins")
+                        if self.loggingEnabled:
+                            self.log.write(f"Player {move[1]} gains 1 vp from the effect of The Twins\n")
                         self.players[self.celestialPlayer].gainVP(1)
                     else:
+                        if self.printingEnabled:
+                            print(f"Player {move[1]} gains 1 moon from the effect of The Twins")
+                        if self.loggingEnabled:
+                            self.log.write(f"Player {move[1]} gains 1 moon from the effect of The Twins\n")
                         self.players[self.celestialPlayer].gainMoon(1, False)
                     self.phase = Phase.CELESTIAL_USE_TWINS_CHOICE
                     self.makeMove((Move.PASS, move[1], ()))
             case Phase.CELESTIAL_RESOLVE_EFFECT:
                 if move[0] == Move.CHOOSE_ADD_HAMMER_SCEPTER:
+                    if self.players[self.celestialPlayer].canAddScepter():
+                        if self.printingEnabled:
+                            print(
+                                f"Player {move[1]} chooses to add {move[2][0]} gold to their scepter(s) and gain {self.players[self.celestialPlayer].goldToGain - move[2][0]} gold to their main track")
+                        if self.loggingEnabled:
+                            self.log.write(
+                                f"Player {move[1]} chooses to add {move[2][0]} gold to their scepter(s) and gain {self.players[self.celestialPlayer].goldToGain - move[2][0]} gold to their main track\n")
+                    else:
+                        if self.printingEnabled:
+                            print(
+                                f"Player {move[1]} chooses to add {move[2][0]} gold to their hammer track and gain {self.players[self.celestialPlayer].goldToGain - move[2][0]} gold to their main track")
+                        if self.loggingEnabled:
+                            self.log.write(
+                                f"Player {move[1]} chooses to add {move[2][0]} gold to their hammer track and gain {self.players[self.celestialPlayer].goldToGain - move[2][0]} gold to their main track\n")
                     self.players[self.celestialPlayer].useHammerOrScepter(move[2][0])
                     self.phase = Phase.ROLL_CELESTIAL_DIE
                     self.makeMove((Move.PASS, move[1], ()))
                 else:
                     match self.players[self.celestialPlayer].celestialResultBuffer:
                         case Data.DieFace.CELESTIAL12GOLD:
+                            if self.printingEnabled:
+                                print(f"Player {self.celestialPlayer} gains 12 gold due to the effect of the CELESTIAL12GOLD die face")
+                            if self.loggingEnabled:
+                                self.log.write(f"Player {self.celestialPlayer} gains 12 gold due to the effect of the CELESTIAL12GOLD die face\n")
                             self.players[self.celestialPlayer].gainGold(12, False)
                         case Data.DieFace.CELESTIAL5VP:
+                            if self.printingEnabled:
+                                print(f"Player {self.celestialPlayer} gains 5 vp due to the effect of the CELESTIAL5VP die face")
+                            if self.loggingEnabled:
+                                self.log.write(f"Player {self.celestialPlayer} gains 5 vp due to the effect of the CELESTIAL5VP die face\n")
                             self.players[self.celestialPlayer].gainVP(5)
                         case Data.DieFace.CELESTIAL3VPAND3GOLD1SUN1MOONOR:
+                            if self.printingEnabled:
+                                print(f"Player {self.celestialPlayer} gains 3 vp due to the effect of the CELESTIAL3VPAND3GOLD1SUN1MOONOR die face")
+                            if self.loggingEnabled:
+                                self.log.write(f"Player {self.celestialPlayer} gains 3 vp due to the effect of the CELESTIAL3VPAND3GOLD1SUN1MOONOR die face\n")
                             self.players[self.celestialPlayer].gainVP(3)
                             self.phase = Phase.CELESTIAL_CHOOSE_OR
                         case Data.DieFace.CELESTIALMIRROR:
@@ -6553,21 +6611,55 @@ class LoggingBoardState:
                         self.makeMove((Move.PASS, move[1], ()))
             case Phase.CELESTIAL_CHOOSE_OR:
                 if move[0] == Move.CHOOSE_ADD_HAMMER_SCEPTER:
+                    if self.players[self.celestialPlayer].canAddScepter():
+                        if self.printingEnabled:
+                            print(
+                                f"Player {move[1]} chooses to add {move[2][0]} gold to their scepter(s) and gain {self.players[self.celestialPlayer].goldToGain - move[2][0]} gold to their main track")
+                        if self.loggingEnabled:
+                            self.log.write(
+                                f"Player {move[1]} chooses to add {move[2][0]} gold to their scepter(s) and gain {self.players[self.celestialPlayer].goldToGain - move[2][0]} gold to their main track\n")
+                    else:
+                        if self.printingEnabled:
+                            print(
+                                f"Player {move[1]} chooses to add {move[2][0]} gold to their hammer track and gain {self.players[self.celestialPlayer].goldToGain - move[2][0]} gold to their main track")
+                        if self.loggingEnabled:
+                            self.log.write(
+                                f"Player {move[1]} chooses to add {move[2][0]} gold to their hammer track and gain {self.players[self.celestialPlayer].goldToGain - move[2][0]} gold to their main track\n")
                     self.players[self.celestialPlayer].useHammerOrScepter(move[2][0])
                     self.phase = Phase.ROLL_CELESTIAL_DIE
                     self.makeMove((Move.PASS, move[1], ()))
                 elif move[0] == Move.CHOOSE_CELESTIAL_DIE_OR:
                     if move[2][0] == 0:
+                        if self.printingEnabled:
+                            print(f"Player {self.celestialPlayer} gains 3 gold due to the effect of the CELESTIAL3VPAND3GOLD1SUN1MOONOR die face")
+                        if self.loggingEnabled:
+                            self.log.write(f"Player {self.celestialPlayer} gains 3 gold due to the effect of the CELESTIAL3VPAND3GOLD1SUN1MOONOR die face\n")
                         self.players[self.celestialPlayer].gainGold(3, False)
                     elif move[2][0] == 1:
+                        if self.printingEnabled:
+                            print(f"Player {self.celestialPlayer} gains 1 sun due to the effect of the CELESTIAL3VPAND3GOLD1SUN1MOONOR die face")
+                        if self.loggingEnabled:
+                            self.log.write(f"Player {self.celestialPlayer} gains 1 sun due to the effect of the CELESTIAL3VPAND3GOLD1SUN1MOONOR die face\n")
                         self.players[self.celestialPlayer].gainSun(1, False)
                     elif move[2][0] == 2:
+                        if self.printingEnabled:
+                            print(f"Player {self.celestialPlayer} gains 1 moon due to the effect of the CELESTIAL3VPAND3GOLD1SUN1MOONOR die face")
+                        if self.loggingEnabled:
+                            self.log.write(f"Player {self.celestialPlayer} gains 1 moon due to the effect of the CELESTIAL3VPAND3GOLD1SUN1MOONOR die face\n")
                         self.players[self.celestialPlayer].gainMoon(1, False)
                     if self.players[self.celestialPlayer].goldToGain == 0:
                         self.phase = Phase.ROLL_CELESTIAL_DIE
                         self.makeMove((Move.PASS, move[1], ()))
             case Phase.CELESTIAL_CHOOSE_UPGRADE:
                 if move[0] == Move.CELESTIAL_UPGRADE:
+                    if move[2][0]:
+                        die = 1
+                    else:
+                        die = 2
+                    if self.printingEnabled:
+                        print(f"Player {move[1]} upgrades the die face {move[2][1]} to the die face {move[2][2]} on their die {die} due to the effect of the CELESTIALUPGRADE die face")
+                    if self.loggingEnabled:
+                        self.log.write(f"Player {move[1]} upgrades the die face {move[2][1]} to the die face {move[2][2]} on their die {die} due to the effect of the CELESTIALUPGRADE die face\n")
                     self.temple[Data.getPool(move[2][2])].remove(move[2][2])
                     self.players[self.celestialPlayer].upgradeFace(move[2][0], move[2][1], move[2][2])
                     self.phase = Phase.ROLL_CELESTIAL_DIE
@@ -6577,20 +6669,38 @@ class LoggingBoardState:
                     self.makeMove((Move.PASS, move[1], ()))
             case Phase.CELESTIAL_CHOOSE_MIRROR:
                 if move[0] == Move.CELESTIAL_MIRROR_CHOICE:
+                    if self.printingEnabled:
+                        print(f"Player {move[1]} uses the effect of the die face CELESTIALMIRROR to copy the die face {move[2][0]}")
+                    if self.loggingEnabled:
+                        self.log.write(f"Player {move[1]} uses the effect of the die face CELESTIALMIRROR to copy the die face {move[2][0]}\n")
                     self.players[self.celestialPlayer].celestialResultBuffer = move[2][0]
                     self.phase = Phase.CELESTIAL_RESOLVE_DIE_OR
                     self.makeMove((Move.PASS, move[1], ()))
             case Phase.CELESTIAL_CHOOSE_GODDESS:
                 if move[0] == Move.CELESTIAL_GODDESS:
                     if move[2][0]:
+                        if self.printingEnabled:
+                            print(f"Player {move[1]} uses the effect of the die face CELESTIALGODDESS to place the face {move[2][1]} on their die 1 face up and resolve its effect")
+                        if self.loggingEnabled:
+                            self.log.write(f"Player {move[1]} uses the effect of the die face CELESTIALGODDESS to place the face {move[2][1]} on their die 1 face up and resolve its effect\n")
                         self.players[self.celestialPlayer].die1.setToFace(move[2][1])
                     else:
+                        if self.printingEnabled:
+                            print(f"Player {move[1]} uses the effect of the die face CELESTIALGODDESS to place the face {move[2][1]} on their die 2 face up and resolve its effect")
+                        if self.loggingEnabled:
+                            self.log.write(f"Player {move[1]} uses the effect of the die face CELESTIALGODDESS to place the face {move[2][1]} on their die 2 face up and resolve its effect\n")
                         self.players[self.celestialPlayer].die2.setToFace(move[2][1])
                     self.players[self.celestialPlayer].celestialResultBuffer = move[2][1]
                     self.phase = Phase.CELESTIAL_RESOLVE_DIE_MIRROR
                     self.makeMove((Move.PASS, move[1], ()))
             case Phase.CELESTIAL_RESOLVE_DIE_MIRROR:
                 if move[0] == Move.MIRROR_CHOICE:
+                    if self.printingEnabled:
+                        print(
+                            f"Player {move[1]} uses the effect of The Mirror of the Abyss to copy the die face {move[2][0]}")
+                    if self.loggingEnabled:
+                        self.log.write(
+                            f"Player {move[1]} uses the effect of The Mirror of the Abyss to copy the die face {move[2][0]}\n")
                     self.players[self.celestialPlayer].celestialResultBuffer = move[2][0]
                     self.phase = Phase.CELESTIAL_RESOLVE_DIE_OR
                     self.makeMove((Move.PASS, move[1], ()))
@@ -6599,6 +6709,10 @@ class LoggingBoardState:
                     self.makeMove((Move.PASS, move[1], ()))
             case Phase.CELESTIAL_RESOLVE_DIE_OR:
                 if move[0] == Move.CHOOSE_DIE_OR:
+                    if self.printingEnabled:
+                        print(f"Player {move[1]} chooses to gain {Data.getResourceType(move[2][0])} from their die face {self.players[self.celestialPlayer].celestialResultBuffer}")
+                    if self.loggingEnabled:
+                        self.log.write(f"Player {move[1]} chooses to gain {Data.getResourceType(move[2][0])} from their die face {self.players[self.celestialPlayer].celestialResultBuffer}\n")
                     self.players[self.celestialPlayer].celestialOrChoice = move[2][0]
                     self.phase = Phase.CELESTIAL_RESOLVE_DIE_EFFECT
                     self.makeMove((Move.PASS, move[1], ()))
@@ -6607,6 +6721,20 @@ class LoggingBoardState:
                     self.makeMove((Move.PASS, move[1], ()))
             case Phase.CELESTIAL_RESOLVE_DIE_EFFECT:
                 if move[0] == Move.CHOOSE_ADD_HAMMER_SCEPTER:
+                    if self.players[self.celestialPlayer].canAddScepter():
+                        if self.printingEnabled:
+                            print(
+                                f"Player {move[1]} chooses to add {move[2][0]} gold to their scepter(s) and gain {self.players[self.celestialPlayer].goldToGain - move[2][0]} gold to their main track")
+                        if self.loggingEnabled:
+                            self.log.write(
+                                f"Player {move[1]} chooses to add {move[2][0]} gold to their scepter(s) and gain {self.players[self.celestialPlayer].goldToGain - move[2][0]} gold to their main track\n")
+                    else:
+                        if self.printingEnabled:
+                            print(
+                                f"Player {move[1]} chooses to add {move[2][0]} gold to their hammer track and gain {self.players[self.celestialPlayer].goldToGain - move[2][0]} gold to their main track")
+                        if self.loggingEnabled:
+                            self.log.write(
+                                f"Player {move[1]} chooses to add {move[2][0]} gold to their hammer track and gain {self.players[self.celestialPlayer].goldToGain - move[2][0]} gold to their main track\n")
                     self.players[self.celestialPlayer].useHammerOrScepter(move[2][0])
                     if self.players[self.celestialPlayer].shipsToResolve > 0:
                         self.phase = Phase.CELESTIAL_RESOLVE_SHIPS
@@ -6614,6 +6742,10 @@ class LoggingBoardState:
                         self.phase = Phase.CELESTIAL_BOAR_CHOICE
                         self.makeMove((Move.PASS, move[1], ()))
                 else:
+                    if self.printingEnabled:
+                        print(f"Player {move[1]} applies the effect of the die face {self.players[self.celestialPlayer].celestialResultBuffer}")
+                    if self.loggingEnabled:
+                        self.log.write(f"Player {move[1]} applies the effect of the die face {self.players[self.celestialPlayer].celestialResultBuffer}\n")
                     self.players[self.celestialPlayer].gainCelestialDieEffects()
                     if self.players[self.celestialPlayer].goldToGain == 0:
                         if self.players[self.celestialPlayer].shipsToResolve > 0:
@@ -6625,6 +6757,12 @@ class LoggingBoardState:
                 if move[0] == Move.BUY_FACES:
                     self.players[self.celestialPlayer].shipsToResolve -= 1
                     for face in move[2]:
+                        if self.printingEnabled:
+                            print(
+                                f"Player {move[1]} buys the die face {face} for {max(Data.faceCosts[face] - 2, 0)} gold")
+                        if self.loggingEnabled:
+                            self.log.write(
+                                f"Player {move[1]} buys the die face {face} for {max(Data.faceCosts[face] - 2, 0)} gold\n")
                         self.temple[Data.getPool(face)].remove(face)
                         self.players[self.celestialPlayer].buyFaceShip(face, 2)
                     self.phase = Phase.CELESTIAL_RESOLVE_SHIPS_FORGE
@@ -6635,6 +6773,16 @@ class LoggingBoardState:
                         self.makeMove((Move.PASS, move[1], ()))
             case Phase.CELESTIAL_RESOLVE_SHIPS_FORGE:
                 if move[0] == Move.FORGE_FACE:
+                    if move[2][0]:
+                        die = 1
+                    else:
+                        die = 2
+                    if self.printingEnabled:
+                        print(
+                            f"Player {move[1]} forges the die face {move[2][1]} over die face {move[2][2]} on their die {die}")
+                    if self.loggingEnabled:
+                        self.log.write(
+                            f"Player {move[1]} forges the die face {move[2][1]} over die face {move[2][2]} on their die {die}\n")
                     self.players[self.celestialPlayer].forgeFace(move[2])
                     if self.players[self.celestialPlayer].shipsToResolve > 0:
                         self.phase = Phase.CELESTIAL_RESOLVE_SHIPS
@@ -6645,10 +6793,22 @@ class LoggingBoardState:
                 if move[0] == Move.BOAR_CHOICE:
                     match move[2][0]:
                         case "sun":
+                            if self.printingEnabled:
+                                print(f"Player {move[1]} gains 1 sun due to a boar face being resolved")
+                            if self.loggingEnabled:
+                                self.log.write(f"Player {move[1]} gains 1 sun due to a boar face being resolved\n")
                             self.players[move[1]].gainSun(1, False)
                         case "moon":
+                            if self.printingEnabled:
+                                print(f"Player {move[1]} gains 1 moon due to a boar face being resolved")
+                            if self.loggingEnabled:
+                                self.log.write(f"Player {move[1]} gains 1 moon due to a boar face being resolved\n")
                             self.players[move[1]].gainMoon(1, False)
                         case "vp":
+                            if self.printingEnabled:
+                                print(f"Player {move[1]} gains 3 vp due to a boar face being resolved")
+                            if self.loggingEnabled:
+                                self.log.write(f"Player {move[1]} gains 3 vp due to a boar face being resolved\n")
                             self.players[move[1]].gainVP(3)
                     self.phase = Phase.CELESTIAL_MISFORTUNE
                     self.makeMove((Move.PASS, move[1], ()))
@@ -6657,6 +6817,10 @@ class LoggingBoardState:
                     self.makeMove((Move.PASS, move[1], ()))
             case Phase.CELESTIAL_MISFORTUNE:
                 if move[0] == Move.CHOOSE_DIE_OR:
+                    if self.printingEnabled:
+                        print(f"Player {move[1]} chooses to gain {Data.getResourceType(move[2][0])} from their die face {self.players[self.misfortunePlayer].getDie1Result()} on die 1")
+                    if self.loggingEnabled:
+                        self.log.write(f"Player {move[1]} chooses to gain {Data.getResourceType(move[2][0])} from their die face {self.players[self.misfortunePlayer].getDie1Result()} on die 1\n")
                     self.players[self.misfortunePlayer].orChoice1 = move[2][0]
                     self.phase = Phase.CELESTIAL_MISFORTUNE_OR
                     self.makeMove((Move.PASS, move[1], ()))
@@ -6665,6 +6829,10 @@ class LoggingBoardState:
                     self.makeMove((Move.PASS, move[1], ()))
             case Phase.CELESTIAL_MISFORTUNE_OR:
                 if move[0] == Move.CHOOSE_DIE_OR:
+                    if self.printingEnabled:
+                        print(f"Player {move[1]} chooses to gain {Data.getResourceType(move[2][0])} from their die face {self.players[self.misfortunePlayer].getDie2Result()} on die 2")
+                    if self.loggingEnabled:
+                        self.log.write(f"Player {move[1]} chooses to gain {Data.getResourceType(move[2][0])} from their die face {self.players[self.misfortunePlayer].getDie2Result()} on die 2\n")
                     self.players[self.misfortunePlayer].orChoice2 = move[2][0]
                     self.phase = Phase.CELESTIAL_MISFORTUNE_EFFECTS
                     self.makeMove((Move.PASS, move[1], ()))
@@ -6673,6 +6841,20 @@ class LoggingBoardState:
                     self.makeMove((Move.PASS, move[1], ()))
             case Phase.CELESTIAL_MISFORTUNE_EFFECTS:
                 if move[0] == Move.CHOOSE_ADD_HAMMER_SCEPTER:
+                    if self.players[self.misfortunePlayer].canAddScepter():
+                        if self.printingEnabled:
+                            print(
+                                f"Player {move[1]} chooses to add {move[2][0]} gold to their scepter(s) and gain {self.players[self.misfortunePlayer].goldToGain - move[2][0]} gold to their main track")
+                        if self.loggingEnabled:
+                            self.log.write(
+                                f"Player {move[1]} chooses to add {move[2][0]} gold to their scepter(s) and gain {self.players[self.misfortunePlayer].goldToGain - move[2][0]} gold to their main track\n")
+                    else:
+                        if self.printingEnabled:
+                            print(
+                                f"Player {move[1]} chooses to add {move[2][0]} gold to their hammer track and gain {self.players[self.misfortunePlayer].goldToGain - move[2][0]} gold to their main track")
+                        if self.loggingEnabled:
+                            self.log.write(
+                                f"Player {move[1]} chooses to add {move[2][0]} gold to their hammer track and gain {self.players[self.misfortunePlayer].goldToGain - move[2][0]} gold to their main track\n")
                     self.players[self.misfortunePlayer].useHammerOrScepter(move[2][0])
                     if self.players[self.misfortunePlayer].shipsToResolve == 0:
                         self.phase = Phase.ROLL_CELESTIAL_DIE
@@ -6681,6 +6863,10 @@ class LoggingBoardState:
                         self.phase = Phase.CELESTIAL_MISFORTUNE_SHIPS
                         self.makeMove((Move.PASS, move[1], ()))
                 elif move[0] == Move.CHOOSE_RESOLVE_ORDER:
+                    if self.printingEnabled:
+                        print(f"Player {move[1]} applies the effects of their dice faces")
+                    if self.loggingEnabled:
+                        self.log.write(f"Player {move[1]} applies the effects of their dice faces\n")
                     self.players[self.misfortunePlayer].gainDiceEffects(False, False, False, move[2][0])
                     if self.players[self.misfortunePlayer].goldToGain == 0:
                         if self.players[self.misfortunePlayer].shipsToResolve == 0:
@@ -6693,6 +6879,12 @@ class LoggingBoardState:
                 if move[0] == Move.BUY_FACES:
                     self.players[self.misfortunePlayer].shipsToResolve -= 1
                     for face in move[2]:
+                        if self.printingEnabled:
+                            print(
+                                f"Player {move[1]} buys the die face {face} for {max(Data.faceCosts[face] - 2, 0)} gold")
+                        if self.loggingEnabled:
+                            self.log.write(
+                                f"Player {move[1]} buys the die face {face} for {max(Data.faceCosts[face] - 2, 0)} gold\n")
                         self.temple[Data.getPool(face)].remove(face)
                         self.players[self.blessingPlayer].buyFaceShip(face, 2)
                     self.phase = Phase.CELESTIAL_MISFORTUNE_SHIPS_FORGE
@@ -6703,6 +6895,16 @@ class LoggingBoardState:
                         self.makeMove((Move.PASS, move[1], ()))
             case Phase.CELESTIAL_MISFORTUNE_SHIPS_FORGE:
                 if move[0] == Move.FORGE_FACE:
+                    if move[2][0]:
+                        die = 1
+                    else:
+                        die = 2
+                    if self.printingEnabled:
+                        print(
+                            f"Player {move[1]} forges the die face {move[2][1]} over die face {move[2][2]} on their die {die}")
+                    if self.loggingEnabled:
+                        self.log.write(
+                            f"Player {move[1]} forges the die face {move[2][1]} over die face {move[2][2]} on their die {die}\n")
                     self.players[self.misfortunePlayer].forgeFace(move[2])
                     if self.players[self.misfortunePlayer].shipsToResolve > 0:
                         self.phase = Phase.CELESTIAL_MISFORTUNE_SHIPS
