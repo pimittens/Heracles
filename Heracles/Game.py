@@ -2976,7 +2976,7 @@ class BoardState:
                 for pl in self.players:
                     if player.playerID == pl.playerID:
                         continue
-                    steal += max(2, pl.vp)
+                    steal += min(2, pl.vp)
                     pl.gainVP(-2)
                 player.gainVP(steal)
                 return True
@@ -4271,26 +4271,26 @@ class LoggingBoardState:
                         case 1:
                             if self.printingEnabled:
                                 print(
-                                    f"Player {move[1]} chooses to gain {resources[0]} sun from the effect of space {self.players[self.blessingPlayer].mazePosition} of the Maze of the Goddess")
+                                    f"Player {move[1]} chooses to gain {resources[1]} sun from the effect of space {self.players[self.blessingPlayer].mazePosition} of the Maze of the Goddess")
                             if self.loggingEnabled:
                                 self.log.write(
-                                    f"Player {move[1]} chooses to gain {resources[0]} sun from the effect of space {self.players[self.blessingPlayer].mazePosition} of the Maze of the Goddess\n")
+                                    f"Player {move[1]} chooses to gain {resources[1]} sun from the effect of space {self.players[self.blessingPlayer].mazePosition} of the Maze of the Goddess\n")
                             self.players[self.blessingPlayer].gainSun(resources[1], False)
                         case 2:
                             if self.printingEnabled:
                                 print(
-                                    f"Player {move[1]} chooses to gain {resources[0]} moon from the effect of space {self.players[self.blessingPlayer].mazePosition} of the Maze of the Goddess")
+                                    f"Player {move[1]} chooses to gain {resources[2]} moon from the effect of space {self.players[self.blessingPlayer].mazePosition} of the Maze of the Goddess")
                             if self.loggingEnabled:
                                 self.log.write(
-                                    f"Player {move[1]} chooses to gain {resources[0]} moon from the effect of space {self.players[self.blessingPlayer].mazePosition} of the Maze of the Goddess\n")
+                                    f"Player {move[1]} chooses to gain {resources[2]} moon from the effect of space {self.players[self.blessingPlayer].mazePosition} of the Maze of the Goddess\n")
                             self.players[self.blessingPlayer].gainMoon(resources[2], False)
                         case 3:
                             if self.printingEnabled:
                                 print(
-                                    f"Player {move[1]} chooses to gain {resources[0]} vp from the effect of space {self.players[self.blessingPlayer].mazePosition} of the Maze of the Goddess")
+                                    f"Player {move[1]} chooses to gain {resources[3]} vp from the effect of space {self.players[self.blessingPlayer].mazePosition} of the Maze of the Goddess")
                             if self.loggingEnabled:
                                 self.log.write(
-                                    f"Player {move[1]} chooses to gain {resources[0]} vp from the effect of space {self.players[self.blessingPlayer].mazePosition} of the Maze of the Goddess\n")
+                                    f"Player {move[1]} chooses to gain {resources[3]} vp from the effect of space {self.players[self.blessingPlayer].mazePosition} of the Maze of the Goddess\n")
                             self.players[self.blessingPlayer].gainVP(resources[3])
                     if self.players[self.blessingPlayer].goldToGain == 0:
                         self.phase = Phase.RESOLVE_MAZE_MOVES
@@ -7900,11 +7900,11 @@ class LoggingBoardState:
                         continue
                     if self.printingEnabled:
                         print(
-                            f"Player {player.playerID} steals {max(2, pl.vp)} vp from player {pl.playerID} due to the effect of space {player.mazePosition} of the Maze of the Goddess")
+                            f"Player {player.playerID} steals {min(2, pl.vp)} vp from player {pl.playerID} due to the effect of space {player.mazePosition} of the Maze of the Goddess")
                     if self.loggingEnabled:
                         self.log.write(
-                            f"Player {player.playerID} steals {max(2, pl.vp)} vp from player {pl.playerID} due to the effect of space {player.mazePosition} of the Maze of the Goddess\n")
-                    steal += max(2, pl.vp)
+                            f"Player {player.playerID} steals {min(2, pl.vp)} vp from player {pl.playerID} due to the effect of space {player.mazePosition} of the Maze of the Goddess\n")
+                    steal += min(2, pl.vp)
                     pl.gainVP(-2)
                 player.gainVP(steal)
                 return True
@@ -9587,7 +9587,7 @@ class Player:
         self.unforgedFaces.append(face)
 
     def buyFaceShip(self, face, bonusGold):
-        self.gainGold(max(-(Data.faceCosts[face] - bonusGold), 0), False)
+        self.gainGold(min(-(Data.faceCosts[face] - bonusGold), 0), False)
         self.unforgedFaces.append(face)
 
     def forgeFace(self, forgeInfo):

@@ -3,7 +3,7 @@ import Game
 import MCTS
 
 module = 1  # 0 is no module, 1 is goddess maze, 2 is titans
-players = [Game.Player(0, True, module), Game.Player(1, True, module)]
+players = [Game.Player(0, False, module), Game.Player(1, False, module)]
 theBoard = Game.LoggingBoardState(players, True, module)
 theBoard.startLogging()
 undoState = theBoard.copyState()
@@ -321,7 +321,7 @@ while not theBoard.isOver():
                 break
             print("invalid choice")
             printOptions(options, theBoard)
-        undoState = theBoard.copyState()
+        undoState = theBoard.copyLoggingState()
         printMove(options[choice - 1])
         theBoard.makeMove(options[choice - 1])
 
