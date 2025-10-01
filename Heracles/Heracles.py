@@ -272,77 +272,83 @@ def printMove(move):
     print(f"making move: {move}")  # todo: more detail
 
 
-i = 0
-numGames = 5
-startTime = time.time()
-while i < numGames:
+def generateData(numGames):
+    print(f"playing {numGames} games")
+    i = 0
+    startTime = time.time()
+    cutoff = 60 * 60 * 8 # 8 hours
+    while i < numGames:
 
-    gameStartTime = time.time()
-    module = 2  # 0 is no module, 1 is goddess maze, 2 is titans
-    players = [Game.Player(0, True, module), Game.Player(1, True, module)]
-    theBoard = Game.LoggingBoardState(players, True, module, False)
-    theBoard.startLogging()
-    undoState = theBoard.copyState()
+        gameStartTime = time.time()
+        module = i % 3  # 0 is no module, 1 is goddess maze, 2 is titans
+        players = [Game.Player(0, True, module), Game.Player(1, True, module)]
+        theBoard = Game.LoggingBoardState(players, True, module, False)
+        theBoard.startLogging()
+        undoState = theBoard.copyState()
 
-    while not theBoard.isOver():
-        options = theBoard.getOptions()
-        if theBoard.printingEnabled:
-            printOptions(options, theBoard)
-        if theBoard.players[options[0][1]].ai:
-            if options[0][0] == Game.Move.ROLL:
-                if theBoard.printingEnabled:
-                    printMove(options[len(options) - 1])
-                theBoard.makeMove(options[len(options) - 1])  # always do random roll
-                if theBoard.printingEnabled:
-                    print(
-                    f"After rolling, player {options[0][1]} has the faces {theBoard.players[options[0][1]].getDie1UpFace()} and {theBoard.players[options[0][1]].getDie2UpFace()}")
-            elif options[0][1] == 0:
-                move = MCTS.mcts(theBoard.copyState(), 10, theBoard.printingEnabled)
-                if theBoard.printingEnabled:
-                    printMove(move)
-                theBoard.makeMove(move)
-            elif options[0][1] == 1:
-                move = MCTS.mctsWithHeuristic(theBoard.copyState(), 10, theBoard.printingEnabled)
-                if theBoard.printingEnabled:
-                    printMove(move)
-                theBoard.makeMove(move)
+        while not theBoard.isOver():
+            options = theBoard.getOptions()
+            if theBoard.printingEnabled:
+                printOptions(options, theBoard)
+            if theBoard.players[options[0][1]].ai:
+                if options[0][0] == Game.Move.ROLL:
+                    if theBoard.printingEnabled:
+                        printMove(options[len(options) - 1])
+                    theBoard.makeMove(options[len(options) - 1])  # always do random roll
+                    if theBoard.printingEnabled:
+                        print(
+                        f"After rolling, player {options[0][1]} has the faces {theBoard.players[options[0][1]].getDie1UpFace()} and {theBoard.players[options[0][1]].getDie2UpFace()}")
+                elif options[0][1] == 0:
+                    move = MCTS.mcts(theBoard.copyState(), 5000, theBoard.printingEnabled)
+                    if theBoard.printingEnabled:
+                        printMove(move)
+                    theBoard.makeMove(move)
+                elif options[0][1] == 1:
+                    move = MCTS.mctsWithHeuristic(theBoard.copyState(), 5000, theBoard.printingEnabled)
+                    if theBoard.printingEnabled:
+                        printMove(move)
+                    theBoard.makeMove(move)
+                else:
+                    move = random.choice(options)
+                    if theBoard.printingEnabled:
+                        printMove(move)
+                    theBoard.makeMove(move)
             else:
-                move = random.choice(options)
-                if theBoard.printingEnabled:
-                    printMove(move)
-                theBoard.makeMove(move)
-        else:
-            # theBoard.makeMove(options[0])
-            while True:
-                choice = input("select from the above options: ")
-                if choice == "print":
-                    theBoard.printBoardState()
-                    printOptions(options, theBoard)
-                    continue
-                if choice == "undo":
-                    theBoard = undoState
-                    options = theBoard.getOptions()
-                    printOptions(options, theBoard)
-                    continue
-                if not choice.isdigit():
+                # theBoard.makeMove(options[0])
+                while True:
+                    choice = input("select from the above options: ")
+                    if choice == "print":
+                        theBoard.printBoardState()
+                        printOptions(options, theBoard)
+                        continue
+                    if choice == "undo":
+                        theBoard = undoState
+                        options = theBoard.getOptions()
+                        printOptions(options, theBoard)
+                        continue
+                    if not choice.isdigit():
+                        print("invalid choice")
+                        printOptions(options, theBoard)
+                        continue
+                    choice = int(choice)
+                    if choice in list(range(1, len(options) + 1)):
+                        break
                     print("invalid choice")
                     printOptions(options, theBoard)
-                    continue
-                choice = int(choice)
-                if choice in list(range(1, len(options) + 1)):
-                    break
-                print("invalid choice")
-                printOptions(options, theBoard)
-            undoState = theBoard.copyLoggingState()
-            printMove(options[choice - 1])
-            theBoard.makeMove(options[choice - 1])
+                undoState = theBoard.copyLoggingState()
+                printMove(options[choice - 1])
+                theBoard.makeMove(options[choice - 1])
 
-    if theBoard.printingEnabled:
-        theBoard.printBoardState()
-    if theBoard.printingEnabled:
-        theBoard.printPoints()
-    theBoard.endLogging()
-    i += 1
-    print(f"finished game {i} out of {numGames}")
-    print(f"game took {(time.time() - gameStartTime) / 60} minutes")
-    print(f"total time elapsed: {(time.time() - startTime) / 60} minutes")
+        if theBoard.printingEnabled:
+            theBoard.printBoardState()
+        if theBoard.printingEnabled:
+            theBoard.printPoints()
+        theBoard.endLogging()
+        i += 1
+        print(f"finished game {i} out of {numGames}")
+        print(f"game took {(time.time() - gameStartTime) / 60} minutes")
+        print(f"total time elapsed: {(time.time() - startTime) / 60} minutes")
+        print(f"estimated time remaining: {((time.time() - startTime) / i * (numGames - i)) / 60} minutes")
+        if time.time() - startTime > cutoff:
+            print("runtime exceeded cutoff time, terminating early")
+            break

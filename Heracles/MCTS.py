@@ -233,7 +233,7 @@ class TicTacToeState:
 """
 
 
-def mcts(rootState, numSims):
+def mcts(rootState, numSims, log):
     startTime = time.time()
     root = Node(rootState.copyState())
     if len(root.state.getOptions()) == 1:
@@ -250,15 +250,16 @@ def mcts(rootState, numSims):
         result = rollout(node.state)
         # backpropagation
         node.backpropagate(result)
-    print("mcts results")
-    for node in root.children:
-        print(
-            f"Move: {node.move}, visits:{node.visits}, win probability: {node.points / node.visits}, lastPlayer: {node.state.lastPlayer}")
-    print(f"time elapsed: {time.time() - startTime} seconds")
+    if log:
+        print("mcts results")
+        for node in root.children:
+            print(
+                f"Move: {node.move}, visits:{node.visits}, win probability: {node.points / node.visits}, lastPlayer: {node.state.lastPlayer}")
+        print(f"time elapsed: {time.time() - startTime} seconds")
     return root.mostVisitedChild().move
 
 
-def mctsWithHeuristic(rootState, numSims):  # todo
+def mctsWithHeuristic(rootState, numSims, log):
     startTime = time.time()
     root = HeuristicNode(rootState.copyState())
     if len(root.state.getOptions()) == 1:
@@ -275,18 +276,28 @@ def mctsWithHeuristic(rootState, numSims):  # todo
         result = rollout(node.state)
         # backpropagation
         node.backpropagate(result)
-    print("mcts (with heuristic) results")
-    for node in root.children:
-        print(
-            f"Move: {node.move}, visits:{node.visits}, win probability: {node.points / node.visits}, lastPlayer: {node.state.lastPlayer}")
-    print(f"time elapsed: {time.time() - startTime} seconds")
+    if log:
+        print("mcts (with heuristic) results")
+        for node in root.children:
+            print(
+                f"Move: {node.move}, visits:{node.visits}, win probability: {node.points / node.visits}, lastPlayer: {node.state.lastPlayer}")
+        print(f"time elapsed: {time.time() - startTime} seconds")
     return root.mostVisitedChild().move
 
 
 def rollout(state):
     currentState = state.copyState()
+    #i = 0
     while not currentState.isOver():
         possibleMoves = currentState.getOptions()
         move = random.choice(possibleMoves)
         currentState.makeMove(move)
+        #i += 1
+        #if i > 4990: # this is just for testing
+            #print(f"phase: {currentState.phase}")
+            #print(move)
+        #if i > 5000:
+            #print("game went too long")
+            #currentState.printBoardState()
+            #break
     return currentState.getWinners()
