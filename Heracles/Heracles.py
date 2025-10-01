@@ -282,7 +282,7 @@ def generateData(numGames):
         gameStartTime = time.time()
         module = i % 3  # 0 is no module, 1 is goddess maze, 2 is titans
         players = [Game.Player(0, True, module), Game.Player(1, True, module)]
-        theBoard = Game.LoggingBoardState(players, True, module, False)
+        theBoard = Game.LoggingBoardState(players, True, module, True)
         theBoard.startLogging()
         undoState = theBoard.copyState()
 
@@ -299,12 +299,12 @@ def generateData(numGames):
                         print(
                         f"After rolling, player {options[0][1]} has the faces {theBoard.players[options[0][1]].getDie1UpFace()} and {theBoard.players[options[0][1]].getDie2UpFace()}")
                 elif options[0][1] == 0:
-                    move = MCTS.mcts(theBoard.copyState(), 5000, theBoard.printingEnabled)
+                    move = MCTS.mctsWithHeuristic(theBoard.copyState(), 3000, theBoard.printingEnabled)
                     if theBoard.printingEnabled:
                         printMove(move)
                     theBoard.makeMove(move)
                 elif options[0][1] == 1:
-                    move = MCTS.mctsWithHeuristic(theBoard.copyState(), 5000, theBoard.printingEnabled)
+                    move = MCTS.mctsWithHeuristic(theBoard.copyState(), 3000, theBoard.printingEnabled)
                     if theBoard.printingEnabled:
                         printMove(move)
                     theBoard.makeMove(move)
@@ -352,3 +352,5 @@ def generateData(numGames):
         if time.time() - startTime > cutoff:
             print("runtime exceeded cutoff time, terminating early")
             break
+
+generateData(3)

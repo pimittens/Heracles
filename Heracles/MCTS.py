@@ -238,7 +238,11 @@ def mcts(rootState, numSims, log):
     root = Node(rootState.copyState())
     if len(root.state.getOptions()) == 1:
         return root.state.getOptions()[0]
-    for _ in range(numSims):
+    if root.state.getOptions()[0][0] == Move.CHOOSE_RESOLVE_ORDER:
+        sims = max(numSims // 100, 100)
+    else:
+        sims = numSims
+    for _ in range(sims):
         node = root
         # selection
         while node.isFullyExpanded() and node.children:
@@ -264,7 +268,11 @@ def mctsWithHeuristic(rootState, numSims, log):
     root = HeuristicNode(rootState.copyState())
     if len(root.state.getOptions()) == 1:
         return root.state.getOptions()[0]
-    for _ in range(numSims):
+    if root.state.getOptions()[0][0] == Move.CHOOSE_RESOLVE_ORDER:
+        sims = max(numSims // 100, 100)
+    else:
+        sims = numSims
+    for _ in range(sims):
         node = root
         # selection
         while node.isFullyExpanded() and node.children:
