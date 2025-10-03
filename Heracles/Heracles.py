@@ -164,7 +164,7 @@ def printOptions(options, boardState):
                     f"{i}: Spend {option[2][0]} sun from The Blacksmith's Scepters, {option[2][1]} ancient shards, and {boardState.players[option[1]].sunToSpend - option[2][0] - option[2][1]} from the main sun reserve")
             case Game.Move.SPEND_MOON:
                 print(
-                    f"{i}: Spend {option[2][0]} sun from The Blacksmith's Scepters, {option[2][1]} ancient shards, and {boardState.players[option[1]].moonToSpend - option[2][0] - option[2][1]} from the main moon reserve")
+                    f"{i}: Spend {option[2][0]} moon from The Blacksmith's Scepters, {option[2][1]} ancient shards, and {boardState.players[option[1]].moonToSpend - option[2][0] - option[2][1]} from the main moon reserve")
             case Game.Move.CHOOSE_FACES:
                 print(f"{i}: Place the faces {option[2][0]} and {option[2][1]} face up and gain their effects")
             case Game.Move.RIGHTHAND_SPEND:
