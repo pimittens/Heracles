@@ -2646,7 +2646,7 @@ class BoardState:
 
     def getSpendGoldOptions(self, player):
         ret = []
-        i = player.goldToSpend - player.gold
+        i = max(player.goldToSpend - player.gold, 0)
         while i <= player.getScepterGold() and i <= player.goldToSpend:
             ret.append((Move.SPEND_GOLD, player.playerID,
                         (i,)))  # spend this amount from scepters, spend the rest from main reserve
