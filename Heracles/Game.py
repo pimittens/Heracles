@@ -2073,9 +2073,16 @@ class BoardState:
                     Move.CHOOSE_MAZE_ORDER, self.blessingPlayer, (False,))
             case Phase.RESOLVE_MAZE_MOVES:
                 ret = self.getMazeMoveChoices(self.players[self.blessingPlayer])
-            case Phase.MAZE_EFFECT_SPEND_GOLD | Phase.MAZE_EFFECT_SPEND_MOON:
-                ret = (
-                    (Move.MAZE_SPEND, self.blessingPlayer, (True,)), (Move.MAZE_SPEND, self.blessingPlayer, (False,)))
+            case Phase.MAZE_EFFECT_SPEND_GOLD: # there is an issue with time/great golem where the player can end up here without the required resources so we need to check again
+                if self.players[self.blessingPlayer].getEffectiveGold() > 5:
+                    ret = ((Move.MAZE_SPEND, self.blessingPlayer, (True,)), (Move.MAZE_SPEND, self.blessingPlayer, (False,)))
+                else:
+                    ret = (Move.MAZE_SPEND, self.blessingPlayer, (False,)),
+            case Phase.MAZE_EFFECT_SPEND_MOON:
+                if self.players[self.blessingPlayer].getEffectiveMoon() > 1:
+                    ret = ((Move.MAZE_SPEND, self.blessingPlayer, (True,)), (Move.MAZE_SPEND, self.blessingPlayer, (False,)))
+                else:
+                    ret = (Move.MAZE_SPEND, self.blessingPlayer, (False,)),
             case Phase.MAZE_EFFECT:
                 if self.players[self.blessingPlayer].goldToGain > 0:
                     ret = self.getHammerScepterChoices(self.blessingPlayer)
@@ -7014,9 +7021,16 @@ class LoggingBoardState:
                     Move.CHOOSE_MAZE_ORDER, self.blessingPlayer, (False,))
             case Phase.RESOLVE_MAZE_MOVES:
                 ret = self.getMazeMoveChoices(self.players[self.blessingPlayer])
-            case Phase.MAZE_EFFECT_SPEND_GOLD | Phase.MAZE_EFFECT_SPEND_MOON:
-                ret = (
-                    (Move.MAZE_SPEND, self.blessingPlayer, (True,)), (Move.MAZE_SPEND, self.blessingPlayer, (False,)))
+            case Phase.MAZE_EFFECT_SPEND_GOLD: # there is an issue with time/great golem where the player can end up here without the required resources so we need to check again
+                if self.players[self.blessingPlayer].getEffectiveGold() > 5:
+                    ret = ((Move.MAZE_SPEND, self.blessingPlayer, (True,)), (Move.MAZE_SPEND, self.blessingPlayer, (False,)))
+                else:
+                    ret = (Move.MAZE_SPEND, self.blessingPlayer, (False,)),
+            case Phase.MAZE_EFFECT_SPEND_MOON:
+                if self.players[self.blessingPlayer].getEffectiveMoon() > 1:
+                    ret = ((Move.MAZE_SPEND, self.blessingPlayer, (True,)), (Move.MAZE_SPEND, self.blessingPlayer, (False,)))
+                else:
+                    ret = (Move.MAZE_SPEND, self.blessingPlayer, (False,)),
             case Phase.MAZE_EFFECT:
                 if self.players[self.blessingPlayer].goldToGain > 0:
                     ret = self.getHammerScepterChoices(self.blessingPlayer)
