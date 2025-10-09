@@ -3857,7 +3857,50 @@ class BoardState:
         next[self.mazeReturnPhase.value] = 1.0
         obs.extend(next)
 
-        # todo: shields, chaos, dogged, memories
+        # shields
+        next = np.zeros(4, dtype=np.float32)
+        if Data.DieFace.REDSHIELD in self.shields:
+            next[0] = 1.0
+        if Data.DieFace.BLUESHIELD in self.shields:
+            next[1] = 1.0
+        if Data.DieFace.GREENSHIELD in self.shields:
+            next[2] = 1.0
+        if Data.DieFace.YELLOWSHIELD in self.shields:
+            next[3] = 1.0
+        obs.extend(next)
+
+        # chaos
+        next = np.zeros(4, dtype=np.float32)
+        if Data.DieFace.REDCHAOS in self.shields:
+            next[0] = 1.0
+        if Data.DieFace.BLUECHAOS in self.shields:
+            next[1] = 1.0
+        if Data.DieFace.GREENCHAOS in self.shields:
+            next[2] = 1.0
+        if Data.DieFace.YELLOWCHAOS in self.shields:
+            next[3] = 1.0
+        obs.extend(next)
+
+        # dogged
+        next = np.zeros(4, dtype=np.float32)
+        for face in self.dogged:
+            if face == Data.DieFace.GOLD3ANCIENTSHARD1:
+                next[0] += 0.5
+            elif face == Data.DieFace.VP1GOLD2LOYALTY1:
+                next[1] += 0.5
+        obs.extend(next)
+
+        # each memory has memory type (binary), location (one-hot over 7 possibilities), and player (one-hot)
+        length = 8 + len(self.players)
+        next = np.zeros(length, dtype=np.float32)
+        i = 0
+        for memory in self.memories:
+            if memory[0]:
+                next[i * length] = 1.0
+            next[i * length + memory[1]] = 1.0
+            next[i * length + 7 + memory[2]] = 1.0
+            i += 1
+        obs.extend(next)
 
         return np.array(obs, dtype=np.float32)
 
