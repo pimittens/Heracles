@@ -74,7 +74,7 @@ class Node:
 
 
 class NeuralMCTS:
-    def __init__(self, model, c_puct=1.4, num_simulations=10):
+    def __init__(self, model, c_puct=1.4, num_simulations=50):
         self.model = model
         self.c_puct = c_puct
         self.num_simulations = num_simulations
@@ -175,12 +175,20 @@ def self_play_game(model, num_simulations=50):
                                    False)  # start new game
     state.startLogging()
     while not state.isOver():
+        startTime = time.time()
         root = mcts.simulate(state.copyState())
 
         # Extract policy proportional to visit counts
         legal_moves = list(root.P.keys())
         visits = np.array([root.N[m] for m in legal_moves], dtype=np.float32)
         policy = visits / np.sum(visits)
+
+        state.log.write("mcts (with neural network) results\n")
+        for move in root.children:
+            state.log.write(
+                f"Move: {move}, visits:{root.N[move]}, Q value: {root.Q(move)}\n")
+        state.log.write(f"policy:\n{policy}\n")
+        state.log.write(f"time elapsed: {time.time() - startTime} seconds\n")
 
         # Store training data
         states.append(state.observation())
@@ -210,6 +218,7 @@ def self_play_game(model, num_simulations=50):
 
 def train(model, num_iterations, num_games_per_iteration):
     for iteration in range(num_iterations):
+        print(f"begin iteration {iteration}")
         iterationStartTime = time.time()
         all_data = []
 
@@ -219,7 +228,7 @@ def train(model, num_iterations, num_games_per_iteration):
         for i in range(num_games_per_iteration):
             gameStartTime = time.time()
             data = self_play_game(model)
-            print(f"finished game {i} of {num_games_per_iteration} in {(time.time() - gameStartTime) / 60} minutes")
+            print(f"finished game {i + 1} of {num_games_per_iteration} in {(time.time() - gameStartTime) / 60} minutes")
             all_data.extend(data)
 
         # 2. Prepare batches for training
@@ -236,7 +245,7 @@ def train(model, num_iterations, num_games_per_iteration):
         # Optionally: save model, evaluate against previous versions
         model.save(f"model_iter_{iteration}.h5")
 
-        print(f"finished iteration {iteration} of {num_iterations} in {(time.time() - iterationStartTime) / 60} minutes")
+        print(f"finished iteration {iteration} of {num_iterations - 1} in {(time.time() - iterationStartTime) / 60} minutes")
 
 
 train(build2pModel(), 50, 5)
