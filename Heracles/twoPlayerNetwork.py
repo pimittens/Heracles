@@ -206,3 +206,28 @@ def self_play_game(model, num_simulations=50):
         data.append((obs, moves, policy, value))
 
     return data
+
+def train(model, num_iterations, num_games_per_iteration):
+    for iteration in range(num_iterations):
+        all_data = []
+
+        # 1. Generate self-play data
+        for _ in range(num_games_per_iteration):
+            data = self_play_game(model)
+            all_data.extend(data)
+
+        # 2. Prepare batches for training
+        X = np.array([d[0] for d in all_data])        # observations
+        y_policy = np.array([d[2] for d in all_data]) # policy distributions
+        y_value = np.array([d[3] for d in all_data])  # scalar values
+
+        # 3. Train model
+        model.fit(X, [y_policy, y_value],
+                  batch_size=64,
+                  epochs=5,
+                  verbose=1)
+
+        # Optionally: save model, evaluate against previous versions
+        model.save(f"model_iter_{iteration}.h5")
+
+train(build2pModel(), 1, 1)
