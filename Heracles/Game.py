@@ -3602,13 +3602,12 @@ class BoardState:
     def observation(self): # encode board state
         obs = []
 
-        # one-hot for active player
-        active = np.zeros(len(self.players), dtype=np.float32)
-        active[self.activePlayer] = 1.0
-        obs.extend(active)
+        decisionPlayer = nextPlayer = self.getOptions()[0][1]
 
-        # encode each player
-        for p in self.players:
+        # encode each player starting with the player currently making a decision
+        while True:
+            p = self.players[nextPlayer]
+
             # one-hot for upface on each die and to identify the die face
             playerDice = []
             next = np.zeros(6, dtype=np.float32)
@@ -3743,6 +3742,10 @@ class BoardState:
                     case Data.HeroicFeat.THE_GUARDIAN:
                         next[8] += 1.0 / len(self.players)
             obs.extend(next)
+
+            nextPlayer = (nextPlayer + 1) % len(self.players)
+            if nextPlayer == decisionPlayer:
+                break
 
         # global board info
         featsAvailable = np.zeros(len(Data.HeroicFeat), dtype=np.float32)
