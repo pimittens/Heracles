@@ -133,7 +133,7 @@ class NeuralMCTS:
             else:
                 # Terminal node value based on game result
                 winners = node.state.getWinners()
-                if sum(winners > 1):
+                if sum(winners) > 1:
                     value = 0  # tie
                 else:
                     value = winners[node.player]
@@ -185,12 +185,11 @@ def self_play_game(model, num_simulations=50):
         # Store training data
         states.append(state.observation())
         policies.append((legal_moves, policy))
-        players.append(state.currentPlayer)
+        players.append(state.getOptions()[0][1])
 
         # Choose move (stochastic for training)
-        move = np.random.choice(legal_moves, p=policy)
-        state = state.copyState()
-        state.makeMove(move)
+        selection = np.random.choice(len(legal_moves), p=policy)
+        state.makeMove(state.getOptions()[selection])
     state.endLogging()
 
     # Once game ends
