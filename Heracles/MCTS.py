@@ -1,3 +1,4 @@
+import os
 import random
 import math
 from Game import Move
@@ -233,7 +234,7 @@ class TicTacToeState:
 """
 
 
-def mcts(rootState, numSims, log):
+def mcts(rootState, numSims):
     startTime = time.time()
     root = Node(rootState.copyState())
     if len(root.state.getOptions()) == 1:
@@ -254,16 +255,22 @@ def mcts(rootState, numSims, log):
         result = rollout(node.state)
         # backpropagation
         node.backpropagate(result)
-    if log:
+    if rootState.printingEnabled:
         print("mcts results")
         for node in root.children:
             print(
                 f"Move: {node.move}, visits:{node.visits}, win probability: {node.points / node.visits}, lastPlayer: {node.state.lastPlayer}")
         print(f"time elapsed: {time.time() - startTime} seconds")
+    if rootState.loggingEnabled:
+        rootState.log.write("mcts (with heuristic) results\n")
+        for node in root.children:
+            rootState.log.write(
+                f"Move: {node.move}, visits:{node.visits}, win probability: {node.points / node.visits}, lastPlayer: {node.state.lastPlayer}\n")
+        rootState.log.write(f"time elapsed: {time.time() - startTime} seconds\n")
     return root.mostVisitedChild().move
 
 
-def mctsWithHeuristic(rootState, numSims, log):
+def mctsWithHeuristic(rootState, numSims):
     startTime = time.time()
     root = HeuristicNode(rootState.copyState())
     if len(root.state.getOptions()) == 1:
@@ -284,21 +291,40 @@ def mctsWithHeuristic(rootState, numSims, log):
         result = rollout(node.state)
         # backpropagation
         node.backpropagate(result)
-    if log:
+    if rootState.printingEnabled:
         print("mcts (with heuristic) results")
         for node in root.children:
             print(
                 f"Move: {node.move}, visits:{node.visits}, win probability: {node.points / node.visits}, lastPlayer: {node.state.lastPlayer}")
         print(f"time elapsed: {time.time() - startTime} seconds")
+    if rootState.loggingEnabled:
+        rootState.log.write("mcts (with heuristic) results\n")
+        for node in root.children:
+            rootState.log.write(
+                f"Move: {node.move}, visits:{node.visits}, win probability: {node.points / node.visits}, lastPlayer: {node.state.lastPlayer}\n")
+        rootState.log.write(f"time elapsed: {time.time() - startTime} seconds\n")
     return root.mostVisitedChild().move
 
 
 def rollout(state):
     currentState = state.copyState()
     #i = 0
+    if not os.path.exists("logs"):
+        os.makedirs("logs")
+    if os.path.exists("logs/rollout.txt"):
+        os.remove("logs/rollout.txt")
+    log = open("logs/rollout.txt", "a")
+    log.write("Begin rollout\n")
     while not currentState.isOver():
         possibleMoves = currentState.getOptions()
+        log.write(f"phase: {currentState.phase}, options: {possibleMoves}\n")
+        log.write(f"activeplayer gold: {currentState.players[currentState.activePlayer].gold}, sun: {currentState.players[currentState.activePlayer].sun}, moon: {currentState.players[currentState.activePlayer].moon}, goldToSpend: {currentState.players[currentState.activePlayer].goldToSpend}, sunToSpend: {currentState.players[currentState.activePlayer].sunToSpend}, moonToSpend: {currentState.players[currentState.activePlayer].moonToSpend}\n")
+        for scepter in currentState.players[currentState.activePlayer].scepters:
+            log.write(f"scepter: {scepter}\n")
+        if not possibleMoves:
+            log.close()
         move = random.choice(possibleMoves)
+        log.write(f"making move: {move}\n")
         currentState.makeMove(move)
         #i += 1
         #if i > 4990: # this is just for testing
@@ -308,4 +334,5 @@ def rollout(state):
             #print("game went too long")
             #currentState.printBoardState()
             #break
+    log.close()
     return currentState.getWinners()
