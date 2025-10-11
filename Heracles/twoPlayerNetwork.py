@@ -230,7 +230,7 @@ def train(model, num_iterations, num_games_per_iteration):
         # 3. Train model
         model.fit(X, [y_policy, y_value],
                   batch_size=64,
-                  epochs=5,
+                  epochs=3,
                   verbose=1)
 
         # Optionally: save model, evaluate against previous versions
@@ -239,4 +239,4 @@ def train(model, num_iterations, num_games_per_iteration):
         print(f"finished iteration {iteration} of {num_iterations} in {(time.time() - iterationStartTime) / 60} minutes")
 
 
-train(build2pModel(), 5, 5)
+train(build2pModel(), 50, 5)
