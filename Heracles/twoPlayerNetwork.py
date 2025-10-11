@@ -209,7 +209,6 @@ def self_play_game(model, num_simulations=50):
 
 
 def train(model, num_iterations, num_games_per_iteration):
-    startTime = time.time()
     for iteration in range(num_iterations):
         iterationStartTime = time.time()
         all_data = []
