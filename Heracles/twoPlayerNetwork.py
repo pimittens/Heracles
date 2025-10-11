@@ -2,6 +2,7 @@ import math
 import numpy as np
 import tensorflow as tf
 import Game
+import time
 from tensorflow.keras import layers, Model
 
 
@@ -133,7 +134,7 @@ class NeuralMCTS:
                 # Terminal node value based on game result
                 winners = node.state.getWinners()
                 if sum(winners > 1):
-                    value = 0 # tie
+                    value = 0  # tie
                 else:
                     value = winners[node.player]
 
@@ -207,18 +208,25 @@ def self_play_game(model, num_simulations=50):
 
     return data
 
+
 def train(model, num_iterations, num_games_per_iteration):
+    startTime = time.time()
     for iteration in range(num_iterations):
+        iterationStartTime = time.time()
         all_data = []
 
+        print("generating self play data")
+
         # 1. Generate self-play data
-        for _ in range(num_games_per_iteration):
+        for i in range(num_games_per_iteration):
+            gameStartTime = time.time()
             data = self_play_game(model)
+            print(f"finished game {i} of {num_games_per_iteration} in {(time.time() - gameStartTime) / 60} minutes")
             all_data.extend(data)
 
         # 2. Prepare batches for training
-        X = np.array([d[0] for d in all_data])        # observations
-        y_policy = np.array([d[2] for d in all_data]) # policy distributions
+        X = np.array([d[0] for d in all_data])  # observations
+        y_policy = np.array([d[2] for d in all_data])  # policy distributions
         y_value = np.array([d[3] for d in all_data])  # scalar values
 
         # 3. Train model
@@ -230,4 +238,7 @@ def train(model, num_iterations, num_games_per_iteration):
         # Optionally: save model, evaluate against previous versions
         model.save(f"model_iter_{iteration}.h5")
 
-train(build2pModel(), 1, 1)
+        print(f"finished iteration {iteration} of {num_iterations} in {(time.time() - iterationStartTime) / 60} minutes")
+
+
+train(build2pModel(), 5, 5)
