@@ -3811,7 +3811,7 @@ class BoardState:
         obs.extend(next)
 
         # islandChoice one-hot
-        next = np.zeros(8, dtype=np.float32)
+        next = np.zeros(15, dtype=np.float32)
         next[self.islandChoice] = 1.0
         obs.extend(next)
 

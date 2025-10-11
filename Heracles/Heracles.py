@@ -2,6 +2,8 @@ import random
 import Game
 import MCTS
 import time
+import numpy as np
+import twoPlayerNetwork
 
 
 def printOptions(options, boardState):
@@ -280,11 +282,12 @@ def generateData(numGames):
     while i < numGames:
 
         gameStartTime = time.time()
-        module = i % 3  # 0 is no module, 1 is goddess maze, 2 is titans
+        module = 1 # i % 3  # 0 is no module, 1 is goddess maze, 2 is titans
         players = [Game.Player(0, True, module), Game.Player(1, True, module)]
         theBoard = Game.LoggingBoardState(players, True, module, True)
         theBoard.startLogging()
         undoState = theBoard.copyState()
+        mcts = twoPlayerNetwork.NeuralMCTS(twoPlayerNetwork.build2pModel(), num_simulations=200)
 
         while not theBoard.isOver():
             options = theBoard.getOptions()
@@ -299,12 +302,15 @@ def generateData(numGames):
                         print(
                         f"After rolling, player {options[0][1]} has the faces {theBoard.players[options[0][1]].getDie1UpFace()} and {theBoard.players[options[0][1]].getDie2UpFace()}")
                 elif options[0][1] == 0:
-                    move = MCTS.mctsWithHeuristic(theBoard.copyState(), 3000, theBoard.printingEnabled)
+                    move = MCTS.mctsWithHeuristic(theBoard.copyState(), 500, theBoard.printingEnabled)
                     if theBoard.printingEnabled:
                         printMove(move)
                     theBoard.makeMove(move)
                 elif options[0][1] == 1:
-                    move = MCTS.mctsWithHeuristic(theBoard.copyState(), 3000, theBoard.printingEnabled)
+                    policy = mcts.run(theBoard.copyState())
+                    print(policy)
+                    selection = np.random.choice(range(len(theBoard.getOptions())), p=policy)
+                    move = theBoard.getOptions()[selection]
                     if theBoard.printingEnabled:
                         printMove(move)
                     theBoard.makeMove(move)
