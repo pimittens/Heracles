@@ -154,7 +154,7 @@ class Phase(Enum):
     CELESTIAL_MISFORTUNE_SHIPS_FORGE = 142
 
 
-class Move(Enum): # todo: should start at 0
+class Move(Enum):  # todo: should start at 0
     PASS = 1
     TAKE_EXTRA_TURN = 2
     CHOOSE_BUY_FACES = 3
@@ -2074,14 +2074,16 @@ class BoardState:
                     Move.CHOOSE_MAZE_ORDER, self.blessingPlayer, (False,))
             case Phase.RESOLVE_MAZE_MOVES:
                 ret = self.getMazeMoveChoices(self.players[self.blessingPlayer])
-            case Phase.MAZE_EFFECT_SPEND_GOLD: # there is an issue with time/great golem where the player can end up here without the required resources so we need to check again
+            case Phase.MAZE_EFFECT_SPEND_GOLD:  # there is an issue with time/great golem where the player can end up here without the required resources so we need to check again
                 if self.players[self.blessingPlayer].getEffectiveGold() > 5:
-                    ret = ((Move.MAZE_SPEND, self.blessingPlayer, (True,)), (Move.MAZE_SPEND, self.blessingPlayer, (False,)))
+                    ret = (
+                    (Move.MAZE_SPEND, self.blessingPlayer, (True,)), (Move.MAZE_SPEND, self.blessingPlayer, (False,)))
                 else:
                     ret = (Move.MAZE_SPEND, self.blessingPlayer, (False,)),
             case Phase.MAZE_EFFECT_SPEND_MOON:
                 if self.players[self.blessingPlayer].getEffectiveMoon() > 1:
-                    ret = ((Move.MAZE_SPEND, self.blessingPlayer, (True,)), (Move.MAZE_SPEND, self.blessingPlayer, (False,)))
+                    ret = (
+                    (Move.MAZE_SPEND, self.blessingPlayer, (True,)), (Move.MAZE_SPEND, self.blessingPlayer, (False,)))
                 else:
                     ret = (Move.MAZE_SPEND, self.blessingPlayer, (False,)),
             case Phase.MAZE_EFFECT:
@@ -2714,7 +2716,8 @@ class BoardState:
 
     def celestialDieRandomRoll(self):
         return random.choice((Data.CelestialDieFace.CELESTIAL12GOLD, Data.CelestialDieFace.CELESTIAL5VP,
-                              Data.CelestialDieFace.CELESTIAL3VPAND3GOLD1SUN1MOONOR, Data.CelestialDieFace.CELESTIALGODDESS,
+                              Data.CelestialDieFace.CELESTIAL3VPAND3GOLD1SUN1MOONOR,
+                              Data.CelestialDieFace.CELESTIALGODDESS,
                               Data.CelestialDieFace.CELESTIALUPGRADE))
 
     def getMirrorChoices(self, choicePlayer):
@@ -3599,7 +3602,7 @@ class BoardState:
                 self.islands[island].append(feat)
                 j += 1
 
-    def observation(self): # encode board state
+    def observation(self):  # encode board state
         obs = []
 
         decisionPlayer = nextPlayer = self.getOptions()[0][1]
@@ -3615,7 +3618,7 @@ class BoardState:
             playerDice.extend(next)
             next = np.zeros(len(Data.DieFace), dtype=np.float32)
             for face in p.die1.faces:
-                next[face.value] += 1.0 / 6.0 # only the frequency of the face on the die matters
+                next[face.value] += 1.0 / 6.0  # only the frequency of the face on the die matters
             playerDice.extend(next)
             next = np.zeros(6, dtype=np.float32)
             next[p.die2.upFace] = 1.0
@@ -3626,7 +3629,7 @@ class BoardState:
             playerDice.extend(next)
 
             # resources normalized
-            resources = np.array([p.gold / 12.0, p.sun / 6.0, p.moon / 6.0, p.vp / 100.0, p.ancientShards / 6.0,])
+            resources = np.array([p.gold / 12.0, p.sun / 6.0, p.moon / 6.0, p.vp / 100.0, p.ancientShards / 6.0, ])
 
             # heroic feats owned normalized out of number of players
             feats = np.zeros(len(Data.HeroicFeat), dtype=np.float32)
@@ -3640,13 +3643,14 @@ class BoardState:
             # playerid is inferred from position, ai doesn't matter for model
 
             # max resources normalized
-            obs.extend([p.maxGold / (12.0 + 4 * len(self.players)), p.maxSun / (6.0 + 3 * len(self.players)), p.maxMoon / (6.0 + 3 * len(self.players)),])
+            obs.extend([p.maxGold / (12.0 + 4 * len(self.players)), p.maxSun / (6.0 + 3 * len(self.players)),
+                        p.maxMoon / (6.0 + 3 * len(self.players)), ])
 
             # tokens normalized
-            obs.extend([p.cerberusTokens / len(self.players), p.tritonTokens / len(self.players),])
+            obs.extend([p.cerberusTokens / len(self.players), p.tritonTokens / len(self.players), ])
 
             # things to use/spend normalized
-            obs.extend([p.twinsToUse / len(self.players),])
+            obs.extend([p.twinsToUse / len(self.players), ])
 
             # buffers, one-hot over die faces
             next = np.zeros(len(Data.DieFace), dtype=np.float32)
@@ -3679,7 +3683,8 @@ class BoardState:
             obs.extend(next)
 
             # or choices normalized
-            obs.extend([p.orChoice1 / 5.0, p.orChoice2 / 5.0, p.orMazeChoice1 / 5.0, p.orMazeChoice2 / 5.0, p.celestialOrChoice / 5.0,])
+            obs.extend([p.orChoice1 / 5.0, p.orChoice2 / 5.0, p.orMazeChoice1 / 5.0, p.orMazeChoice2 / 5.0,
+                        p.celestialOrChoice / 5.0, ])
 
             # flags
             if p.dieChoice:
@@ -3696,12 +3701,16 @@ class BoardState:
                 obs.append(0)
 
             # other values normalized
-            obs.extend([p.location / 7.0, p.numForged / 20.0, p.allegiance / 15.0, p.mazePosition / 35.0, p.mazeMoves / 2.0, p.shipsToResolve / 2.0, p.times3ShipsToResolve / 2.0, p.celestialRolls / 2.0, p.hammerTrack / (30.0 * len(self.players)), p.goldToGain / 12.0, p.goldToSpend / 12.0, p.sunToSpend / 6.0, p.moonToSpend / 6.0,])
+            obs.extend(
+                [p.location / 7.0, p.numForged / 20.0, p.allegiance / 15.0, p.mazePosition / 35.0, p.mazeMoves / 2.0,
+                 p.shipsToResolve / 2.0, p.times3ShipsToResolve / 2.0, p.celestialRolls / 2.0,
+                 p.hammerTrack / (30.0 * len(self.players)), p.goldToGain / 12.0, p.goldToSpend / 12.0,
+                 p.sunToSpend / 6.0, p.moonToSpend / 6.0, ])
 
             # unforgedFaces, one-hot on die faces since you probably can't have more than one of each to forge
             unforged = np.zeros(len(Data.DieFace), dtype=np.float32)
             for face in p.unforgedFaces:
-                unforged[face.value] += 1.0 # add in case more than one is possible somehow
+                unforged[face.value] += 1.0  # add in case more than one is possible somehow
 
             # companions normalized
             next = np.zeros(len(self.players), dtype=np.float32)
@@ -3720,7 +3729,7 @@ class BoardState:
             obs.extend(next)
 
             # unused reinf effects
-            next = np.zeros(9, dtype=np.float32) # there are only 9 possible reinf effects
+            next = np.zeros(9, dtype=np.float32)  # there are only 9 possible reinf effects
             for effect in p.unusedReinfEffects:
                 match effect:
                     case Data.HeroicFeat.THE_ELDER:
@@ -3732,7 +3741,7 @@ class BoardState:
                     case Data.HeroicFeat.THE_TREE:
                         next[3] += 1.0 / len(self.players)
                     case Data.HeroicFeat.THE_MERCHANT:
-                        next[4] = 1.0 # merchants are only resolved once
+                        next[4] = 1.0  # merchants are only resolved once
                     case Data.HeroicFeat.THE_LIGHT:
                         next[5] += 1.0 / len(self.players)
                     case Data.HeroicFeat.THE_COMPANION:
@@ -7330,14 +7339,16 @@ class LoggingBoardState:
                     Move.CHOOSE_MAZE_ORDER, self.blessingPlayer, (False,))
             case Phase.RESOLVE_MAZE_MOVES:
                 ret = self.getMazeMoveChoices(self.players[self.blessingPlayer])
-            case Phase.MAZE_EFFECT_SPEND_GOLD: # there is an issue with time/great golem where the player can end up here without the required resources so we need to check again
+            case Phase.MAZE_EFFECT_SPEND_GOLD:  # there is an issue with time/great golem where the player can end up here without the required resources so we need to check again
                 if self.players[self.blessingPlayer].getEffectiveGold() > 5:
-                    ret = ((Move.MAZE_SPEND, self.blessingPlayer, (True,)), (Move.MAZE_SPEND, self.blessingPlayer, (False,)))
+                    ret = (
+                    (Move.MAZE_SPEND, self.blessingPlayer, (True,)), (Move.MAZE_SPEND, self.blessingPlayer, (False,)))
                 else:
                     ret = (Move.MAZE_SPEND, self.blessingPlayer, (False,)),
             case Phase.MAZE_EFFECT_SPEND_MOON:
                 if self.players[self.blessingPlayer].getEffectiveMoon() > 1:
-                    ret = ((Move.MAZE_SPEND, self.blessingPlayer, (True,)), (Move.MAZE_SPEND, self.blessingPlayer, (False,)))
+                    ret = (
+                    (Move.MAZE_SPEND, self.blessingPlayer, (True,)), (Move.MAZE_SPEND, self.blessingPlayer, (False,)))
                 else:
                     ret = (Move.MAZE_SPEND, self.blessingPlayer, (False,)),
             case Phase.MAZE_EFFECT:
@@ -7970,7 +7981,8 @@ class LoggingBoardState:
 
     def celestialDieRandomRoll(self):
         return random.choice((Data.CelestialDieFace.CELESTIAL12GOLD, Data.CelestialDieFace.CELESTIAL5VP,
-                              Data.CelestialDieFace.CELESTIAL3VPAND3GOLD1SUN1MOONOR, Data.CelestialDieFace.CELESTIALGODDESS,
+                              Data.CelestialDieFace.CELESTIAL3VPAND3GOLD1SUN1MOONOR,
+                              Data.CelestialDieFace.CELESTIALGODDESS,
                               Data.CelestialDieFace.CELESTIALUPGRADE))
 
     def getMirrorChoices(self, choicePlayer):
@@ -9150,6 +9162,320 @@ class LoggingBoardState:
                 self.islands[island].append(feat)
                 j += 1
 
+    def observation(self):  # encode board state
+        obs = []
+
+        decisionPlayer = nextPlayer = self.getOptions()[0][1]
+
+        # encode each player starting with the player currently making a decision
+        while True:
+            p = self.players[nextPlayer]
+
+            # one-hot for upface on each die and to identify the die face
+            playerDice = []
+            next = np.zeros(6, dtype=np.float32)
+            next[p.die1.upFace] = 1.0
+            playerDice.extend(next)
+            next = np.zeros(len(Data.DieFace), dtype=np.float32)
+            for face in p.die1.faces:
+                next[face.value] += 1.0 / 6.0  # only the frequency of the face on the die matters
+            playerDice.extend(next)
+            next = np.zeros(6, dtype=np.float32)
+            next[p.die2.upFace] = 1.0
+            playerDice.extend(next)
+            next = np.zeros(len(Data.DieFace), dtype=np.float32)
+            for face in p.die2.faces:
+                next[face.value] += 1.0 / 6.0
+            playerDice.extend(next)
+
+            # resources normalized
+            resources = np.array([p.gold / 12.0, p.sun / 6.0, p.moon / 6.0, p.vp / 100.0, p.ancientShards / 6.0, ])
+
+            # heroic feats owned normalized out of number of players
+            feats = np.zeros(len(Data.HeroicFeat), dtype=np.float32)
+            for feat in p.feats:
+                feats[feat.value] += 1.0 / len(self.players)
+
+            obs.extend(playerDice)
+            obs.extend(resources)
+            obs.extend(feats)
+
+            # playerid is inferred from position, ai doesn't matter for model
+
+            # max resources normalized
+            obs.extend([p.maxGold / (12.0 + 4 * len(self.players)), p.maxSun / (6.0 + 3 * len(self.players)),
+                        p.maxMoon / (6.0 + 3 * len(self.players)), ])
+
+            # tokens normalized
+            obs.extend([p.cerberusTokens / len(self.players), p.tritonTokens / len(self.players), ])
+
+            # things to use/spend normalized
+            obs.extend([p.twinsToUse / len(self.players), ])
+
+            # buffers, one-hot over die faces
+            next = np.zeros(len(Data.DieFace), dtype=np.float32)
+            if p.die1ResultBuffer is not None:
+                next[p.die1ResultBuffer.value] = 1.0
+            obs.extend(next)
+            next = np.zeros(len(Data.DieFace), dtype=np.float32)
+            if p.die2ResultBuffer is not None:
+                next[p.die2ResultBuffer.value] = 1.0
+            obs.extend(next)
+            next = np.zeros(len(Data.DieFace), dtype=np.float32)
+            if p.die1MazeResultBuffer is not None:
+                next[p.die1MazeResultBuffer.value] = 1.0
+            obs.extend(next)
+            next = np.zeros(len(Data.DieFace), dtype=np.float32)
+            if p.die2MazeResultBuffer is not None:
+                next[p.die2MazeResultBuffer.value] = 1.0
+            obs.extend(next)
+            next = np.zeros(len(Data.DieFace), dtype=np.float32)
+            if p.celestialResultBuffer is not None:
+                next[p.celestialResultBuffer.value] = 1.0
+            obs.extend(next)
+            next = np.zeros(len(Data.DieFace), dtype=np.float32)
+            if p.mirrorChoice1 is not None:
+                next[p.mirrorChoice1.value] = 1.0
+            obs.extend(next)
+            next = np.zeros(len(Data.DieFace), dtype=np.float32)
+            if p.mirrorChoice2 is not None:
+                next[p.mirrorChoice2.value] = 1.0
+            obs.extend(next)
+
+            # or choices normalized
+            obs.extend([p.orChoice1 / 5.0, p.orChoice2 / 5.0, p.orMazeChoice1 / 5.0, p.orMazeChoice2 / 5.0,
+                        p.celestialOrChoice / 5.0, ])
+
+            # flags
+            if p.dieChoice:
+                obs.append(1)
+            else:
+                obs.append(0)
+            if p.sentinel1Choice:
+                obs.append(1)
+            else:
+                obs.append(0)
+            if p.sentinel2Choice:
+                obs.append(1)
+            else:
+                obs.append(0)
+
+            # other values normalized
+            obs.extend(
+                [p.location / 7.0, p.numForged / 20.0, p.allegiance / 15.0, p.mazePosition / 35.0, p.mazeMoves / 2.0,
+                 p.shipsToResolve / 2.0, p.times3ShipsToResolve / 2.0, p.celestialRolls / 2.0,
+                 p.hammerTrack / (30.0 * len(self.players)), p.goldToGain / 12.0, p.goldToSpend / 12.0,
+                 p.sunToSpend / 6.0, p.moonToSpend / 6.0, ])
+
+            # unforgedFaces, one-hot on die faces since you probably can't have more than one of each to forge
+            unforged = np.zeros(len(Data.DieFace), dtype=np.float32)
+            for face in p.unforgedFaces:
+                unforged[face.value] += 1.0  # add in case more than one is possible somehow
+
+            # companions normalized
+            next = np.zeros(len(self.players), dtype=np.float32)
+            i = 0
+            for companion in p.companions:
+                next[i] = companion / 5.0
+                i += 1
+            obs.extend(next)
+
+            # scepters normalized
+            next = np.zeros(len(self.players), dtype=np.float32)
+            i = 0
+            for scepter in p.scepters:
+                next[i] = scepter / 6.0
+                i += 1
+            obs.extend(next)
+
+            # unused reinf effects
+            next = np.zeros(9, dtype=np.float32)  # there are only 9 possible reinf effects
+            for effect in p.unusedReinfEffects:
+                match effect:
+                    case Data.HeroicFeat.THE_ELDER:
+                        next[0] += 1.0 / len(self.players)
+                    case Data.HeroicFeat.THE_GUARDIANS_OWL:
+                        next[1] += 1.0 / len(self.players)
+                    case Data.HeroicFeat.THE_SILVER_HIND:
+                        next[2] += 1.0 / len(self.players)
+                    case Data.HeroicFeat.THE_TREE:
+                        next[3] += 1.0 / len(self.players)
+                    case Data.HeroicFeat.THE_MERCHANT:
+                        next[4] = 1.0  # merchants are only resolved once
+                    case Data.HeroicFeat.THE_LIGHT:
+                        next[5] += 1.0 / len(self.players)
+                    case Data.HeroicFeat.THE_COMPANION:
+                        next[6] += 1.0 / len(self.players)
+                    case Data.HeroicFeat.THE_ORACLE:
+                        next[7] += 1.0 / len(self.players)
+                    case Data.HeroicFeat.THE_GUARDIAN:
+                        next[8] += 1.0 / len(self.players)
+            obs.extend(next)
+
+            nextPlayer = (nextPlayer + 1) % len(self.players)
+            if nextPlayer == decisionPlayer:
+                break
+
+        # global board info
+        featsAvailable = np.zeros(len(Data.HeroicFeat), dtype=np.float32)
+        for island in self.islands:
+            for feat in island:
+                featsAvailable[feat.value] += 1.0 / len(self.players)
+
+        facesAvailable = np.zeros(len(Data.DieFace), dtype=np.float32)
+        for pool in self.temple:
+            for face in pool:
+                facesAvailable[face.value] += 0.25
+
+        obs.extend(featsAvailable)
+        obs.extend(facesAvailable)
+
+        # module one-hot
+        next = np.zeros(3, dtype=np.float32)
+        next[self.module] = 1.0
+        obs.extend(next)
+
+        # flags
+        if self.cerberus:
+            obs.append(1)
+        else:
+            obs.append(0)
+        if self.cyclops:
+            obs.append(1)
+        else:
+            obs.append(0)
+        if self.sentinel:
+            obs.append(1)
+        else:
+            obs.append(0)
+        if self.satyrs:
+            obs.append(1)
+        else:
+            obs.append(0)
+        if self.minotaur:
+            obs.append(1)
+        else:
+            obs.append(0)
+        if self.eternalFire:
+            obs.append(1)
+        else:
+            obs.append(0)
+        if self.blessing:
+            obs.append(1)
+        else:
+            obs.append(0)
+        if self.oracle:
+            obs.append(1)
+        else:
+            obs.append(0)
+
+        # unused treasures one-hot
+        next = np.zeros(3, dtype=np.float32)
+        if Data.Treasure.VP_TREASURE in self.treasures:
+            next[0] = 1.0
+        if Data.Treasure.SUN_TREASURE in self.treasures:
+            next[0] = 1.0
+        if Data.Treasure.MOON_TREASURE in self.treasures:
+            next[0] = 1.0
+        obs.extend(next)
+
+        # islandChoice one-hot
+        next = np.zeros(15, dtype=np.float32)
+        next[self.islandChoice] = 1.0
+        obs.extend(next)
+
+        # round normalized
+        obs.append(self.round / 10.0)
+
+        # activePlayer one-hot
+        next = np.zeros(len(self.players), dtype=np.float32)
+        next[self.activePlayer] = 1.0
+        obs.extend(next)
+
+        # blessingPlayer one-hot
+        next = np.zeros(len(self.players), dtype=np.float32)
+        next[self.blessingPlayer] = 1.0
+        obs.extend(next)
+
+        # misfortunePlayer one-hot
+        next = np.zeros(len(self.players), dtype=np.float32)
+        next[self.misfortunePlayer] = 1.0
+        obs.extend(next)
+
+        # lastPlayer one-hot
+        next = np.zeros(len(self.players), dtype=np.float32)
+        next[self.lastPlayer] = 1.0
+        obs.extend(next)
+
+        # celestialPlayer one-hot
+        next = np.zeros(len(self.players), dtype=np.float32)
+        next[self.celestialPlayer] = 1.0
+        obs.extend(next)
+
+        # phases one-hot
+        next = np.zeros(len(Phase), dtype=np.float32)
+        next[self.phase.value] = 1.0
+        obs.extend(next)
+
+        next = np.zeros(len(Phase), dtype=np.float32)
+        next[self.returnPhase.value] = 1.0
+        obs.extend(next)
+
+        next = np.zeros(len(Phase), dtype=np.float32)
+        next[self.celestialReturnPhase.value] = 1.0
+        obs.extend(next)
+
+        next = np.zeros(len(Phase), dtype=np.float32)
+        next[self.mazeReturnPhase.value] = 1.0
+        obs.extend(next)
+
+        # shields
+        next = np.zeros(4, dtype=np.float32)
+        if Data.DieFace.REDSHIELD in self.shields:
+            next[0] = 1.0
+        if Data.DieFace.BLUESHIELD in self.shields:
+            next[1] = 1.0
+        if Data.DieFace.GREENSHIELD in self.shields:
+            next[2] = 1.0
+        if Data.DieFace.YELLOWSHIELD in self.shields:
+            next[3] = 1.0
+        obs.extend(next)
+
+        # chaos
+        next = np.zeros(4, dtype=np.float32)
+        if Data.DieFace.REDCHAOS in self.shields:
+            next[0] = 1.0
+        if Data.DieFace.BLUECHAOS in self.shields:
+            next[1] = 1.0
+        if Data.DieFace.GREENCHAOS in self.shields:
+            next[2] = 1.0
+        if Data.DieFace.YELLOWCHAOS in self.shields:
+            next[3] = 1.0
+        obs.extend(next)
+
+        # dogged
+        next = np.zeros(4, dtype=np.float32)
+        for face in self.dogged:
+            if face == Data.DieFace.GOLD3ANCIENTSHARD1:
+                next[0] += 0.5
+            elif face == Data.DieFace.VP1GOLD2LOYALTY1:
+                next[1] += 0.5
+        obs.extend(next)
+
+        # each memory has memory type (binary), location (one-hot over 7 possibilities), and player (one-hot)
+        length = 8 + len(self.players)
+        next = np.zeros(length, dtype=np.float32)
+        i = 0
+        for memory in self.memories:
+            if memory[0]:
+                next[i * length] = 1.0
+            next[i * length + memory[1]] = 1.0
+            next[i * length + 7 + memory[2]] = 1.0
+            i += 1
+        obs.extend(next)
+
+        return np.array(obs, dtype=np.float32)
+
 
 class Player:
     def __init__(self, playerID, ai, module):
@@ -9732,15 +10058,19 @@ class Player:
 
     def gainDiceEffects(self, minotaur, sentinel, blessing, order):
         if order:  # default order
-            self.gainDiceEffectsInternal(self.getDie1Result(), self.getDie2Result(), self.orChoice1, self.orChoice2, minotaur, sentinel, blessing)
+            self.gainDiceEffectsInternal(self.getDie1Result(), self.getDie2Result(), self.orChoice1, self.orChoice2,
+                                         minotaur, sentinel, blessing)
         else:  # reverse order
-            self.gainDiceEffectsInternal(self.getDie2Result(), self.getDie1Result(), self.orChoice1, self.orChoice2, minotaur, sentinel, blessing)
+            self.gainDiceEffectsInternal(self.getDie2Result(), self.getDie1Result(), self.orChoice1, self.orChoice2,
+                                         minotaur, sentinel, blessing)
 
     def gainMazeDiceEffects(self, order):
         if order:  # default order
-            self.gainDiceEffectsInternal(self.getMazeDie1Result(), self.getMazeDie2Result(), self.orMazeChoice1, self.orMazeChoice2, False, False, False)
+            self.gainDiceEffectsInternal(self.getMazeDie1Result(), self.getMazeDie2Result(), self.orMazeChoice1,
+                                         self.orMazeChoice2, False, False, False)
         else:  # reverse order
-            self.gainDiceEffectsInternal(self.getMazeDie2Result(), self.getMazeDie1Result(), self.orMazeChoice1, self.orMazeChoice2, False, False, False)
+            self.gainDiceEffectsInternal(self.getMazeDie2Result(), self.getMazeDie1Result(), self.orMazeChoice1,
+                                         self.orMazeChoice2, False, False, False)
 
     def gainDiceEffectsInternal(self, die1, die2, or1, or2, minotaur, sentinel, blessing):
         mult = 1
