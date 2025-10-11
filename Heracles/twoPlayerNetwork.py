@@ -1,8 +1,8 @@
 import math
 import numpy as np
 import tensorflow as tf
+import Game
 from tensorflow.keras import layers, Model
-from collections import defaultdict
 
 
 def build2pModel(inputDim=1770, numMoves=512):
@@ -47,7 +47,7 @@ class Node:
         self.N = {}  # move → visit count
         self.W = {}  # move → total value
         self.value = 0.0  # value predicted by NN for this state
-        self.player = state.getOptions()[0][1] # player currently making a move
+        self.player = state.getOptions()[0][1]  # player currently making a move
 
     def is_expanded(self):
         return len(self.P) > 0
@@ -110,7 +110,6 @@ class NeuralMCTS:
         node.value = value
         return value
 
-
     def run(self, root_state):
         root = self.simulate(root_state)
         move_visits = np.array([root.N.get(m, 0) for m in root.P.keys()])
@@ -133,7 +132,10 @@ class NeuralMCTS:
             else:
                 # Terminal node value based on game result
                 winners = node.state.getWinners()
-                value = winners[node.player]
+                if sum(winners > 1):
+                    value = 0 # tie
+                else:
+                    value = winners[node.player]
 
             # 3. Backpropagation
             self.backpropagate(node, value)
@@ -164,3 +166,43 @@ class NeuralMCTS:
             node = parent
 
 
+def self_play_game(model, num_simulations=50):
+    mcts = NeuralMCTS(model, num_simulations=num_simulations)
+    states, policies, players = [], [], []
+    module = np.random.choice(range(3))
+    state = Game.LoggingBoardState([Game.Player(0, True, module), Game.Player(1, True, module)], True, module,
+                                   False)  # start new game
+    state.startLogging()
+    while not state.isOver():
+        root = mcts.simulate(state.copyState())
+
+        # Extract policy proportional to visit counts
+        legal_moves = list(root.P.keys())
+        visits = np.array([root.N[m] for m in legal_moves], dtype=np.float32)
+        policy = visits / np.sum(visits)
+
+        # Store training data
+        states.append(state.observation())
+        policies.append((legal_moves, policy))
+        players.append(state.currentPlayer)
+
+        # Choose move (stochastic for training)
+        move = np.random.choice(legal_moves, p=policy)
+        state = state.copyState()
+        state.makeMove(move)
+    state.endLogging()
+
+    # Once game ends
+    winners = state.getWinners()
+    tie = sum(winners) > 1
+
+    # Create training tuples
+    data = []
+    for obs, (moves, policy), player in zip(states, policies, players):
+        if tie:
+            value = 0
+        else:
+            value = winners[player] * 2 - 1  # convert 1/0 to +1/-1
+        data.append((obs, moves, policy, value))
+
+    return data
