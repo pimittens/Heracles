@@ -317,6 +317,9 @@ def rollout(state):
     #log.write("Begin rollout\n")
     while not currentState.isOver():
         possibleMoves = currentState.getOptions()
+        if possibleMoves[0][0] == Move.ROLL:
+            currentState.makeMove(possibleMoves[len(possibleMoves) - 1]) # random roll
+            continue
         #log.write(f"phase: {currentState.phase}, options: {possibleMoves}\n")
         #log.write(f"activeplayer gold: {currentState.players[currentState.activePlayer].gold}, sun: {currentState.players[currentState.activePlayer].sun}, moon: {currentState.players[currentState.activePlayer].moon}, goldToSpend: {currentState.players[currentState.activePlayer].goldToSpend}, sunToSpend: {currentState.players[currentState.activePlayer].sunToSpend}, moonToSpend: {currentState.players[currentState.activePlayer].moonToSpend}\n")
         #for scepter in currentState.players[currentState.activePlayer].scepters:
