@@ -1773,6 +1773,7 @@ class BoardState:
                     self.players[self.activePlayer].die1ResultBuffer = self.players[self.blessingPlayer].getDie1UpFace()
                     self.players[self.activePlayer].die2ResultBuffer = self.players[self.blessingPlayer].getDie2UpFace()
                     self.blessingPlayer = self.activePlayer
+                    self.phase = Phase.MIRROR_1_CHOICE
                     self.makeMove((Move.PASS, move[1], ()))
             case Phase.CHOOSE_MEMORY_1:
                 if move[0] == Move.CHOOSE_MEMORY:
