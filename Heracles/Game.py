@@ -6773,6 +6773,7 @@ class LoggingBoardState:
                     self.players[self.activePlayer].die1ResultBuffer = self.players[self.blessingPlayer].getDie1UpFace()
                     self.players[self.activePlayer].die2ResultBuffer = self.players[self.blessingPlayer].getDie2UpFace()
                     self.blessingPlayer = self.activePlayer
+                    self.phase = Phase.MIRROR_1_CHOICE
                     self.makeMove((Move.PASS, move[1], ()))
             case Phase.CHOOSE_MEMORY_1:
                 if move[0] == Move.CHOOSE_MEMORY:
@@ -7922,7 +7923,7 @@ class LoggingBoardState:
 
     def getSpendGoldOptions(self, player):
         ret = []
-        i = player.goldToSpend - player.gold
+        i = max(player.goldToSpend - player.gold, 0)
         while i <= player.getScepterGold() and i <= player.goldToSpend:
             ret.append((Move.SPEND_GOLD, player.playerID,
                         (i,)))  # spend this amount from scepters, spend the rest from main reserve
