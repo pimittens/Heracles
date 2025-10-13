@@ -1,4 +1,5 @@
 import math
+import random
 import numpy as np
 import tensorflow as tf
 import Game
@@ -60,6 +61,16 @@ class Node:
 
     def select(self, c_puct):
         """Selects move using UCB (Upper Confidence Bound)"""
+
+        if self.state.getOptions()[0][0] == Game.Move.ROLL:
+            # do random die rolls
+            roll = random.choice(range(0, 6))
+            i = 0
+            for move in self.state.getOptions():
+                i += move[2][1]
+                if roll < i:
+                    return move
+
         total_N = sum(self.N.values()) + 1e-8
         best_move, best_score = None, -float('inf')
 
@@ -112,9 +123,20 @@ class NeuralMCTS:
         return value
 
     def run(self, root_state):
+        startTime = time.time()
         root = self.simulate(root_state)
         move_visits = np.array([root.N.get(m, 0) for m in root.P.keys()])
         policy = move_visits / np.sum(move_visits)
+        if root_state.loggingEnabled:
+            root_state.log.write("mcts (with neural network) results\n")
+            for move in root.children:
+                root_state.log.write(
+                    f"Move: {move}, prior: {root.P[move]}, visits:{root.N[move]}, Q value: {root.Q(move)}\n")
+            root_state.log.write("move order:\n")
+            for option in root_state.getOptions():
+                root_state.log.write(f"{option}\n")
+            root_state.log.write(f"policy:\n{policy}\n")
+            root_state.log.write(f"time elapsed: {time.time() - startTime} seconds\n")
         return policy
 
     def simulate(self, root_state):
@@ -175,29 +197,24 @@ def self_play_game(model, num_simulations=50):
                                    False)  # start new game
     state.startLogging()
     while not state.isOver():
-        startTime = time.time()
-        root = mcts.simulate(state.copyState())
+        options = state.getOptions()
+        if len(options) == 1:
+            state.makeMove(options[0])
+            continue
+        elif options[0][0] == Game.Move.ROLL:
+            state.makeMove(options[len(options) - 1]) # random roll
+            continue
 
-        # Extract policy proportional to visit counts
-        legal_moves = list(root.P.keys())
-        visits = np.array([root.N[m] for m in legal_moves], dtype=np.float32)
-        policy = visits / np.sum(visits)
-
-        state.log.write("mcts (with neural network) results\n")
-        for move in root.children:
-            state.log.write(
-                f"Move: {move}, visits:{root.N[move]}, Q value: {root.Q(move)}\n")
-        state.log.write(f"policy:\n{policy}\n")
-        state.log.write(f"time elapsed: {time.time() - startTime} seconds\n")
+        policy = mcts.run(state)
 
         # Store training data
         states.append(state.observation())
-        policies.append((legal_moves, policy))
+        policies.append((options, policy))
         players.append(state.getOptions()[0][1])
 
         # Choose move (stochastic for training)
-        selection = np.random.choice(len(legal_moves), p=policy)
-        state.makeMove(state.getOptions()[selection])
+        selection = np.random.choice(len(options), p=policy)
+        state.makeMove(options[selection])
     state.endLogging()
 
     # Once game ends
