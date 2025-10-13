@@ -301,16 +301,19 @@ def generateData(numGames):
                     if theBoard.printingEnabled:
                         print(
                         f"After rolling, player {options[0][1]} has the faces {theBoard.players[options[0][1]].getDie1UpFace()} and {theBoard.players[options[0][1]].getDie2UpFace()}")
+                elif len(options) == 1:
+                    if theBoard.printingEnabled:
+                        printMove(options[0])
+                    theBoard.makeMove(options[0])
                 elif options[0][1] == 0:
-                    move = MCTS.mctsWithHeuristic(theBoard.copyState(), 500, theBoard.printingEnabled)
+                    move = MCTS.mctsWithHeuristic(theBoard, 500)
                     if theBoard.printingEnabled:
                         printMove(move)
                     theBoard.makeMove(move)
                 elif options[0][1] == 1:
-                    policy = mcts.run(theBoard.copyState())
-                    print(policy)
-                    selection = np.random.choice(range(len(theBoard.getOptions())), p=policy)
-                    move = theBoard.getOptions()[selection]
+                    policy = mcts.run(theBoard)
+                    print(f"policy:\n{policy}")
+                    move = theBoard.getOptions()[np.argmax(policy)]
                     if theBoard.printingEnabled:
                         printMove(move)
                     theBoard.makeMove(move)
