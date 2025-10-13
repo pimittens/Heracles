@@ -124,7 +124,7 @@ class NeuralMCTS:
 
     def run(self, root_state):
         startTime = time.time()
-        root = self.simulate(root_state)
+        root = self.simulate(root_state.copyState())
         move_visits = np.array([root.N.get(m, 0) for m in root.P.keys()])
         policy = move_visits / np.sum(move_visits)
         if root_state.loggingEnabled:
