@@ -268,14 +268,17 @@ def train(initial_iteration, num_iterations, num_games_per_iteration):
         for i in range(num_games_per_iteration // 4):
             gameStartTime = time.time()
             with Pool(processes=4) as p:
-                results = p.starmap(worker_play, [(iteration + initial_iteration, iteration + initial_iteration + i) for i in [0, 1, 2, 3]])
+                results = p.starmap(worker_play, [(iteration + initial_iteration, iteration + initial_iteration + i + j) for j in [0, 1, 2, 3]])
             print(
                 f"finished games {i * 4 + 1} through {i * 4 + 4} of {num_games_per_iteration} in {(time.time() - gameStartTime) / 60} minutes")
             for result in results:
                 all_data.extend(result)
 
         # Prepare batches for training
-        batch = random.sample(all_data, 8192)
+        if len(all_data) > 8192:
+            batch = random.sample(all_data, 8192)
+        else:
+            batch = all_data
         X = np.array([d[0] for d in batch])  # observations
         y_policy = np.array([d[1] for d in batch])  # policy distributions
         y_value = np.array([d[2] for d in batch])  # scalar values
@@ -299,4 +302,4 @@ def train(initial_iteration, num_iterations, num_games_per_iteration):
 
 if __name__ == "__main__":
     freeze_support()
-    train(0, 10, 8)
+    train(0, 100, 8)
