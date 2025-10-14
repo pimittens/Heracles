@@ -132,7 +132,7 @@ class NeuralMCTS:
         policy = move_visits / np.sum(move_visits)
         if root_state.loggingEnabled:
             root_state.log.write("mcts (with neural network) results\n")
-            for move in root.children:
+            for move in root.children.keys():
                 root_state.log.write(
                     f"Move: {move}, prior: {root.P[move]}, visits:{root.N[move]}, Q value: {root.Q(move)}\n")
             root_state.log.write("move order:\n")
@@ -192,13 +192,13 @@ class NeuralMCTS:
             node = parent
 
 
-def self_play_game(model, num_simulations=50):
+def self_play_game(model, game_num, num_simulations=50):
     mcts = NeuralMCTS(model, num_simulations=num_simulations)
     states, policies, players = [], [], []
     module = np.random.choice(range(3))
     state = Game.LoggingBoardState([Game.Player(0, True, module), Game.Player(1, True, module)], True, module,
                                    False)  # start new game
-    state.startLogging()
+    state.startLogging(game_num)
     while not state.isOver():
         options = state.getOptions()
         if len(options) == 1:
@@ -241,24 +241,26 @@ def self_play_game(model, num_simulations=50):
     return data
 
 
-def worker_play(iteration):
+def worker_play(iteration, game_num):
     if iteration == -1:
         model = build2pModel()
         return self_play_game(model)
     model = load_model(f"model_iter_{iteration}.keras")
-    return self_play_game(model)
+    return self_play_game(model, game_num)
 
 
 def train(initial_iteration, num_iterations, num_games_per_iteration):
     start = time.time()
     if initial_iteration == -1:
         model = build2pModel()
+        all_data = []
     else:
         model = load_model(f"model_iter_{initial_iteration}.keras")
+        with open(f"replay/replay_{initial_iteration}.pkl", "rb") as f:
+            all_data = pickle.load(f)
     for iteration in range(num_iterations):
         print(f"begin iteration {iteration + initial_iteration + 1}")
         iterationStartTime = time.time()
-        all_data = []
 
         print("generating self play data")
 
@@ -266,16 +268,17 @@ def train(initial_iteration, num_iterations, num_games_per_iteration):
         for i in range(num_games_per_iteration // 4):
             gameStartTime = time.time()
             with Pool(processes=4) as p:
-                results = p.map(worker_play, [iteration + initial_iteration] * 4)
+                results = p.starmap(worker_play, [(iteration + initial_iteration, iteration + initial_iteration + i) for i in [0, 1, 2, 3]])
             print(
                 f"finished games {i * 4 + 1} through {i * 4 + 4} of {num_games_per_iteration} in {(time.time() - gameStartTime) / 60} minutes")
             for result in results:
                 all_data.extend(result)
 
         # Prepare batches for training
-        X = np.array([d[0] for d in all_data])  # observations
-        y_policy = np.array([d[1] for d in all_data])  # policy distributions
-        y_value = np.array([d[2] for d in all_data])  # scalar values
+        batch = random.sample(all_data, 8192)
+        X = np.array([d[0] for d in batch])  # observations
+        y_policy = np.array([d[1] for d in batch])  # policy distributions
+        y_value = np.array([d[2] for d in batch])  # scalar values
 
         # Train model
         model.fit(X, [y_policy, y_value],
@@ -296,8 +299,4 @@ def train(initial_iteration, num_iterations, num_games_per_iteration):
 
 if __name__ == "__main__":
     freeze_support()
-    train(-1, 100, 8)
-
-# load replay data:
-# with open(f"replay/replay_{iteration}.pkl", "rb") as f:
-#    all_data = pickle.load(f)
+    train(0, 10, 8)
