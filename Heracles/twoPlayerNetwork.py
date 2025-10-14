@@ -205,7 +205,7 @@ def self_play_game(model, num_simulations=50):
             state.makeMove(options[0])
             continue
         elif options[0][0] == Game.Move.ROLL:
-            state.makeMove(options[len(options) - 1]) # random roll
+            state.makeMove(options[len(options) - 1])  # random roll
             continue
 
         policy = mcts.run(state)
@@ -231,13 +231,15 @@ def self_play_game(model, num_simulations=50):
             value = 0
         else:
             value = winners[player] * 2 - 1  # convert 1/0 to +1/-1
-        policy_full = np.zeros(512) # max number of possible legal moves, ensure all policy vectors are padded to this length
+        policy_full = np.zeros(
+            512)  # max number of possible legal moves, ensure all policy vectors are padded to this length
         option_to_index = {m: i for i, m in enumerate(state.getOptions())}
         for move, prob in zip(moves, policy):
             if move in option_to_index:
                 policy_full[option_to_index[move]] = prob
         data.append((obs, policy_full, value))
     return data
+
 
 def worker_play(iteration):
     if iteration == -1:
@@ -260,13 +262,13 @@ def train(initial_iteration, num_iterations, num_games_per_iteration):
 
         print("generating self play data")
 
-
         # Generate self-play data
         for i in range(num_games_per_iteration // 4):
             gameStartTime = time.time()
             with Pool(processes=4) as p:
                 results = p.map(worker_play, [iteration + initial_iteration] * 4)
-            print(f"finished games {i * 4 + 1} through {i * 4 + 4} of {num_games_per_iteration} in {(time.time() - gameStartTime) / 60} minutes")
+            print(
+                f"finished games {i * 4 + 1} through {i * 4 + 4} of {num_games_per_iteration} in {(time.time() - gameStartTime) / 60} minutes")
             for result in results:
                 all_data.extend(result)
 
@@ -286,14 +288,16 @@ def train(initial_iteration, num_iterations, num_games_per_iteration):
         with open(f"replay/replay_{iteration + initial_iteration + 1}.pkl", "wb") as f:
             pickle.dump(all_data, f)
 
-        print(f"finished iteration {iteration + initial_iteration + 1} of {num_iterations - 1} in {(time.time() - iterationStartTime) / 60} minutes")
-        
+        print(
+            f"finished iteration {iteration + initial_iteration + 1} of {num_iterations - 1} in {(time.time() - iterationStartTime) / 60} minutes")
+
     print(f"finished training in {(time.time() - start) / 3600} hours")
+
 
 if __name__ == "__main__":
     freeze_support()
     train(-1, 100, 8)
 
 # load replay data:
-#with open(f"replay/replay_{iteration}.pkl", "rb") as f:
+# with open(f"replay/replay_{iteration}.pkl", "rb") as f:
 #    all_data = pickle.load(f)
