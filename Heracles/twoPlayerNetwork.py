@@ -2,9 +2,12 @@ import math
 import random
 import numpy as np
 import tensorflow as tf
+import pickle
 import Game
 import time
 from tensorflow.keras import layers, Model
+from multiprocessing import Pool, freeze_support
+from keras.src.saving import load_model
 
 
 def build2pModel(inputDim=1770, numMoves=512):
@@ -228,41 +231,69 @@ def self_play_game(model, num_simulations=50):
             value = 0
         else:
             value = winners[player] * 2 - 1  # convert 1/0 to +1/-1
-        data.append((obs, moves, policy, value))
-
+        policy_full = np.zeros(512) # max number of possible legal moves, ensure all policy vectors are padded to this length
+        option_to_index = {m: i for i, m in enumerate(state.getOptions())}
+        for move, prob in zip(moves, policy):
+            if move in option_to_index:
+                policy_full[option_to_index[move]] = prob
+        data.append((obs, policy_full, value))
     return data
 
+def worker_play(iteration):
+    if iteration == -1:
+        model = build2pModel()
+        return self_play_game(model)
+    model = load_model(f"model_iter_{iteration}.keras")
+    return self_play_game(model)
 
-def train(model, num_iterations, num_games_per_iteration):
+
+def train(initial_iteration, num_iterations, num_games_per_iteration):
+    start = time.time()
+    if initial_iteration == -1:
+        model = build2pModel()
+    else:
+        model = load_model(f"model_iter_{initial_iteration}.keras")
     for iteration in range(num_iterations):
-        print(f"begin iteration {iteration}")
+        print(f"begin iteration {iteration + initial_iteration + 1}")
         iterationStartTime = time.time()
         all_data = []
 
         print("generating self play data")
 
-        # 1. Generate self-play data
-        for i in range(num_games_per_iteration):
+
+        # Generate self-play data
+        for i in range(num_games_per_iteration // 4):
             gameStartTime = time.time()
-            data = self_play_game(model)
-            print(f"finished game {i + 1} of {num_games_per_iteration} in {(time.time() - gameStartTime) / 60} minutes")
-            all_data.extend(data)
+            with Pool(processes=4) as p:
+                results = p.map(worker_play, [iteration + initial_iteration] * 4)
+            print(f"finished games {i * 4 + 1} through {i * 4 + 4} of {num_games_per_iteration} in {(time.time() - gameStartTime) / 60} minutes")
+            for result in results:
+                all_data.extend(result)
 
-        # 2. Prepare batches for training
+        # Prepare batches for training
         X = np.array([d[0] for d in all_data])  # observations
-        y_policy = np.array([d[2] for d in all_data])  # policy distributions
-        y_value = np.array([d[3] for d in all_data])  # scalar values
+        y_policy = np.array([d[1] for d in all_data])  # policy distributions
+        y_value = np.array([d[2] for d in all_data])  # scalar values
 
-        # 3. Train model
+        # Train model
         model.fit(X, [y_policy, y_value],
                   batch_size=64,
                   epochs=3,
                   verbose=1)
 
-        # Optionally: save model, evaluate against previous versions
-        model.save(f"model_iter_{iteration}.h5")
+        # Save model
+        model.save(f"model_iter_{iteration + initial_iteration + 1}.keras")
+        with open(f"replay/replay_{iteration + initial_iteration + 1}.pkl", "wb") as f:
+            pickle.dump(all_data, f)
 
-        print(f"finished iteration {iteration} of {num_iterations - 1} in {(time.time() - iterationStartTime) / 60} minutes")
+        print(f"finished iteration {iteration + initial_iteration + 1} of {num_iterations - 1} in {(time.time() - iterationStartTime) / 60} minutes")
+        
+    print(f"finished training in {(time.time() - start) / 3600} hours")
 
+if __name__ == "__main__":
+    freeze_support()
+    train(-1, 100, 8)
 
-train(build2pModel(), 50, 5)
+# load replay data:
+#with open(f"replay/replay_{iteration}.pkl", "rb") as f:
+#    all_data = pickle.load(f)
