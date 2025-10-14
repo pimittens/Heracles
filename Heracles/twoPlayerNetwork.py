@@ -244,7 +244,7 @@ def self_play_game(model, game_num, num_simulations=50):
 def worker_play(iteration, game_num):
     if iteration == -1:
         model = build2pModel()
-        return self_play_game(model)
+        return self_play_game(model, game_num)
     model = load_model(f"model_iter_{iteration}.keras")
     return self_play_game(model, game_num)
 
@@ -268,7 +268,7 @@ def train(initial_iteration, num_iterations, num_games_per_iteration):
         for i in range(num_games_per_iteration // 4):
             gameStartTime = time.time()
             with Pool(processes=4) as p:
-                results = p.starmap(worker_play, [(iteration + initial_iteration, iteration + initial_iteration + (i * 4) + j) for j in [0, 1, 2, 3]])
+                results = p.starmap(worker_play, [(iteration + initial_iteration, (iteration + initial_iteration + 1) * num_games_per_iteration + i * 4 + j) for j in [0, 1, 2, 3]])
             print(
                 f"finished games {i * 4 + 1} through {i * 4 + 4} of {num_games_per_iteration} in {(time.time() - gameStartTime) / 60} minutes")
             for result in results:
@@ -295,11 +295,11 @@ def train(initial_iteration, num_iterations, num_games_per_iteration):
             pickle.dump(all_data, f)
 
         print(
-            f"finished iteration {iteration + initial_iteration + 1} of {num_iterations} in {(time.time() - iterationStartTime) / 60} minutes")
+            f"finished iteration {iteration + 1} of {num_iterations} in {(time.time() - iterationStartTime) / 60} minutes")
 
     print(f"finished training in {(time.time() - start) / 3600} hours")
 
 
 if __name__ == "__main__":
     freeze_support()
-    train(0, 2, 8)
+    train(-1, 2, 8)
