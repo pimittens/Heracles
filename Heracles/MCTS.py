@@ -1,9 +1,7 @@
-import os
 import random
 import math
+import Data
 from Game import Move
-from Data import getTotalGoldCost
-from Data import DieFace
 import time
 
 
@@ -108,7 +106,7 @@ class HeuristicNode:
                 gold -= 1
             choicesWeights = []
             for child in self.children:
-                if child.move[0] != Move.BUY_FACES or getTotalGoldCost(child.move[2]) < gold:
+                if child.move[0] != Move.BUY_FACES or Data.getTotalGoldCost(child.move[2]) < gold:
                     choicesWeights.append(0)
                 else:
                     choicesWeights.append((child.points / child.visits) + explorationWeight * math.sqrt(
@@ -120,7 +118,7 @@ class HeuristicNode:
             # prioritize forging over gold 1 faces
             choicesWeights = []
             for child in self.children:
-                if child.move[0] == Move.FORGE_FACE and child.move[2][2] == DieFace.GOLD1:
+                if child.move[0] == Move.FORGE_FACE and child.move[2][2] == Data.DieFace.GOLD1:
                     choicesWeights.append((child.points / child.visits) + explorationWeight * math.sqrt(
                         math.log(self.visits) / child.visits
                     ))
@@ -156,6 +154,70 @@ class HeuristicNode:
                 nextState = self.state.copyState()
                 nextState.makeMove(move)
                 childNode = HeuristicNode(nextState, self, move)
+                self.children.append(childNode)
+                return childNode
+        print(options)  # shouldn't ever get here unless something is wrong
+        self.state.printBoardState()
+
+    def backpropagate(self, result):
+        self.visits += 1
+        self.points += result[self.state.lastPlayer]
+        if self.parent:
+            self.parent.backpropagate(result)
+
+class EvalNode:
+    def __init__(self, state, parent=None, move=None):
+        self.state = state
+        self.parent = parent
+        self.move = move
+        self.children = []
+        self.visits = 0
+        self.points = 0
+
+    def isTerminalNode(self):
+        return self.state.isOver()
+
+    def isFullyExpanded(self):
+        if self.children and self.children[0].move[0] == Move.ROLL:
+            return True
+        return len(self.children) == len(self.state.getOptions())
+
+    def bestChild(self, explorationWeight=1.41):
+        if self.children[0].move[0] == Move.ROLL:
+            roll = random.choice(range(0, 6))
+            i = 0
+            for child in self.children:
+                i += child.move[2][1]
+                if roll < i:
+                    return child
+        choicesWeights = [
+            (child.points / child.visits) + explorationWeight * math.sqrt(
+                math.log(self.visits) / child.visits
+            )
+            for child in self.children
+        ]
+        return self.children[choicesWeights.index(max(choicesWeights))]
+
+    def mostVisitedChild(self):
+        visits = [child.visits for child in self.children]
+        return self.children[visits.index(max(visits))]
+
+    def expand(self):
+        tried = [child.move for child in self.children]
+        options = self.state.getOptions()
+        if options[0][0] == Move.ROLL:
+            for move in options:
+                if move[0] == Move.ROLL:
+                    nextState = self.state.copyState()
+                    nextState.makeMove(move)
+                    childNode = EvalNode(nextState, self, move)
+                    self.children.append(childNode)
+            return self.bestChild()
+        for move in options:
+            if move not in tried:
+                nextState = self.state.copyState()
+                nextState.makeMove(move)
+                childNode = EvalNode(nextState, self, move)
                 self.children.append(childNode)
                 return childNode
         print(options)  # shouldn't ever get here unless something is wrong
@@ -233,6 +295,34 @@ class TicTacToeState:
         print(f"{self.board[2][0]} {self.board[2][1]} {self.board[2][2]}")
 """
 
+def evaluate(state):
+    if state.isOver():
+        scores = state.getWinners()
+    else:
+        scores = [scorePlayer(p) for p in state.players]
+    total = sum(scores)
+    return [score / total for score in scores]
+
+def scorePlayer(player):
+    score = max(player.vp + Data.getAllegiancePoints(player.allegiance), 0) * 10.0
+    score += math.sqrt(player.gold) * 2.0
+    score += math.sqrt(player.sun) * 3.5 # values for sun and moon are based on gorgon and ferryman
+    score += math.sqrt(player.moon) * 3.0
+    score += math.sqrt(player.ancientShards) * 4.0 # slightly better than sun since it can be spent as both
+    for face in player.die1.faces:
+        score += Data.getGoldValue(face) * 5.0 # high value on improving dice
+        if face == Data.DieFace.SUN2:
+            score += 5.0
+    for face in player.die2.faces:
+        score += Data.getGoldValue(face) * 5.0 # high value on improving dice
+        if face == Data.DieFace.SUN2:
+            score += 5.0
+    for feat in player.feats:
+        if "AUTO" in Data.getEffect(feat) or "REINF" in Data.getEffect(feat):
+            score += 5.0
+    score += sum(player.scepters)
+    return max(score, 1) # force nonzero
+
 
 def mcts(rootState, numSims):
     startTime = time.time()
@@ -302,6 +392,42 @@ def mctsWithHeuristic(rootState, numSims):
         for node in root.children:
             rootState.log.write(
                 f"Move: {node.move}, visits:{node.visits}, win probability: {node.points / node.visits}, lastPlayer: {node.state.lastPlayer}\n")
+        rootState.log.write(f"time elapsed: {time.time() - startTime} seconds\n")
+    return root.mostVisitedChild().move
+
+
+def mctsWithBoardEval(rootState, numSims):
+    startTime = time.time()
+    root = Node(rootState.copyState())
+    if len(root.state.getOptions()) == 1:
+        return root.state.getOptions()[0]
+    if root.state.getOptions()[0][0] == Move.CHOOSE_RESOLVE_ORDER:
+        sims = max(numSims // 100, 100)
+    else:
+        sims = numSims
+    for _ in range(sims):
+        node = root
+        # selection
+        while node.isFullyExpanded() and node.children:
+            node = node.bestChild()
+        # expansion
+        if not node.isTerminalNode():
+            node = node.expand()
+        # simulation
+        result = evaluate(node.state)
+        # backpropagation
+        node.backpropagate(result)
+    if rootState.printingEnabled:
+        print("mcts (with board eval) results")
+        for node in root.children:
+            print(
+                f"Move: {node.move}, visits:{node.visits}, score: {node.points / node.visits}, lastPlayer: {node.state.lastPlayer}")
+        print(f"time elapsed: {time.time() - startTime} seconds")
+    if rootState.loggingEnabled:
+        rootState.log.write("mcts (with board eval) results\n")
+        for node in root.children:
+            rootState.log.write(
+                f"Move: {node.move}, visits:{node.visits}, score: {node.points / node.visits}, lastPlayer: {node.state.lastPlayer}\n")
         rootState.log.write(f"time elapsed: {time.time() - startTime} seconds\n")
     return root.mostVisitedChild().move
 

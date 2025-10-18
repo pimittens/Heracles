@@ -284,10 +284,9 @@ def generateData(numGames):
         gameStartTime = time.time()
         module = 1 # i % 3  # 0 is no module, 1 is goddess maze, 2 is titans
         players = [Game.Player(0, True, module), Game.Player(1, True, module)]
-        theBoard = Game.LoggingBoardState(players, True, module, True)
+        theBoard = Game.LoggingBoardState(players, True, module, False)
         theBoard.startLogging()
         undoState = theBoard.copyState()
-        mcts = twoPlayerNetwork.NeuralMCTS(twoPlayerNetwork.build2pModel(), num_simulations=200)
 
         while not theBoard.isOver():
             options = theBoard.getOptions()
@@ -306,14 +305,12 @@ def generateData(numGames):
                         printMove(options[0])
                     theBoard.makeMove(options[0])
                 elif options[0][1] == 0:
-                    move = MCTS.mctsWithHeuristic(theBoard, 500)
+                    move = MCTS.mctsWithBoardEval(theBoard, 5000)
                     if theBoard.printingEnabled:
                         printMove(move)
                     theBoard.makeMove(move)
                 elif options[0][1] == 1:
-                    policy = mcts.run(theBoard)
-                    print(f"policy:\n{policy}")
-                    move = theBoard.getOptions()[np.argmax(policy)]
+                    move = MCTS.mctsWithHeuristic(theBoard, 500)
                     if theBoard.printingEnabled:
                         printMove(move)
                     theBoard.makeMove(move)
