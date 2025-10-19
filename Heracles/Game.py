@@ -4039,11 +4039,14 @@ class LoggingBoardState:
         ret.memories = copy.deepcopy(self.memories)
         return ret
 
-    def startLogging(self):
+    def startLogging(self, log_num=-1):
         self.loggingEnabled = True
         if not os.path.exists("logs"):
             os.makedirs("logs")
-        self.log = open(f"logs/{len(os.listdir('logs/'))}.txt", "a")
+        if log_num == -1:
+            self.log = open(f"logs/{len(os.listdir('logs/'))}.txt", "a")
+        else:
+            self.log = open(f"logs/{log_num}.txt", "a")
         self.log.write("Begin logging\n")
         self.logBoardState()
 
@@ -4122,7 +4125,7 @@ class LoggingBoardState:
                     print("Start of turn")
                     self.printBoardState()
                 if self.loggingEnabled:
-                    self.log.write("Start of turn")
+                    self.log.write("Start of turn\n")
                     self.logBoardState()
                 self.blessingPlayer = self.activePlayer
                 self.blessing = True
