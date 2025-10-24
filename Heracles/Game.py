@@ -1440,8 +1440,9 @@ class BoardState:
                         self.phase = Phase.TURN_START
                         self.advanceActivePlayer(move[1])
                 elif self.players[self.activePlayer].getEffectiveSun() < 2:
-                    self.phase = Phase.TURN_START
-                    self.advanceActivePlayer(move[1])
+                    self.phase = Phase.END_TURN
+                    if self.players[self.activePlayer].tritonTokens == 0:
+                        self.makeMove((Move.PASS, move[1], ()))
             case Phase.ACTIVE_PLAYER_BUY_FACES_1:
                 if move[0] == Move.BUY_FACES:
                     for face in move[2]:
@@ -1466,8 +1467,9 @@ class BoardState:
                         self.phase = Phase.TURN_START
                         self.advanceActivePlayer(move[1])
                 elif move[0] == Move.PASS:
-                    self.phase = Phase.TURN_START
-                    self.advanceActivePlayer(move[1])
+                    self.phase = Phase.END_TURN
+                    if self.players[self.activePlayer].tritonTokens == 0:
+                        self.makeMove((Move.PASS, move[1], ()))
             case Phase.ACTIVE_PLAYER_PERFORM_FEAT_1:
                 if move[0] == Move.PERFORM_FEAT:
                     island = Data.getIsland(move[2][0])
@@ -1547,11 +1549,13 @@ class BoardState:
                         self.makeMove((Move.PASS, move[1], ()))
                 elif move[0] == Move.CHOOSE_ADD_HAMMER_SCEPTER:
                     self.players[self.activePlayer].useHammerOrScepter(move[2][0])
-                    self.phase = Phase.TURN_START
-                    self.advanceActivePlayer(move[1])
+                    self.phase = Phase.END_TURN
+                    if self.players[self.activePlayer].tritonTokens == 0:
+                        self.makeMove((Move.PASS, move[1], ()))
                 elif move[0] == Move.PASS:
-                    self.phase = Phase.TURN_START
-                    self.advanceActivePlayer(move[1])
+                    self.phase = Phase.END_TURN
+                    if self.players[self.activePlayer].tritonTokens == 0:
+                        self.makeMove((Move.PASS, move[1], ()))
             case Phase.CHOOSE_SHIELD_FACE_1 | Phase.CHOOSE_CHAOS_FACE_1 | Phase.CHOOSE_DOGGED_FACE_1:
                 if move[0] == Move.BUY_FACES:
                     self.players[self.activePlayer].unforgedFaces.append(move[2][0])
@@ -1564,8 +1568,9 @@ class BoardState:
                     self.players[self.activePlayer].unforgedFaces.append(move[2][0])
                 elif move[0] == Move.FORGE_FACE:
                     self.players[self.activePlayer].forgeFace(move[2])
-                    self.phase = Phase.TURN_START
-                    self.advanceActivePlayer(move[1])
+                    self.phase = Phase.END_TURN
+                    if self.players[self.activePlayer].tritonTokens == 0:
+                        self.makeMove((Move.PASS, move[1], ()))
             case Phase.FORGE_FEAT_FACE_1:
                 if move[0] == Move.FORGE_FACE:
                     self.players[self.activePlayer].forgeFace(move[2])
@@ -1574,8 +1579,9 @@ class BoardState:
             case Phase.FORGE_FEAT_FACE_2:
                 if move[0] == Move.FORGE_FACE:
                     self.players[self.activePlayer].forgeFace(move[2])
-                    self.phase = Phase.TURN_START
-                    self.advanceActivePlayer(move[1])
+                    self.phase = Phase.END_TURN
+                    if self.players[self.activePlayer].tritonTokens == 0:
+                        self.makeMove((Move.PASS, move[1], ()))
             case Phase.CHOOSE_BOAR_MISFORTUNE_PLAYER_1:
                 if move[0] == Move.CHOOSE_BOAR_PLAYER:
                     self.blessingPlayer = move[2][0]  # use blessing player variable for boar face player
@@ -1592,8 +1598,9 @@ class BoardState:
             case Phase.FORGE_BOAR_MISFORTUNE_2:
                 if move[0] == Move.FORGE_FACE:
                     self.players[self.blessingPlayer].forgeBoarMisfortuneFace(move[2])
-                    self.phase = Phase.TURN_START
-                    self.advanceActivePlayer(move[1])
+                    self.phase = Phase.END_TURN
+                    if self.players[self.activePlayer].tritonTokens == 0:
+                        self.makeMove((Move.PASS, move[1], ()))
             case Phase.NYMPH_1:
                 if move[0] == Move.CHOOSE_ADD_HAMMER_SCEPTER:
                     self.players[self.activePlayer].useHammerOrScepter(move[2][0])
@@ -1615,11 +1622,13 @@ class BoardState:
                     self.players[self.activePlayer].buyFace(move[2][0])
                 elif move[0] == Move.FORGE_FACE:
                     self.players[self.activePlayer].forgeFace(move[2])
-                    self.phase = Phase.TURN_START
-                    self.advanceActivePlayer(move[1])
+                    self.phase = Phase.END_TURN
+                    if self.players[self.activePlayer].tritonTokens == 0:
+                        self.makeMove((Move.PASS, move[1], ()))
                 elif move[0] == Move.PASS:
-                    self.phase = Phase.TURN_START
-                    self.advanceActivePlayer(move[1])
+                    self.phase = Phase.END_TURN
+                    if self.players[self.activePlayer].tritonTokens == 0:
+                        self.makeMove((Move.PASS, move[1], ()))
             case Phase.TRIDENT_1:
                 if move[0] == Move.BUY_FACES:
                     if move[2][0] == Data.DieFace.REDSHIELD or move[2][0] == Data.DieFace.REDSHIELD or move[2][
@@ -1645,11 +1654,13 @@ class BoardState:
                     self.players[self.activePlayer].unforgedFaces.append(move[2][0])
                 elif move[0] == Move.FORGE_FACE:
                     self.players[self.activePlayer].forgeFace(move[2])
-                    self.phase = Phase.TURN_START
-                    self.advanceActivePlayer(move[1])
+                    self.phase = Phase.END_TURN
+                    if self.players[self.activePlayer].tritonTokens == 0:
+                        self.makeMove((Move.PASS, move[1], ()))
                 elif move[0] == Move.PASS:
-                    self.phase = Phase.TURN_START
-                    self.advanceActivePlayer(move[1])
+                    self.phase = Phase.END_TURN
+                    if self.players[self.activePlayer].tritonTokens == 0:
+                        self.makeMove((Move.PASS, move[1], ()))
             case Phase.GODDESS_CHOOSE_FACES:
                 if move[0] == Move.CHOOSE_FACES:
                     self.players[self.activePlayer].die1.setToFace(move[2][0])
@@ -1668,8 +1679,9 @@ class BoardState:
                 if move[0] == Move.RIGHTHAND_SPEND:
                     self.players[self.activePlayer].gainGold(-move[2][0], False)
                     self.players[self.activePlayer].gainVP(move[2][0])
-                    self.phase = Phase.TURN_START
-                    self.advanceActivePlayer(move[1])
+                    self.phase = Phase.END_TURN
+                    if self.players[self.activePlayer].tritonTokens == 0:
+                        self.makeMove((Move.PASS, move[1], ()))
             case Phase.WIND_ROLL_DIE_1:
                 if move[0] == Move.ROLL:
                     self.players[self.blessingPlayer].die1.setToFace(move[2][0])
@@ -1746,11 +1758,13 @@ class BoardState:
                         self.makeMove((Move.PASS, move[1], ()))
                 elif move[0] == Move.CHOOSE_ADD_HAMMER_SCEPTER:
                     self.players[self.activePlayer].useHammerOrScepter(move[2][0])
-                    self.phase = Phase.TURN_START
-                    self.advanceActivePlayer(move[1])
+                    self.phase = Phase.END_TURN
+                    if self.players[self.activePlayer].tritonTokens == 0:
+                        self.makeMove((Move.PASS, move[1], ()))
                 elif move[0] == Move.PASS:
-                    self.phase = Phase.TURN_START
-                    self.advanceActivePlayer(move[1])
+                    self.phase = Phase.END_TURN
+                    if self.players[self.activePlayer].tritonTokens == 0:
+                        self.makeMove((Move.PASS, move[1], ()))
             case Phase.LEFT_HAND_ROLL_1_1 | Phase.LEFT_HAND_ROLL_1_2:
                 if move[0] == Move.ROLL:
                     self.players[self.blessingPlayer].die1.setToFace(move[2][0])
@@ -1785,8 +1799,9 @@ class BoardState:
                 if move[0] == Move.CHOOSE_MEMORY:
                     self.memories.append((move[2][0], move[2][1], self.activePlayer))
                     self.memories.append((move[2][2], move[2][3], self.activePlayer))
-                    self.phase = Phase.TURN_START
-                    self.advanceActivePlayer(move[1])
+                    self.phase = Phase.END_TURN
+                    if self.players[self.activePlayer].tritonTokens == 0:
+                        self.makeMove((Move.PASS, move[1], ()))
             case Phase.ROLL_CELESTIAL_DIE:
                 if move[0] == Move.ROLL or move[0] == Move.RANDOM_ROLL:
                     self.players[self.celestialPlayer].celestialRolls -= 1
@@ -2243,12 +2258,10 @@ class BoardState:
                 else:
                     ret = self.getHammerScepterChoices(self.activePlayer)
             case Phase.EXTRA_TURN_DECISION:
-                if self.players[self.activePlayer].getEffectiveSun() < 2:
-                    self.makeMove((Move.PASS, self.activePlayer, ()))
-                    return self.getOptions()
-                ret = (
-                    (Move.TAKE_EXTRA_TURN, self.activePlayer, (True,)),
-                    (Move.TAKE_EXTRA_TURN, self.activePlayer, (False,)))
+                if self.players[self.activePlayer].getEffectiveSun() > 1:
+                    ret = (
+                        (Move.TAKE_EXTRA_TURN, self.activePlayer, (True,)),
+                        (Move.TAKE_EXTRA_TURN, self.activePlayer, (False,)))
             case Phase.CHOOSE_SHIELD_FACE_1 | Phase.CHOOSE_SHIELD_FACE_2:
                 if self.players[self.activePlayer].unforgedFaces:
                     ret = self.generateForgeFace(self.activePlayer)
@@ -2960,6 +2973,9 @@ class BoardState:
         match self.returnPhase:
             case Phase.ACTIVE_PLAYER_PERFORM_FEAT_1 | Phase.ACTIVE_PLAYER_PERFORM_FEAT_2:
                 self.makeMove((Move.RETURN_TO_FEAT, player, ()))
+            case Phase.END_TURN:
+                if self.players[self.activePlayer].tritonTokens == 0:
+                    self.makeMove((Move.PASS, player, ()))
             case _:
                 self.makeMove((Move.PASS, player, ()))
 
@@ -4065,6 +4081,7 @@ class LoggingBoardState:
         return self.round > 9
 
     def makeMove(self, move):
+        # print(f"Round: {self.round}, Phase: {self.phase}. Making move: {move}. active player: {self.activePlayer}")
         # print(f"Player {move[1]} makes move: {move}")
         # if self.loggingEnabled:
         #    self.log.write(f"Player {move[1]} makes move: {move}\n")
@@ -6056,11 +6073,13 @@ class LoggingBoardState:
                         self.players[self.activePlayer].gainSun(-2, False)
                         self.phase = Phase.ACTIVE_PLAYER_CHOICE_2
                     else:
-                        self.phase = Phase.TURN_START
-                        self.advanceActivePlayer(move[1])
+                        self.phase = Phase.END_TURN
+                        if self.players[self.activePlayer].tritonTokens == 0:
+                            self.makeMove((Move.PASS, move[1], ()))
                 elif self.players[self.activePlayer].getEffectiveSun() < 2:
-                    self.phase = Phase.TURN_START
-                    self.advanceActivePlayer(move[1])
+                    self.phase = Phase.END_TURN
+                    if self.players[self.activePlayer].tritonTokens == 0:
+                        self.makeMove((Move.PASS, move[1], ()))
             case Phase.ACTIVE_PLAYER_BUY_FACES_1:
                 if move[0] == Move.BUY_FACES:
                     for face in move[2]:
@@ -6112,11 +6131,13 @@ class LoggingBoardState:
                             f"Player {move[1]} forges the die face {move[2][1]} over die face {move[2][2]} on their die {die}\n")
                     self.players[self.activePlayer].forgeFace(move[2])
                     if not self.players[self.activePlayer].unforgedFaces:
-                        self.phase = Phase.TURN_START
-                        self.advanceActivePlayer(move[1])
+                        self.phase = Phase.END_TURN
+                        if self.players[self.activePlayer].tritonTokens == 0:
+                            self.makeMove((Move.PASS, move[1], ()))
                 elif move[0] == Move.PASS:
-                    self.phase = Phase.TURN_START
-                    self.advanceActivePlayer(move[1])
+                    self.phase = Phase.END_TURN
+                    if self.players[self.activePlayer].tritonTokens == 0:
+                        self.makeMove((Move.PASS, move[1], ()))
             case Phase.ACTIVE_PLAYER_PERFORM_FEAT_1:
                 if move[0] == Move.PERFORM_FEAT:
                     if self.printingEnabled:
@@ -6244,11 +6265,13 @@ class LoggingBoardState:
                             self.log.write(
                                 f"Player {move[1]} chooses to add {move[2][0]} gold to their hammer track and gain {self.players[self.activePlayer].goldToGain - move[2][0]} gold to their main track\n")
                     self.players[self.activePlayer].useHammerOrScepter(move[2][0])
-                    self.phase = Phase.TURN_START
-                    self.advanceActivePlayer(move[1])
+                    self.phase = Phase.END_TURN
+                    if self.players[self.activePlayer].tritonTokens == 0:
+                        self.makeMove((Move.PASS, move[1], ()))
                 elif move[0] == Move.PASS:
-                    self.phase = Phase.TURN_START
-                    self.advanceActivePlayer(move[1])
+                    self.phase = Phase.END_TURN
+                    if self.players[self.activePlayer].tritonTokens == 0:
+                        self.makeMove((Move.PASS, move[1], ()))
             case Phase.CHOOSE_SHIELD_FACE_1 | Phase.CHOOSE_CHAOS_FACE_1 | Phase.CHOOSE_DOGGED_FACE_1:
                 if move[0] == Move.BUY_FACES:
                     if self.printingEnabled:
@@ -6293,8 +6316,9 @@ class LoggingBoardState:
                         self.log.write(
                             f"Player {move[1]} forges the die face {move[2][1]} over die face {move[2][2]} on their die {die}\n")
                     self.players[self.activePlayer].forgeFace(move[2])
-                    self.phase = Phase.TURN_START
-                    self.advanceActivePlayer(move[1])
+                    self.phase = Phase.END_TURN
+                    if self.players[self.activePlayer].tritonTokens == 0:
+                        self.makeMove((Move.PASS, move[1], ()))
             case Phase.FORGE_FEAT_FACE_1:
                 if move[0] == Move.FORGE_FACE:
                     if move[2][0]:
@@ -6323,8 +6347,9 @@ class LoggingBoardState:
                         self.log.write(
                             f"Player {move[1]} forges the die face {move[2][1]} over die face {move[2][2]} on their die {die}\n")
                     self.players[self.activePlayer].forgeFace(move[2])
-                    self.phase = Phase.TURN_START
-                    self.advanceActivePlayer(move[1])
+                    self.phase = Phase.END_TURN
+                    if self.players[self.activePlayer].tritonTokens == 0:
+                        self.makeMove((Move.PASS, move[1], ()))
             case Phase.CHOOSE_BOAR_MISFORTUNE_PLAYER_1:
                 if move[0] == Move.CHOOSE_BOAR_PLAYER:
                     if self.printingEnabled:
@@ -6373,8 +6398,9 @@ class LoggingBoardState:
                         self.log.write(
                             f"Player {move[1]} forges the die face {move[2][1]} over die face {move[2][2]} on their die {die}\n")
                     self.players[self.blessingPlayer].forgeBoarMisfortuneFace(move[2])
-                    self.phase = Phase.TURN_START
-                    self.advanceActivePlayer(move[1])
+                    self.phase = Phase.END_TURN
+                    if self.players[self.activePlayer].tritonTokens == 0:
+                        self.makeMove((Move.PASS, move[1], ()))
             case Phase.NYMPH_1:
                 if move[0] == Move.CHOOSE_ADD_HAMMER_SCEPTER:
                     if self.players[self.activePlayer].canAddScepter():
@@ -6456,11 +6482,13 @@ class LoggingBoardState:
                         self.log.write(
                             f"Player {move[1]} forges the die face {move[2][1]} over die face {move[2][2]} on their die {die}\n")
                     self.players[self.activePlayer].forgeFace(move[2])
-                    self.phase = Phase.TURN_START
-                    self.advanceActivePlayer(move[1])
+                    self.phase = Phase.END_TURN
+                    if self.players[self.activePlayer].tritonTokens == 0:
+                        self.makeMove((Move.PASS, move[1], ()))
                 elif move[0] == Move.PASS:
-                    self.phase = Phase.TURN_START
-                    self.advanceActivePlayer(move[1])
+                    self.phase = Phase.END_TURN
+                    if self.players[self.activePlayer].tritonTokens == 0:
+                        self.makeMove((Move.PASS, move[1], ()))
             case Phase.TRIDENT_1:
                 if move[0] == Move.BUY_FACES:
                     if move[2][0] == Data.DieFace.REDSHIELD or move[2][0] == Data.DieFace.REDSHIELD or move[2][
@@ -6518,11 +6546,13 @@ class LoggingBoardState:
                         self.log.write(
                             f"Player {move[1]} forges the die face {move[2][1]} over die face {move[2][2]} on their die {die}\n")
                     self.players[self.activePlayer].forgeFace(move[2])
-                    self.phase = Phase.TURN_START
-                    self.advanceActivePlayer(move[1])
+                    self.phase = Phase.END_TURN
+                    if self.players[self.activePlayer].tritonTokens == 0:
+                        self.makeMove((Move.PASS, move[1], ()))
                 elif move[0] == Move.PASS:
-                    self.phase = Phase.TURN_START
-                    self.advanceActivePlayer(move[1])
+                    self.phase = Phase.END_TURN
+                    if self.players[self.activePlayer].tritonTokens == 0:
+                        self.makeMove((Move.PASS, move[1], ()))
             case Phase.GODDESS_CHOOSE_FACES:
                 if move[0] == Move.CHOOSE_FACES:
                     if self.printingEnabled:
@@ -6559,8 +6589,9 @@ class LoggingBoardState:
                             f"Player {move[1]} spends {move[2][0]} gold and gains {move[2][0]} vp due to the instant effect of The Right Hand\n")
                     self.players[self.activePlayer].gainGold(-move[2][0], False)
                     self.players[self.activePlayer].gainVP(move[2][0])
-                    self.phase = Phase.TURN_START
-                    self.advanceActivePlayer(move[1])
+                    self.phase = Phase.END_TURN
+                    if self.players[self.activePlayer].tritonTokens == 0:
+                        self.makeMove((Move.PASS, move[1], ()))
             case Phase.WIND_ROLL_DIE_1:
                 if move[0] == Move.ROLL:
                     if self.printingEnabled:
@@ -6729,11 +6760,13 @@ class LoggingBoardState:
                             self.log.write(
                                 f"Player {move[1]} chooses to add {move[2][0]} gold to their hammer track and gain {self.players[self.activePlayer].goldToGain - move[2][0]} gold to their main track\n")
                     self.players[self.activePlayer].useHammerOrScepter(move[2][0])
-                    self.phase = Phase.TURN_START
-                    self.advanceActivePlayer(move[1])
+                    self.phase = Phase.END_TURN
+                    if self.players[self.activePlayer].tritonTokens == 0:
+                        self.makeMove((Move.PASS, move[1], ()))
                 elif move[0] == Move.PASS:
-                    self.phase = Phase.TURN_START
-                    self.advanceActivePlayer(move[1])
+                    self.phase = Phase.END_TURN
+                    if self.players[self.activePlayer].tritonTokens == 0:
+                        self.makeMove((Move.PASS, move[1], ()))
             case Phase.LEFT_HAND_ROLL_1_1 | Phase.LEFT_HAND_ROLL_1_2:
                 if move[0] == Move.ROLL:
                     if self.printingEnabled:
@@ -6816,8 +6849,9 @@ class LoggingBoardState:
                             f"Player {move[1]} places a(n) {token1} memory token on island {move[2][1]} and a(n) {token2} memory token on island {move[2][3]} due to the instant effect of The Memory\n")
                     self.memories.append((move[2][0], move[2][1], self.activePlayer))
                     self.memories.append((move[2][2], move[2][3], self.activePlayer))
-                    self.phase = Phase.TURN_START
-                    self.advanceActivePlayer(move[1])
+                    self.phase = Phase.END_TURN
+                    if self.players[self.activePlayer].tritonTokens == 0:
+                        self.makeMove((Move.PASS, move[1], ()))
             case Phase.ROLL_CELESTIAL_DIE:
                 if move[0] == Move.ROLL or move[0] == Move.RANDOM_ROLL:
                     self.players[self.celestialPlayer].celestialRolls -= 1
@@ -7297,6 +7331,7 @@ class LoggingBoardState:
                 self.advanceActivePlayer(move[1])
 
     def getOptions(self):
+        # print(f"get options. phase: {self.phase}, round: {self.round}, active player: {self.activePlayer}")
         # print(self.phase)
         # self.printBoardState()
         for player in self.players:
@@ -7512,12 +7547,10 @@ class LoggingBoardState:
                 else:
                     ret = self.getHammerScepterChoices(self.activePlayer)
             case Phase.EXTRA_TURN_DECISION:
-                if self.players[self.activePlayer].getEffectiveSun() < 2:
-                    self.makeMove((Move.PASS, self.activePlayer, ()))
-                    return self.getOptions()
-                ret = (
-                    (Move.TAKE_EXTRA_TURN, self.activePlayer, (True,)),
-                    (Move.TAKE_EXTRA_TURN, self.activePlayer, (False,)))
+                if self.players[self.activePlayer].getEffectiveSun() > 1:
+                    ret = (
+                        (Move.TAKE_EXTRA_TURN, self.activePlayer, (True,)),
+                        (Move.TAKE_EXTRA_TURN, self.activePlayer, (False,)))
             case Phase.CHOOSE_SHIELD_FACE_1 | Phase.CHOOSE_SHIELD_FACE_2:
                 if self.players[self.activePlayer].unforgedFaces:
                     ret = self.generateForgeFace(self.activePlayer)
@@ -8229,6 +8262,9 @@ class LoggingBoardState:
         match self.returnPhase:
             case Phase.ACTIVE_PLAYER_PERFORM_FEAT_1 | Phase.ACTIVE_PLAYER_PERFORM_FEAT_2:
                 self.makeMove((Move.RETURN_TO_FEAT, player, ()))
+            case Phase.END_TURN:
+                if self.players[self.activePlayer].tritonTokens == 0:
+                    self.makeMove((Move.PASS, player, ()))
             case _:
                 self.makeMove((Move.PASS, player, ()))
 
@@ -8743,13 +8779,13 @@ class LoggingBoardState:
                 for player in self.players:
                     if player.gold == minGold:
                         vpLost += min(5, player.vp)
-                        player.gainVP(-5)
                         if self.printingEnabled:
                             print(
-                                f"Player {self.activePlayer} steals {vpLost} vp from {player.playerID} due to the instant effect of The Mists")
+                                f"Player {self.activePlayer} steals {min(5, player.vp)} vp from player {player.playerID} due to the instant effect of The Mists")
                         if self.loggingEnabled:
                             self.log.write(
-                                f"Player {self.activePlayer} gains an extra turn due to the instant effect of The Eternal Fire\n")
+                                f"Player {self.activePlayer} steals {min(5, player.vp)} vp from player {player.playerID} due to the instant effect of The Mists\n")
+                        player.gainVP(-5)
                 self.players[self.activePlayer].gainVP(vpLost)
                 self.makeMove((Move.PASS, self.activePlayer, ()))
             case "ANCESTOR_INST":
