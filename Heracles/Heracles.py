@@ -2,8 +2,6 @@ import random
 import Game
 import MCTS
 import time
-import numpy as np
-import twoPlayerNetwork
 
 
 def printOptions(options, boardState):
@@ -282,11 +280,13 @@ def generateData(numGames):
     while i < numGames:
 
         gameStartTime = time.time()
-        module = 1 # i % 3  # 0 is no module, 1 is goddess maze, 2 is titans
-        players = [Game.Player(0, True, module), Game.Player(1, True, module)]
-        theBoard = Game.LoggingBoardState(players, True, module, False)
+        module = 0 #i % 3  # 0 is no module, 1 is goddess maze, 2 is titans
+        players = [Game.Player(0, True, module), Game.Player(1, False, module)]
+        theBoard = Game.LoggingBoardState(players, True, module, True)
         theBoard.startLogging()
         undoState = theBoard.copyState()
+        ai = random.choice(MCTS.loadPopulation())
+        ai = ai, ai # needs weights for both players
 
         while not theBoard.isOver():
             options = theBoard.getOptions()
@@ -305,12 +305,12 @@ def generateData(numGames):
                         printMove(options[0])
                     theBoard.makeMove(options[0])
                 elif options[0][1] == 0:
-                    move = MCTS.mctsWithBoardEval(theBoard, 5000)
+                    move = MCTS.mctsWithBoardEval(theBoard, 5000, ai)
                     if theBoard.printingEnabled:
                         printMove(move)
                     theBoard.makeMove(move)
                 elif options[0][1] == 1:
-                    move = MCTS.mctsWithHeuristic(theBoard, 500)
+                    move = MCTS.mctsWithHeuristic(theBoard, 50)
                     if theBoard.printingEnabled:
                         printMove(move)
                     theBoard.makeMove(move)
@@ -341,7 +341,7 @@ def generateData(numGames):
                         break
                     print("invalid choice")
                     printOptions(options, theBoard)
-                undoState = theBoard.copyLoggingState()
+                undoState = theBoard.copyLoggingState() # todo: using undo will break logging since startLogging() never gets called for the new state
                 printMove(options[choice - 1])
                 theBoard.makeMove(options[choice - 1])
 
@@ -359,4 +359,4 @@ def generateData(numGames):
             print("runtime exceeded cutoff time, terminating early")
             break
 
-generateData(3)
+generateData(1)

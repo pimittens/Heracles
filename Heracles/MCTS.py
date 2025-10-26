@@ -1,8 +1,9 @@
 import random
 import math
 import Data
-from Game import Move
+import Game
 import time
+import numpy as np
 
 
 class Node:
@@ -18,12 +19,12 @@ class Node:
         return self.state.isOver()
 
     def isFullyExpanded(self):
-        if self.children and self.children[0].move[0] == Move.ROLL:
+        if self.children and self.children[0].move[0] == Game.Move.ROLL:
             return True
         return len(self.children) == len(self.state.getOptions())
 
     def bestChild(self, explorationWeight=1.41):
-        if self.children[0].move[0] == Move.ROLL:
+        if self.children[0].move[0] == Game.Move.ROLL:
             roll = random.choice(range(0, 6))
             i = 0
             for child in self.children:
@@ -45,9 +46,9 @@ class Node:
     def expand(self):
         tried = [child.move for child in self.children]
         options = self.state.getOptions()
-        if options[0][0] == Move.ROLL:
+        if options[0][0] == Game.Move.ROLL:
             for move in options:
-                if move[0] == Move.ROLL:
+                if move[0] == Game.Move.ROLL:
                     nextState = self.state.copyState()
                     nextState.makeMove(move)
                     childNode = Node(nextState, self, move)
@@ -83,30 +84,30 @@ class HeuristicNode:
         return self.state.isOver()
 
     def isFullyExpanded(self):
-        if self.children and self.children[0].move[0] == Move.ROLL:
+        if self.children and self.children[0].move[0] == Game.Move.ROLL:
             return True
         return len(self.children) == len(self.state.getOptions())
 
     def bestChild(self, explorationWeight=1.41):
-        if self.children[0].move[0] == Move.ROLL:
+        if self.children[0].move[0] == Game.Move.ROLL:
             roll = random.choice(range(0, 6))
             i = 0
             for child in self.children:
                 i += child.move[2][1]
                 if roll < i:
                     return child
-        if self.children[0].move[0] == Move.CHOOSE_BUY_FACES and (self.state.round == 1 or (
+        if self.children[0].move[0] == Game.Move.CHOOSE_BUY_FACES and (self.state.round == 1 or (
                 self.state.round < 4 and self.state.players[self.children[0].move[1]].gold >= 8)):
             # buy faces early if player has a lot of gold
             return self.children[0]
-        elif self.children[0].move[0] == Move.BUY_FACES and len(self.children) > 5:
+        elif self.children[0].move[0] == Game.Move.BUY_FACES and len(self.children) > 5:
             # don't consider face buys which don't spend most of current gold
             gold = self.state.players[self.children[0].move[1]].gold
             if self.state.round > 3:
                 gold -= 1
             choicesWeights = []
             for child in self.children:
-                if child.move[0] != Move.BUY_FACES or Data.getTotalGoldCost(child.move[2]) < gold:
+                if child.move[0] != Game.Move.BUY_FACES or Data.getTotalGoldCost(child.move[2]) < gold:
                     choicesWeights.append(0)
                 else:
                     choicesWeights.append((child.points / child.visits) + explorationWeight * math.sqrt(
@@ -114,11 +115,11 @@ class HeuristicNode:
                     ))
             if max(choicesWeights) > 0:
                 return self.children[choicesWeights.index(max(choicesWeights))]
-        elif self.children[0].move[0] == Move.FORGE_FACE:
+        elif self.children[0].move[0] == Game.Move.FORGE_FACE:
             # prioritize forging over gold 1 faces
             choicesWeights = []
             for child in self.children:
-                if child.move[0] == Move.FORGE_FACE and child.move[2][2] == Data.DieFace.GOLD1:
+                if child.move[0] == Game.Move.FORGE_FACE and child.move[2][2] == Data.DieFace.GOLD1:
                     choicesWeights.append((child.points / child.visits) + explorationWeight * math.sqrt(
                         math.log(self.visits) / child.visits
                     ))
@@ -141,9 +142,9 @@ class HeuristicNode:
     def expand(self):
         tried = [child.move for child in self.children]
         options = self.state.getOptions()
-        if options[0][0] == Move.ROLL:
+        if options[0][0] == Game.Move.ROLL:
             for move in options:
-                if move[0] == Move.ROLL:
+                if move[0] == Game.Move.ROLL:
                     nextState = self.state.copyState()
                     nextState.makeMove(move)
                     childNode = HeuristicNode(nextState, self, move)
@@ -165,6 +166,7 @@ class HeuristicNode:
         if self.parent:
             self.parent.backpropagate(result)
 
+
 class EvalNode:
     def __init__(self, state, parent=None, move=None):
         self.state = state
@@ -178,18 +180,45 @@ class EvalNode:
         return self.state.isOver()
 
     def isFullyExpanded(self):
-        if self.children and self.children[0].move[0] == Move.ROLL:
+        if self.children and self.children[0].move[0] == Game.Move.ROLL:
             return True
         return len(self.children) == len(self.state.getOptions())
 
     def bestChild(self, explorationWeight=1.41):
-        if self.children[0].move[0] == Move.ROLL:
+        if self.children[0].move[0] == Game.Move.ROLL:
             roll = random.choice(range(0, 6))
             i = 0
             for child in self.children:
                 i += child.move[2][1]
                 if roll < i:
                     return child
+        elif self.children[0].move[0] == Game.Move.BUY_FACES and len(self.children) > 15:
+            # don't consider face buys which don't spend most of current gold
+            gold = self.state.players[self.children[0].move[1]].gold
+            if self.state.round > 3:
+                gold -= 1
+            choicesWeights = []
+            for child in self.children:
+                if child.move[0] != Game.Move.BUY_FACES or Data.getTotalGoldCost(child.move[2]) < gold:
+                    choicesWeights.append(0)
+                else:
+                    choicesWeights.append((child.points / child.visits) + explorationWeight * math.sqrt(
+                        math.log(self.visits) / child.visits
+                    ))
+            if max(choicesWeights) > 0:
+                return self.children[choicesWeights.index(max(choicesWeights))]
+        elif self.children[0].move[0] == Game.Move.FORGE_FACE:
+            # prioritize forging over gold 1 faces
+            choicesWeights = []
+            for child in self.children:
+                if child.move[0] == Game.Move.FORGE_FACE and child.move[2][2] == Data.DieFace.GOLD1:
+                    choicesWeights.append((child.points / child.visits) + explorationWeight * math.sqrt(
+                        math.log(self.visits) / child.visits
+                    ))
+                else:
+                    choicesWeights.append(0)
+            if max(choicesWeights) > 0:
+                return self.children[choicesWeights.index(max(choicesWeights))]
         choicesWeights = [
             (child.points / child.visits) + explorationWeight * math.sqrt(
                 math.log(self.visits) / child.visits
@@ -205,9 +234,9 @@ class EvalNode:
     def expand(self):
         tried = [child.move for child in self.children]
         options = self.state.getOptions()
-        if options[0][0] == Move.ROLL:
+        if options[0][0] == Game.Move.ROLL:
             for move in options:
-                if move[0] == Move.ROLL:
+                if move[0] == Game.Move.ROLL:
                     nextState = self.state.copyState()
                     nextState.makeMove(move)
                     childNode = EvalNode(nextState, self, move)
@@ -295,33 +324,131 @@ class TicTacToeState:
         print(f"{self.board[2][0]} {self.board[2][1]} {self.board[2][2]}")
 """
 
-def evaluate(state):
+
+def evaluate(state, weights):
     if state.isOver():
         scores = state.getWinners()
     else:
-        scores = [scorePlayer(p) for p in state.players]
+        scores = [scorePlayer(p, weights[p.playerID]) for p in state.players]
     total = sum(scores)
     return [score / total for score in scores]
 
-def scorePlayer(player):
-    score = max(player.vp + Data.getAllegiancePoints(player.allegiance), 0) * 10.0
-    score += math.sqrt(player.gold) * 2.0
-    score += math.sqrt(player.sun) * 3.5 # values for sun and moon are based on gorgon and ferryman
-    score += math.sqrt(player.moon) * 3.0
-    score += math.sqrt(player.ancientShards) * 4.0 # slightly better than sun since it can be spent as both
+
+def scorePlayer(player, weights):
+    score = max(player.vp + Data.getAllegiancePoints(player.allegiance), 0) * weights[0]
+    score += math.sqrt(player.gold) * weights[1]
+    score += math.sqrt(player.sun) * weights[2]
+    score += math.sqrt(player.moon) * weights[3]
+    score += math.sqrt(player.ancientShards) * weights[4]
     for face in player.die1.faces:
-        score += Data.getGoldValue(face) * 5.0 # high value on improving dice
-        if face == Data.DieFace.SUN2:
-            score += 5.0
+        score += weights[5 + face.value]
     for face in player.die2.faces:
-        score += Data.getGoldValue(face) * 5.0 # high value on improving dice
-        if face == Data.DieFace.SUN2:
-            score += 5.0
+        score += weights[5 + face.value]
     for feat in player.feats:
-        if "AUTO" in Data.getEffect(feat) or "REINF" in Data.getEffect(feat):
-            score += 5.0
-    score += sum(player.scepters)
-    return max(score, 1) # force nonzero
+        score += weights[5 + len(Data.DieFace) + feat.value]
+    score += sum(player.scepters) * weights[len(weights) - 1]
+    return max(score, 1)  # force nonzero
+
+
+def geneticAlgorithm(populationSize, generations, mutationRate, mutationStd):
+    startTime = time.time()
+    population = loadPopulation()
+    #population = [np.random.uniform(0, 10, size=6 + len(Data.DieFace) + len(Data.HeroicFeat)) for _ in
+    #              range(populationSize)]
+    for gen in range(generations):
+        fitness = evaluateFitness(population)
+
+        # select parents (top 20%)
+        sortedPop = [w for _, w in sorted(zip(fitness, population), key=lambda x: x[0], reverse=True)]
+        parents = sortedPop[:populationSize // 5]
+
+        # generate new children
+        newPopulation = parents.copy()
+        while len(newPopulation) < populationSize:
+            p1, p2 = random.sample(parents, 2)
+            alpha = np.random.rand()
+            child = alpha * p1 + (1 - alpha) * p2
+
+            # mutate
+            if np.random.rand() < mutationRate:
+                child += np.random.normal(0, mutationStd, size=6 + len(Data.DieFace) + len(Data.HeroicFeat))
+
+            newPopulation.append(child)
+
+        population = newPopulation
+        print(f"Gen {gen}: best fitness = {max(fitness):.3f}, time elapsed: {(time.time() - startTime) / 60} minutes")
+        savePopulation(population, gen)
+
+
+def savePopulation(population, generation):
+    save = open("population.txt", "w")
+    save.write(f"generation {generation}\n")
+    for individual in population:
+        for i in range(len(individual)):
+            save.write(f"{individual[i]}")
+            if i < len(individual) - 1:
+                save.write(", ")
+        save.write("\n")
+    save.close()
+
+def loadPopulation():
+    population = []
+    save = open("population.txt", "r")
+    contents = save.read()
+    contents = contents.split("\n")
+    for line in contents:
+        if "generation" in line or not line:
+            continue
+        population.append(np.fromstring(line, dtype=float, sep=", "))
+    save.close()
+    return population
+
+
+def evaluateFitness(players):
+    numPlayers = len(players)
+    wins = np.zeros(numPlayers)
+    i = 0
+    while i < numPlayers - 1:
+        j = i + 1
+        while j < numPlayers:
+            p0 = random.choice([True, False])
+            if p0:
+                startTime = time.time()
+                result = playGame(players[i], players[j])
+                print(f"game completed in {(time.time() - startTime) / 60} minutes")
+                if result[0]:
+                    wins[i] += 1
+                if result[1]:
+                    wins[j] += 1
+            else:
+                startTime = time.time()
+                result = playGame(players[j], players[i])
+                print(f"game completed in {(time.time() - startTime) / 60} minutes")
+                if result[0]:
+                    wins[j] += 1
+                if result[1]:
+                    wins[i] += 1
+            j += 1
+        i += 1
+    return wins
+
+
+def playGame(p0Weights, p1Weights):
+    module = random.choice(range(3))
+    players = [Game.Player(0, True, module), Game.Player(1, True, module)]
+    state = Game.LoggingBoardState(players, True, module, False)
+    state.startLogging()
+    while not state.isOver():
+        options = state.getOptions()
+        if options[0][0] == Game.Move.ROLL:
+            state.makeMove(options[len(options) - 1])  # always do random roll
+        elif len(options) == 1:
+            state.makeMove(options[0])
+        else:
+            move = mctsWithBoardEval(state, 500, (p0Weights, p1Weights))
+            state.makeMove(move)
+    state.endLogging()
+    return state.getWinners()
 
 
 def mcts(rootState, numSims):
@@ -329,7 +456,7 @@ def mcts(rootState, numSims):
     root = Node(rootState.copyState())
     if len(root.state.getOptions()) == 1:
         return root.state.getOptions()[0]
-    if root.state.getOptions()[0][0] == Move.CHOOSE_RESOLVE_ORDER:
+    if root.state.getOptions()[0][0] == Game.Move.CHOOSE_RESOLVE_ORDER:
         sims = max(numSims // 100, 100)
     else:
         sims = numSims
@@ -365,7 +492,7 @@ def mctsWithHeuristic(rootState, numSims):
     root = HeuristicNode(rootState.copyState())
     if len(root.state.getOptions()) == 1:
         return root.state.getOptions()[0]
-    if root.state.getOptions()[0][0] == Move.CHOOSE_RESOLVE_ORDER:
+    if root.state.getOptions()[0][0] == Game.Move.CHOOSE_RESOLVE_ORDER:
         sims = max(numSims // 100, 100)
     else:
         sims = numSims
@@ -396,12 +523,12 @@ def mctsWithHeuristic(rootState, numSims):
     return root.mostVisitedChild().move
 
 
-def mctsWithBoardEval(rootState, numSims):
+def mctsWithBoardEval(rootState, numSims, weights):
     startTime = time.time()
-    root = Node(rootState.copyState())
+    root = EvalNode(rootState.copyState())
     if len(root.state.getOptions()) == 1:
         return root.state.getOptions()[0]
-    if root.state.getOptions()[0][0] == Move.CHOOSE_RESOLVE_ORDER:
+    if root.state.getOptions()[0][0] == Game.Move.CHOOSE_RESOLVE_ORDER:
         sims = max(numSims // 100, 100)
     else:
         sims = numSims
@@ -414,7 +541,7 @@ def mctsWithBoardEval(rootState, numSims):
         if not node.isTerminalNode():
             node = node.expand()
         # simulation
-        result = evaluate(node.state)
+        result = evaluate(node.state, weights)
         # backpropagation
         node.backpropagate(result)
     if rootState.printingEnabled:
@@ -434,34 +561,37 @@ def mctsWithBoardEval(rootState, numSims):
 
 def rollout(state):
     currentState = state.copyState()
-    #i = 0
-    #if not os.path.exists("logs"):
+    # i = 0
+    # if not os.path.exists("logs"):
     #    os.makedirs("logs")
-    #if os.path.exists("logs/rollout.txt"):
+    # if os.path.exists("logs/rollout.txt"):
     #    os.remove("logs/rollout.txt")
-    #log = open("logs/rollout.txt", "a")
-    #log.write("Begin rollout\n")
+    # log = open("logs/rollout.txt", "a")
+    # log.write("Begin rollout\n")
     while not currentState.isOver():
         possibleMoves = currentState.getOptions()
-        if possibleMoves[0][0] == Move.ROLL:
-            currentState.makeMove(possibleMoves[len(possibleMoves) - 1]) # random roll
+        if possibleMoves[0][0] == Game.Move.ROLL:
+            currentState.makeMove(possibleMoves[len(possibleMoves) - 1])  # random roll
             continue
-        #log.write(f"phase: {currentState.phase}, options: {possibleMoves}\n")
-        #log.write(f"activeplayer gold: {currentState.players[currentState.activePlayer].gold}, sun: {currentState.players[currentState.activePlayer].sun}, moon: {currentState.players[currentState.activePlayer].moon}, goldToSpend: {currentState.players[currentState.activePlayer].goldToSpend}, sunToSpend: {currentState.players[currentState.activePlayer].sunToSpend}, moonToSpend: {currentState.players[currentState.activePlayer].moonToSpend}\n")
-        #for scepter in currentState.players[currentState.activePlayer].scepters:
+        # log.write(f"phase: {currentState.phase}, options: {possibleMoves}\n")
+        # log.write(f"activeplayer gold: {currentState.players[currentState.activePlayer].gold}, sun: {currentState.players[currentState.activePlayer].sun}, moon: {currentState.players[currentState.activePlayer].moon}, goldToSpend: {currentState.players[currentState.activePlayer].goldToSpend}, sunToSpend: {currentState.players[currentState.activePlayer].sunToSpend}, moonToSpend: {currentState.players[currentState.activePlayer].moonToSpend}\n")
+        # for scepter in currentState.players[currentState.activePlayer].scepters:
         #    log.write(f"scepter: {scepter}\n")
-        #if not possibleMoves:
+        # if not possibleMoves:
         #    log.close()
         move = random.choice(possibleMoves)
-        #log.write(f"making move: {move}\n")
+        # log.write(f"making move: {move}\n")
         currentState.makeMove(move)
-        #i += 1
-        #if i > 4990: # this is just for testing
-            #print(f"phase: {currentState.phase}")
-            #print(move)
-        #if i > 5000:
-            #print("game went too long")
-            #currentState.printBoardState()
-            #break
-    #log.close()
+        # i += 1
+        # if i > 4990: # this is just for testing
+        # print(f"phase: {currentState.phase}")
+        # print(move)
+        # if i > 5000:
+        # print("game went too long")
+        # currentState.printBoardState()
+        # break
+    # log.close()
     return currentState.getWinners()
+
+if __name__ == "__main__":
+    geneticAlgorithm(15, 5, 0.2, 0.3)
