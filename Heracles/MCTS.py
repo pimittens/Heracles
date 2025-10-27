@@ -377,6 +377,7 @@ def geneticAlgorithm(populationSize, generations, mutationRate, mutationStd):
 
         population = newPopulation
         print(f"Gen {gen}: best fitness = {max(fitness):.3f}, time elapsed: {(time.time() - startTime) / 60} minutes")
+        print(f"previous generation with fitnesses: {sorted(zip(fitness, population), key=lambda x: x[0], reverse=True)}")
         savePopulation(population, gen)
 
 
@@ -407,6 +408,8 @@ def loadPopulation():
 def evaluateFitness(players):
     numPlayers = len(players)
     wins = np.zeros(numPlayers)
+    game = 1
+    totalGames = numPlayers * (numPlayers - 1) // 2
     i = 0
     while i < numPlayers - 1:
         j = i + 1
@@ -415,7 +418,8 @@ def evaluateFitness(players):
             if p0:
                 startTime = time.time()
                 result = playGame(players[i], players[j])
-                print(f"game completed in {(time.time() - startTime) / 60} minutes")
+                print(f"game {game} out of {totalGames} completed in {(time.time() - startTime) / 60} minutes")
+                game += 1
                 if result[0]:
                     wins[i] += 1
                 if result[1]:
@@ -423,7 +427,8 @@ def evaluateFitness(players):
             else:
                 startTime = time.time()
                 result = playGame(players[j], players[i])
-                print(f"game completed in {(time.time() - startTime) / 60} minutes")
+                print(f"game {game} out of {totalGames} completed in {(time.time() - startTime) / 60} minutes")
+                game += 1
                 if result[0]:
                     wins[j] += 1
                 if result[1]:
@@ -594,4 +599,4 @@ def rollout(state):
     return currentState.getWinners()
 
 if __name__ == "__main__":
-    geneticAlgorithm(15, 5, 0.2, 0.3)
+    geneticAlgorithm(15, 1, 0.2, 0.3)
