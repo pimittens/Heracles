@@ -2093,13 +2093,15 @@ class BoardState:
             case Phase.MAZE_EFFECT_SPEND_GOLD:  # there is an issue with time/great golem where the player can end up here without the required resources so we need to check again
                 if self.players[self.blessingPlayer].getEffectiveGold() > 5:
                     ret = (
-                    (Move.MAZE_SPEND, self.blessingPlayer, (True,)), (Move.MAZE_SPEND, self.blessingPlayer, (False,)))
+                        (Move.MAZE_SPEND, self.blessingPlayer, (True,)),
+                        (Move.MAZE_SPEND, self.blessingPlayer, (False,)))
                 else:
                     ret = (Move.MAZE_SPEND, self.blessingPlayer, (False,)),
             case Phase.MAZE_EFFECT_SPEND_MOON:
                 if self.players[self.blessingPlayer].getEffectiveMoon() > 1:
                     ret = (
-                    (Move.MAZE_SPEND, self.blessingPlayer, (True,)), (Move.MAZE_SPEND, self.blessingPlayer, (False,)))
+                        (Move.MAZE_SPEND, self.blessingPlayer, (True,)),
+                        (Move.MAZE_SPEND, self.blessingPlayer, (False,)))
                 else:
                     ret = (Move.MAZE_SPEND, self.blessingPlayer, (False,)),
             case Phase.MAZE_EFFECT:
@@ -3618,6 +3620,9 @@ class BoardState:
             while j < len(self.players):
                 self.islands[island].append(feat)
                 j += 1
+
+    def getOptionPlayer(self):
+        return self.players[self.getOptions()[0][1]].brain
 
     def observation(self):  # encode board state
         obs = []
@@ -7382,13 +7387,15 @@ class LoggingBoardState:
             case Phase.MAZE_EFFECT_SPEND_GOLD:  # there is an issue with time/great golem where the player can end up here without the required resources so we need to check again
                 if self.players[self.blessingPlayer].getEffectiveGold() > 5:
                     ret = (
-                    (Move.MAZE_SPEND, self.blessingPlayer, (True,)), (Move.MAZE_SPEND, self.blessingPlayer, (False,)))
+                        (Move.MAZE_SPEND, self.blessingPlayer, (True,)),
+                        (Move.MAZE_SPEND, self.blessingPlayer, (False,)))
                 else:
                     ret = (Move.MAZE_SPEND, self.blessingPlayer, (False,)),
             case Phase.MAZE_EFFECT_SPEND_MOON:
                 if self.players[self.blessingPlayer].getEffectiveMoon() > 1:
                     ret = (
-                    (Move.MAZE_SPEND, self.blessingPlayer, (True,)), (Move.MAZE_SPEND, self.blessingPlayer, (False,)))
+                        (Move.MAZE_SPEND, self.blessingPlayer, (True,)),
+                        (Move.MAZE_SPEND, self.blessingPlayer, (False,)))
                 else:
                     ret = (Move.MAZE_SPEND, self.blessingPlayer, (False,)),
             case Phase.MAZE_EFFECT:
@@ -9203,6 +9210,9 @@ class LoggingBoardState:
                 self.islands[island].append(feat)
                 j += 1
 
+    def getOptionPlayer(self):
+        return self.players[self.getOptions()[0][1]].brain
+
     def observation(self):  # encode board state
         obs = []
 
@@ -9519,10 +9529,10 @@ class LoggingBoardState:
 
 
 class Player:
-    def __init__(self, playerID, ai, module):
+    def __init__(self, playerID, brain, module):
         self.module = module
         self.playerID = playerID
-        self.ai = ai
+        self.brain = brain
         self.maxGold = 12
         self.maxSun = 6
         self.maxMoon = 6
@@ -9573,7 +9583,7 @@ class Player:
         self.moonToSpend = 0
 
     def copyPlayer(self):
-        ret = Player(self.playerID, self.ai, self.module)
+        ret = Player(self.playerID, self.brain, self.module)
         ret.maxGold = self.maxGold
         ret.maxSun = self.maxSun
         ret.maxMoon = self.maxMoon
