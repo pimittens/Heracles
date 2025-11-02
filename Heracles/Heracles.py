@@ -1,6 +1,4 @@
-import random
 import Game
-import MCTS
 import time
 import DiceforgePlayers
 
@@ -18,7 +16,7 @@ def generateData(numGames):
 
         gameStartTime = time.time()
         module = i % 3  # 0 is no module, 1 is goddess maze, 2 is titans
-        players = [Game.Player(0, DiceforgePlayers.RandomPlayer(), module), Game.Player(1, DiceforgePlayers.RandomPlayer(), module)]
+        players = [Game.Player(0, DiceforgePlayers.NeuralNetPlayer(), module), Game.Player(1, DiceforgePlayers.MCTSPlayer(), module)]
         theBoard = Game.LoggingBoardState(players, True, module, True)
         theBoard.startLogging()
 

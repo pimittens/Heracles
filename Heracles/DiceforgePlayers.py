@@ -1,6 +1,9 @@
 import numpy as np
 import Game
 import MCTS
+import two_player_network
+import torch
+
 
 def printOptions(options, boardState):
     print(f"Decision for player {options[0][1]}")
@@ -265,6 +268,7 @@ def printOptions(options, boardState):
                 print(f"{i}: Unhandled move type {option[0]}")
         i += 1
 
+
 class RandomPlayer():
     def play(self, board):
         options = board.getOptions()
@@ -273,6 +277,7 @@ class RandomPlayer():
         if options[0][0] == Game.Move.ROLL:
             return options[len(options) - 1]  # always do random roll
         return options[np.random.randint(0, len(options))]
+
 
 class MCTSPlayer():
     def play(self, board):
@@ -309,3 +314,22 @@ class HumanPlayer():
             print("invalid choice")
             printOptions(options, board)
         return options[choice - 1]
+
+
+class NeuralNetPlayer():
+
+    def __init__(self):
+        self.model = two_player_network.TwoPlayerNetwork(input_size=1770)
+        ckpt = torch.load("checkpoint.pt")
+        self.model.load_state_dict(ckpt["model_state"])
+
+    def play(self, board):
+        options = board.getOptions()
+        if board.printingEnabled:
+            printOptions(options, board)
+        if len(options) == 1:
+            return options[0]
+        if options[0][0] == Game.Move.ROLL:
+            return options[len(options) - 1]  # always do random roll
+        move = two_player_network.mcts_search(board, self.model, num_simulations=100)
+        return move
