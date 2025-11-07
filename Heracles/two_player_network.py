@@ -36,8 +36,11 @@ class MCTSNode:
 
 def mcts_search(root_state, model, num_simulations=100):
     root = MCTSNode(root_state)
-    root_player = root_state.getOptions()[0][1]
-
+    num_legal_moves = len(root_state.getOptions())
+    if 10 < num_legal_moves < 50:
+        num_simulations *= 3
+    elif num_legal_moves >= 50 or root_state.getOptions()[0][0] == Game.Move.CHOOSE_BUY_FACES:
+        num_simulations *= 6
     for _ in range(num_simulations):
         node = root
         path = [node]
@@ -60,22 +63,20 @@ def mcts_search(root_state, model, num_simulations=100):
 
         # EVALUATION (via neural network)
         if node.state.isOver():
-            value = node.state.getWinners()[root_player]
+            if sum(node.state.getWinners()) > 1:
+                value = 0 # zero value for draws
+            else:
+                value = node.state.getWinners()[node.player]
         else:
             encoded = torch.tensor(node.state.observation()).unsqueeze(0)
             with torch.no_grad():
                 value = model(encoded).item()
 
         # BACKPROPAGATION
-        for node in reversed(path):
-            node.N += 1
-            # If this node's player is the same as root_player,
-            # the value is direct; otherwise invert
-            if node.player == root_player:
-                node.W += value
-            else:
-                node.W -= value  # assuming roughly zero-sum
-            node.Q = node.W / node.N
+        for n in reversed(path):
+            n.N += 1
+            n.W += value if node.player == n.player else -value
+            n.Q = n.W / n.N
 
     # Choose move with highest visit count
     choice, _ = max(root.children.items(), key=lambda kv: kv[1].N)
@@ -86,7 +87,7 @@ def mcts_search(root_state, model, num_simulations=100):
                 f"Move: {move}, visits:{node.N}, average points: {node.Q}")
         # print(f"time elapsed: {time.time() - startTime} seconds")
     if root_state.loggingEnabled:
-        root_state.log.write("with neural net evaluation\n")
+        root_state.log.write("mcts (with neural net evaluation) results\n")
         for move, node in root.children.items():
             root_state.log.write(
                 f"Move: {move}, visits:{node.N}, average points: {node.Q}\n")
@@ -95,6 +96,10 @@ def mcts_search(root_state, model, num_simulations=100):
 
 
 def select_child(node, c_puct=1.4):
+    if next(iter(node.children.keys()))[0] == Game.Move.CHOOSE_RESOLVE_ORDER:
+        # don't bother with resolve order nodes since they hardly ever matter
+        for move, child in node.children.items():
+            return child
     if next(iter(node.children.keys()))[0] == Game.Move.ROLL:
         roll = random.choice(range(0, 6))
         i = 0
@@ -123,11 +128,14 @@ def self_play(model, num_games=9):
             if options[0][0] == Game.Move.ROLL:
                 env.makeMove(options[len(options) - 1])
                 continue
+            if options[0][0] == Game.Move.CHOOSE_RESOLVE_ORDER:
+                env.makeMove(random.choice(options)) # pick random resolve order since it rarely matters
+                continue
             s = env.observation()
             if len(options) == 1:
                 move = options[0]
             else:
-                move = mcts_search(env, model, num_simulations=100)
+                move = mcts_search(env, model, num_simulations=200)
             states.append((s, env.getOptions()[0][1]))
             env.makeMove(move)
 
@@ -205,7 +213,8 @@ if __name__ == "__main__":
         print("Starting fresh")
 
     # Main loop
-    for iteration in range(start_iter, 100):
+    for iteration in range(start_iter, 201):
+        print(f"begin iteration {iteration}")
         data = self_play(model, num_games=9)
         replay_buffer.extend(data)
 
@@ -218,6 +227,13 @@ if __name__ == "__main__":
             "optimizer_state": optimizer.state_dict(),
             "iteration": iteration,
         }, "checkpoint.pt")
+
+        if iteration % 20 == 0:
+            torch.save({
+                "model_state": model.state_dict(),
+                "optimizer_state": optimizer.state_dict(),
+                "iteration": iteration,
+            }, f"checkpoint_{iteration}.pt")
 
         with open("replay_buffer.pkl", "wb") as f:
             pickle.dump(list(replay_buffer), f)
