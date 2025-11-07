@@ -250,15 +250,15 @@ def printOptions(options, boardState):
                 print(f"{i}: Use the effect of The Celestial Die to gain the effect of the die face {option[2][0]}")
             case Game.Move.CHOOSE_MEMORY:
                 if option[2][0]:
-                    token1 = "ancient shard"
+                    token1 = "an ancient shard"
                 else:
-                    token1 = "loyalty"
+                    token1 = "a loyalty"
                 if option[2][1]:
-                    token2 = "ancient shard"
+                    token2 = "an ancient shard"
                 else:
-                    token2 = "loyalty"
+                    token2 = "a loyalty"
                 print(
-                    f"{i}: Place a(n) {token1} memory token on island {option[2][1]} and a {token2} memory token on island {option[2][3]}")
+                    f"{i}: Place {token1} memory token on island {option[2][1]} and {token2} memory token on island {option[2][3]}")
             case Game.Move.GUARDIAN_CHOICE:
                 print(f"{i}: Gain one {option[2][0]} from the effect of The Guardian")
             case Game.Move.CHOOSE_RESOLVE_ORDER:

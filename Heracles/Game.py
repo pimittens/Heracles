@@ -3367,9 +3367,9 @@ class BoardState:
                 self.makeMove((Move.PASS, self.activePlayer, ()))
             case "MEMORY_INST_AUTO":
                 if self.phase == Phase.ACTIVE_PLAYER_PERFORM_FEAT_1:
-                    self.mazeReturnPhase = Phase.CHOOSE_MEMORY_1
+                    self.phase = Phase.CHOOSE_MEMORY_1
                 else:
-                    self.mazeReturnPhase = Phase.CHOOSE_MEMORY_2
+                    self.phase = Phase.CHOOSE_MEMORY_2
             case "CHAOS_INST":
                 if self.phase == Phase.ACTIVE_PLAYER_PERFORM_FEAT_1:
                     self.phase = Phase.CHOOSE_CHAOS_FACE_1
@@ -8068,6 +8068,7 @@ class LoggingBoardState:
             j = 1
             while j < 8:
                 if i == j:
+                    j += 1
                     continue
                 ret.append((Move.CHOOSE_MEMORY, playerID, (True, i, True, j)))
                 ret.append((Move.CHOOSE_MEMORY, playerID, (True, i, False, j)))
@@ -8882,9 +8883,9 @@ class LoggingBoardState:
                     self.log.write(
                         f"Player {self.activePlayer} gains 2 memory tokens due to the instant effect of The Memory\n")
                 if self.phase == Phase.ACTIVE_PLAYER_PERFORM_FEAT_1:
-                    self.mazeReturnPhase = Phase.CHOOSE_MEMORY_1
+                    self.phase = Phase.CHOOSE_MEMORY_1
                 else:
-                    self.mazeReturnPhase = Phase.CHOOSE_MEMORY_2
+                    self.phase = Phase.CHOOSE_MEMORY_2
             case "CHAOS_INST":
                 if self.phase == Phase.ACTIVE_PLAYER_PERFORM_FEAT_1:
                     self.phase = Phase.CHOOSE_CHAOS_FACE_1
