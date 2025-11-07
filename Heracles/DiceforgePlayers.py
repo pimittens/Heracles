@@ -282,6 +282,10 @@ class RandomPlayer():
 
 
 class MCTSPlayer():
+
+    def __init__(self, numSims):
+        self.numSims = numSims
+
     def play(self, board):
         options = board.getOptions()
         if board.printingEnabled:
@@ -292,7 +296,25 @@ class MCTSPlayer():
             return options[len(options) - 1]  # always do random roll
         if options[0][0] == Game.Move.CHOOSE_RESOLVE_ORDER:
             return random.choice(options)  # pick random resolve order since it rarely matters
-        move = MCTS.mctsWithHeuristic(board, 500)
+        move = MCTS.mcts(board, self.numSims)
+        return move
+
+class MCTSHeuristicPlayer():
+
+    def __init__(self, numSims):
+        self.numSims = numSims
+
+    def play(self, board):
+        options = board.getOptions()
+        if board.printingEnabled:
+            printOptions(options, board)
+        if len(options) == 1:
+            return options[0]
+        if options[0][0] == Game.Move.ROLL:
+            return options[len(options) - 1]  # always do random roll
+        if options[0][0] == Game.Move.CHOOSE_RESOLVE_ORDER:
+            return random.choice(options)  # pick random resolve order since it rarely matters
+        move = MCTS.mctsWithHeuristic(board, self.numSims)
         return move
 
 
