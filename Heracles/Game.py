@@ -3440,7 +3440,7 @@ class BoardState:
             if found:
                 self.memories.remove(next)
                 if next[0]:
-                    self.players[playerID].gainAncientShard(2)
+                    self.players[playerID].gainAncientShards(2)
                     self.players[playerID].gainMoon(1, False)
                 else:
                     self.players[playerID].gainLoyalty(2)
@@ -8984,7 +8984,7 @@ class LoggingBoardState:
                         print(f"Player {playerID} gains 2 ancient shards and 1 moon from a memory token")
                     if self.loggingEnabled:
                         self.log.write(f"Player {playerID} gains 2 ancient shards and 1 moon from a memory token\n")
-                    self.players[playerID].gainAncientShard(2)
+                    self.players[playerID].gainAncientShards(2)
                     self.players[playerID].gainMoon(1, False)
                 else:
                     if self.printingEnabled:
