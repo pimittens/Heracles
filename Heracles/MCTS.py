@@ -24,6 +24,8 @@ class Node:
         return len(self.children) == len(self.state.getOptions())
 
     def bestChild(self, explorationWeight=1.41):
+        if self.children[0].move[0] == Game.Move.CHOOSE_RESOLVE_ORDER:
+            return self.children[0] # don't bother with resolve order since it hardly ever matters
         if self.children[0].move[0] == Game.Move.ROLL:
             roll = random.choice(range(0, 6))
             i = 0
@@ -89,6 +91,8 @@ class HeuristicNode:
         return len(self.children) == len(self.state.getOptions())
 
     def bestChild(self, explorationWeight=1.41):
+        if self.children[0].move[0] == Game.Move.CHOOSE_RESOLVE_ORDER:
+            return self.children[0] # don't bother with resolve order since it hardly ever matters
         if self.children[0].move[0] == Game.Move.ROLL:
             roll = random.choice(range(0, 6))
             i = 0
@@ -185,6 +189,8 @@ class EvalNode:
         return len(self.children) == len(self.state.getOptions())
 
     def bestChild(self, explorationWeight=1.41):
+        if self.children[0].move[0] == Game.Move.CHOOSE_RESOLVE_ORDER:
+            return self.children[0] # don't bother with resolve order since it hardly ever matters
         if self.children[0].move[0] == Game.Move.ROLL:
             roll = random.choice(range(0, 6))
             i = 0
@@ -459,13 +465,7 @@ def playGame(p0Weights, p1Weights):
 def mcts(rootState, numSims):
     startTime = time.time()
     root = Node(rootState.copyState())
-    if len(root.state.getOptions()) == 1:
-        return root.state.getOptions()[0]
-    if root.state.getOptions()[0][0] == Game.Move.CHOOSE_RESOLVE_ORDER:
-        sims = max(numSims // 100, 100)
-    else:
-        sims = numSims
-    for _ in range(sims):
+    for _ in range(numSims):
         node = root
         # selection
         while node.isFullyExpanded() and node.children:
@@ -495,13 +495,7 @@ def mcts(rootState, numSims):
 def mctsWithHeuristic(rootState, numSims):
     startTime = time.time()
     root = HeuristicNode(rootState.copyState())
-    if len(root.state.getOptions()) == 1:
-        return root.state.getOptions()[0]
-    if root.state.getOptions()[0][0] == Game.Move.CHOOSE_RESOLVE_ORDER:
-        sims = max(numSims // 100, 100)
-    else:
-        sims = numSims
-    for _ in range(sims):
+    for _ in range(numSims):
         node = root
         # selection
         while node.isFullyExpanded() and node.children:
@@ -531,13 +525,7 @@ def mctsWithHeuristic(rootState, numSims):
 def mctsWithBoardEval(rootState, numSims, weights):
     startTime = time.time()
     root = EvalNode(rootState.copyState())
-    if len(root.state.getOptions()) == 1:
-        return root.state.getOptions()[0]
-    if root.state.getOptions()[0][0] == Game.Move.CHOOSE_RESOLVE_ORDER:
-        sims = max(numSims // 100, 100)
-    else:
-        sims = numSims
-    for _ in range(sims):
+    for _ in range(numSims):
         node = root
         # selection
         while node.isFullyExpanded() and node.children:

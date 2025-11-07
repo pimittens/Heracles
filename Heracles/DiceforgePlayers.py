@@ -1,3 +1,5 @@
+import random
+
 import numpy as np
 import Game
 import MCTS
@@ -288,6 +290,8 @@ class MCTSPlayer():
             return options[0]
         if options[0][0] == Game.Move.ROLL:
             return options[len(options) - 1]  # always do random roll
+        if options[0][0] == Game.Move.CHOOSE_RESOLVE_ORDER:
+            return random.choice(options)  # pick random resolve order since it rarely matters
         move = MCTS.mctsWithHeuristic(board, 500)
         return move
 
@@ -318,9 +322,9 @@ class HumanPlayer():
 
 class NeuralNetPlayer():
 
-    def __init__(self):
+    def __init__(self, iteration=-1):
         self.model = two_player_network.TwoPlayerNetwork(input_size=1770)
-        ckpt = torch.load("checkpoint.pt")
+        ckpt = torch.load(f"checkpoint.pt") if iteration == -1 else torch.load(f"checkpoint_{iteration}.pt")
         self.model.load_state_dict(ckpt["model_state"])
 
     def play(self, board):
@@ -331,5 +335,7 @@ class NeuralNetPlayer():
             return options[0]
         if options[0][0] == Game.Move.ROLL:
             return options[len(options) - 1]  # always do random roll
-        move = two_player_network.mcts_search(board, self.model, num_simulations=100)
+        if options[0][0] == Game.Move.CHOOSE_RESOLVE_ORDER:
+            return random.choice(options)  # pick random resolve order since it rarely matters
+        move = two_player_network.mcts_search(board, self.model, num_simulations=500)
         return move
