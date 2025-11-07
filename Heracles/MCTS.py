@@ -484,7 +484,7 @@ def mcts(rootState, numSims):
                 f"Move: {node.move}, visits:{node.visits}, win probability: {node.points / node.visits}, lastPlayer: {node.state.lastPlayer}")
         print(f"time elapsed: {time.time() - startTime} seconds")
     if rootState.loggingEnabled:
-        rootState.log.write("mcts (with heuristic) results\n")
+        rootState.log.write("mcts results\n")
         for node in root.children:
             rootState.log.write(
                 f"Move: {node.move}, visits:{node.visits}, win probability: {node.points / node.visits}, lastPlayer: {node.state.lastPlayer}\n")
