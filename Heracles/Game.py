@@ -2774,6 +2774,7 @@ class BoardState:
             j = 1
             while j < 8:
                 if i == j:
+                    j += 1
                     continue
                 ret.append((Move.CHOOSE_MEMORY, playerID, (True, i, True, j)))
                 ret.append((Move.CHOOSE_MEMORY, playerID, (True, i, False, j)))
