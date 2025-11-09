@@ -2789,7 +2789,7 @@ class BoardState:
         faces = set(player.die1.faces)
         for face in faces:
             level = Data.getLevel(face)
-            if level > 5:
+            if level > 5 or Data.isBoarFace(face) or Data.isMisfortuneFace(face):
                 continue
             pool = self.getUpgradePool(level + 2)
             for upgradeFace in pool:
@@ -2798,7 +2798,7 @@ class BoardState:
         faces = set(player.die2.faces)
         for face in faces:
             level = Data.getLevel(face)
-            if level > 5:
+            if level > 5 or Data.isBoarFace(face) or Data.isMisfortuneFace(face):
                 continue
             pool = self.getUpgradePool(level + 2)
             for upgradeFace in pool:
@@ -2833,7 +2833,7 @@ class BoardState:
         faces = set(player.die1.faces)
         for face in faces:
             level = Data.getLevel(face)
-            if level == 7:
+            if level == 7 or Data.isBoarFace(face) or Data.isMisfortuneFace(face):
                 continue
             upgrade = 1
             while upgrade <= levels:
@@ -2845,7 +2845,7 @@ class BoardState:
         faces = set(player.die2.faces)
         for face in faces:
             level = Data.getLevel(face)
-            if level == 7:
+            if level == 7 or Data.isBoarFace(face) or Data.isMisfortuneFace(face):
                 continue
             upgrade = 1
             while upgrade <= levels:
@@ -8084,7 +8084,7 @@ class LoggingBoardState:
         faces = set(player.die1.faces)
         for face in faces:
             level = Data.getLevel(face)
-            if level > 5:
+            if level > 5 or Data.isBoarFace(face) or Data.isMisfortuneFace(face):
                 continue
             pool = self.getUpgradePool(level + 2)
             for upgradeFace in pool:
@@ -8093,7 +8093,7 @@ class LoggingBoardState:
         faces = set(player.die2.faces)
         for face in faces:
             level = Data.getLevel(face)
-            if level > 5:
+            if level > 5 or Data.isBoarFace(face) or Data.isMisfortuneFace(face):
                 continue
             pool = self.getUpgradePool(level + 2)
             for upgradeFace in pool:
@@ -8128,7 +8128,7 @@ class LoggingBoardState:
         faces = set(player.die1.faces)
         for face in faces:
             level = Data.getLevel(face)
-            if level == 7:
+            if level == 7 or Data.isBoarFace(face) or Data.isMisfortuneFace(face):
                 continue
             upgrade = 1
             while upgrade <= levels:
@@ -8140,7 +8140,7 @@ class LoggingBoardState:
         faces = set(player.die2.faces)
         for face in faces:
             level = Data.getLevel(face)
-            if level == 7:
+            if level == 7 or Data.isBoarFace(face) or Data.isMisfortuneFace(face):
                 continue
             upgrade = 1
             while upgrade <= levels:
