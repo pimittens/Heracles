@@ -111,8 +111,8 @@ class HeuristicNode:
                 gold -= 1
             choicesWeights = []
             for child in self.children:
-                if child.move[0] != Game.Move.BUY_FACES or Data.getTotalGoldCost(child.move[2]) < gold:
-                    choicesWeights.append(0)
+                if child.move[0] != Game.Move.BUY_FACES or Data.getTotalGoldCost(child.move[2]) < gold or Data.DieFace.GOLD3VP2OR in child.move[2] or (Data.DieFace.VP3 in child.move[2] and self.state.round < 6):
+                    choicesWeights.append(0) # gold3vp2or is probably not worth buying in most situations, and buying vp3 early is probably bad since sun 2 should be available instead
                 else:
                     choicesWeights.append((child.points / child.visits) + explorationWeight * math.sqrt(
                         math.log(self.visits) / child.visits
