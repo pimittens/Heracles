@@ -3294,7 +3294,7 @@ class BoardState:
                     moonLost += min(1, player.moon)
                     player.gainMoon(-1, True)  # should only come from reserve
                 self.players[self.activePlayer].gainSun(sunLost, False)
-                self.players[self.activePlayer].gainMoon(moonLost, False)
+                self.players[self.activePlayer].moonToGain = moonLost # delay until after spend
                 self.makeMove((Move.PASS, self.activePlayer, ()))
             case "MISTS_INST":
                 minGold = self.players[0].gold
@@ -8777,7 +8777,7 @@ class LoggingBoardState:
                     self.log.write(
                         f"Player {self.activePlayer} steals 1 sun and 1 moon from each other player, gaining {sunLost} sun and {moonLost} moon, due to the instant effect of The Eternal Night\n")
                 self.players[self.activePlayer].gainSun(sunLost, False)
-                self.players[self.activePlayer].gainMoon(moonLost, False)
+                self.players[self.activePlayer].moonToGain = moonLost # delay until after spend
                 self.makeMove((Move.PASS, self.activePlayer, ()))
             case "MISTS_INST":
                 minGold = self.players[0].gold
@@ -9583,6 +9583,7 @@ class Player:
         self.goldToSpend = 0  # can spend from track or scepters
         self.sunToSpend = 0
         self.moonToSpend = 0
+        self.moonToGain = 0 # only used to delay moon gain until after spending for eternal night effect
 
     def copyPlayer(self):
         ret = Player(self.playerID, self.brain, self.module)
@@ -9634,6 +9635,7 @@ class Player:
         ret.goldToSpend = self.goldToSpend
         ret.sunToSpend = self.sunToSpend
         ret.moonToSpend = self.moonToSpend
+        ret.moonToGain = self.moonToGain
         return ret
 
     def chestEffect(self):
@@ -9737,6 +9739,8 @@ class Player:
         self.ancientShards = max(self.ancientShards - ancientShard, 0)
         self.moon = max(self.moon - (self.moonToSpend - scepter - ancientShard), 0)
         self.moonToSpend = 0
+        self.moon += self.moonToGain
+        self.moonToGain = 0
 
     def gainVP(self, amount):
         self.vp = max(self.vp + amount, 0)
