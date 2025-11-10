@@ -3409,8 +3409,6 @@ class BoardState:
     def checkRebellionEffects(self, player, feat):
         featPerformed = False
         for pl in self.players:
-            if pl.playerID == player.playerID:
-                continue
             if feat in pl.feats or (Data.isBoarFeat(feat) and Data.containsBoarFeat(pl.feats)) or (
                     Data.isMisfortuneFeat(feat) and Data.containsMisfortuneFeat(pl.feats)):
                 featPerformed = True
@@ -8925,8 +8923,6 @@ class LoggingBoardState:
     def checkRebellionEffects(self, player, feat):
         featPerformed = False
         for pl in self.players:
-            if pl.playerID == player.playerID:
-                continue
             if feat in pl.feats or (Data.isBoarFeat(feat) and Data.containsBoarFeat(pl.feats)) or (
                     Data.isMisfortuneFeat(feat) and Data.containsMisfortuneFeat(pl.feats)):
                 featPerformed = True
@@ -8937,10 +8933,10 @@ class LoggingBoardState:
                 if Data.getEffectLevel(player.allegiance) == -2:
                     if self.printingEnabled:
                         print(
-                            f"Player {player.playerID} gains 3 vp due to being the first to perform a heroic feat this game and their position on the allegiance track")
+                            f"Player {player.playerID} gains 3 vp due performing a heroic feat for the first time this game and their position on the allegiance track")
                     if self.loggingEnabled:
                         self.log.write(
-                            f"Player {player.playerID} gains 3 vp due to being the first to perform a heroic feat this game and their position on the allegiance track\n")
+                            f"Player {player.playerID} gains 3 vp due performing a heroic feat for the first time this game and their position on the allegiance track\n")
                     player.gainVP(3)
                 else:  # -1
                     if self.printingEnabled:
@@ -8962,10 +8958,10 @@ class LoggingBoardState:
             else:  # -1
                 if self.printingEnabled:
                     print(
-                        f"Player {player.playerID} gains 3 vp due to performing a heroic feat for the first time this game and their position on the allegiance track")
+                        f"Player {player.playerID} gains 3 vp due to being the first to perform a heroic feat this game and their position on the allegiance track")
                 if self.loggingEnabled:
                     self.log.write(
-                        f"Player {player.playerID} gains 3 vp due to performing a heroic feat for the first time this game and their position on the allegiance track\n")
+                        f"Player {player.playerID} gains 3 vp due to being the first to perform a heroic feat this game and their position on the allegiance track\n")
                 player.gainVP(3)
 
     def checkMemories(self, feat, playerID):
