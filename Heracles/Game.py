@@ -249,6 +249,7 @@ class BoardState:
         self.blessing = False  # true when resolving a major/minor blessing
         self.oracle = False
         self.memories = []
+        self.printingEnabled = self.loggingEnabled = False
         if initialState:
             self.setup()
             self.makeMove((Move.PASS, 0, ()))
@@ -286,6 +287,7 @@ class BoardState:
         ret.blessing = self.blessing
         ret.oracle = self.oracle
         ret.memories = copy.deepcopy(self.memories)
+        ret.printingEnabled = ret.loggingEnabled = False
         return ret
 
     def copyLoggingState(self):

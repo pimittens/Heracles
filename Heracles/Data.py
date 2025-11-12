@@ -1,5 +1,4 @@
 import json
-from types import SimpleNamespace
 from enum import Enum
 
 
