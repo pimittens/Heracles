@@ -116,7 +116,8 @@ def collect_data(num_games, sims, data):
         print(f"finished game {i} out of {num_games}")
         print(f"game took {(time.time() - gameStartTime) / 60} minutes")
         print(f"total time elapsed: {(time.time() - startTime) / 60} minutes")
-        print(f"estimated time remaining: {((time.time() - startTime) / i * (num_games - i)) / 60} minutes")
+        print(f"average time per game: {(time.time() - startTime) / (i + 1) / 60} minutes")
+        print(f"estimated time remaining: {((time.time() - startTime) / (i + 1) * (num_games - i)) / 60} minutes")
 
     with open("data.json", "w") as f:
         json.dump(data, f)
@@ -193,4 +194,4 @@ try:
 except FileNotFoundError:
     data = initialize_data()
 
-collect_data(100, 500, data)
+collect_data(500, 500, data)
